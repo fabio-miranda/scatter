@@ -1,0 +1,29 @@
+html { 
+  height: 100%;
+  background-color: #FFFFFF;
+}
+
+body { 
+  padding: 30px;
+  font-family: 'Yanone Kaffeesatz', sans-serif;
+  font-size: 13pt;
+}
+
+.scatterplot {
+  width : 50px;
+  height: 50px;
+}
+
+.config {
+  
+}
+
+.xAxis {
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+.yAxis {
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}

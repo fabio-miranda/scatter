@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <link type="text/css" rel="stylesheet" href="css/style.css" media="all">
+    <script type="text/javascript" src="js/libs/jquery-1.10.0.min.js"></script>
+    <script type="text/javascript" src="js/libs/gl-matrix-min.js"></script>
+    <script type="text/javascript" src="js/libs/d3.v3.min.js"></script>
+    <script type="text/javascript" src="js/libs/crossfilter.min.js"></script>
+    <script type="text/javascript" src="js/scatter.js"></script>
+    <script type="text/javascript" src="js/scatterd3.js"></script>
+    <script id="shader-fs" type="x-shader/x-fragment">
+        precision mediump float;
+
+        void main(void) {
+            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        }
+    </script>
+
+    <script id="shader-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        }
+    </script>
+    <script type="text/javascript" src="js/glutil.js"></script>
+    <script type="text/javascript" src="js/scattergl.js"></script>
+    <script type="text/javascript" src="js/scattercanvas.js"></script>
+  </head>
+  <body>
+    <div id='config' class='config' />
+      N: <input type="text" value="100"> 
+      Rendering: <select id="rendering" onchange=ListScatterChange()>
+                  <option>d3</option>
+                  <option>canvas</option>
+                  <option>gl</option>
+                </select>
+      <button onclick="update()">ok</button>
+    </div>
+    <canvas id='scatterplot' class='scatterplot'/>
+  </body>
+</html>
