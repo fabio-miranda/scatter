@@ -95,21 +95,29 @@ function drawScene() {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 }
 
+function utf8_to_b64( str ) {
+  return window.btoa(encodeURIComponent( str ));
+}
+
+
+function toHex(str) {
+    var hex = '';
+    for(var i=0;i<str.length;i++) {
+        hex += ''+str.charCodeAt(i).toString(16);
+    }
+    return hex;
+}
 
 function scattergl(datatile){
   var canvas = document.getElementById("scatterplot");
-  //initGL(canvas);
-  //initShaders();
-  //initBuffers();
-  img = 'data:image/png;base64,'+datatile;
-  console.log(img);
-  canvas.getContext("2d").drawImage(img, 10, 10);
-  //console.log(canvas.getContext("2d").getImageData(0,0,50,50).data);
+  initGL(canvas);
+  initShaders();
+  initBuffers();
 
-  //gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  //gl.enable(gl.DEPTH_TEST);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.enable(gl.DEPTH_TEST);
 
+  drawScene();
 
-
-  //drawScene();
+  document.getElementById("imgtest").src="data:image/png;base64,"+datatile;
 }

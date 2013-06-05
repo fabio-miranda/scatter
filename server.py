@@ -4,6 +4,7 @@ import os
 import random
 import StringIO
 import cairo
+import base64
 
 import datatile
 
@@ -28,11 +29,14 @@ class ScatterPage:
     tile = datatile.getTile(5, 5)
 
     cherrypy.response.headers['Content-Type'] = "image/png"
+
     buffer = StringIO.StringIO()
     tile.write_to_png(buffer)
     tile.write_to_png("t1.png")
     buffer.seek(0)
-    return cherrypy.lib.file_generator(buffer)
+    #return cherrypy.lib.file_generator(buffer)
+    #send base64 encoded string
+    return base64.b64encode(buffer.getvalue())
 
 
   index.expose = True
