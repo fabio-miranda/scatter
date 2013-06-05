@@ -35,20 +35,19 @@ function getShader(gl, id) {
   return shader;
 }
 
-function createTexture(width, height, size, format, iformat, type, tex, data){
+function createTexture(iformat, format, type, image, tex){
 
-  glActiveTexture(GL_TEXTURE0);
-  glGenTextures(1, tex);
-  glBindTexture(GL_TEXTURE_2D, tex);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); 
 
-  glTexImage2D(GL_TEXTURE_2D, 0, iformat, width, height, 0, format, type, data);
+  gl.texImage2D(gl.TEXTURE_2D, 0, iformat, format, type, image);
 
 
-  glBindTexture(GL_TEXTURE_2D, 0);
+  gl.bindTexture(gl.TEXTURE_2D, null);
 
   //delete [] initialvalues;
 

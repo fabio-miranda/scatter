@@ -95,18 +95,6 @@ function drawScene() {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 }
 
-function utf8_to_b64( str ) {
-  return window.btoa(encodeURIComponent( str ));
-}
-
-
-function toHex(str) {
-    var hex = '';
-    for(var i=0;i<str.length;i++) {
-        hex += ''+str.charCodeAt(i).toString(16);
-    }
-    return hex;
-}
 
 function scattergl(datatile){
   var canvas = document.getElementById("scatterplot");
@@ -119,5 +107,14 @@ function scattergl(datatile){
 
   drawScene();
 
-  document.getElementById("imgtest").src="data:image/png;base64,"+datatile;
+  //texture
+  var texture = gl.createTexture();
+  var image = new Image();
+  image.src="data:image/png;base64,"+datatile;
+
+  image.onload = function(){
+    createTexture(gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image, texture);
+  }
+
+  
 }
