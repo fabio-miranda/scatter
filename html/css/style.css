@@ -10,8 +10,8 @@ body {
 }
 
 .scatterplot {
-  width : 32px;
-  height: 32px;
+  width : 640px;
+  height: 640px;
 }
 
 .config {

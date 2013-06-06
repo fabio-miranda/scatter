@@ -41,7 +41,7 @@ function generate(){
 function initialize(){
 
 
-  var postdata = {'binsize': 1, 'width' : $("#scatterplot").width(), 'height': $("#scatterplot").height(), 'numentries' : 32, 'numdim': 32};
+  var postdata = {'binsize': 1, 'width' : 32, 'height': 32, 'numentries' : 32, 'numdim': 32};
   $.post('/data', postdata, function(aux) {
     datatile = aux;
     scattergl(datatile);
