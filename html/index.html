@@ -12,11 +12,14 @@
     <script type="text/javascript" src="js/scatter.js"></script>
     <script type="text/javascript" src="js/scatterd3.js"></script>
     <script id="shader-fs" type="x-shader/x-fragment">
+        precision mediump float;
+
         varying highp vec2 vTextureCoord;
         uniform sampler2D uSampler;
 
         void main(void) {
-            gl_FragColor = texture2D(uSampler, vTextureCoord);
+          vec4 count = texture2D(uSampler, vTextureCoord).rgba;
+          gl_FragColor = vec4(count.r, count.g, count.b, 1);
         }
     </script>
 

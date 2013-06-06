@@ -86,7 +86,7 @@ function drawScene() {
   gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  mat4.ortho(pMatrix, -1, 1, 1, -1, -1, 1);
+  mat4.ortho(pMatrix, 0, 1, 0, 1, 0, 1);
   mat4.identity(mvMatrix);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
