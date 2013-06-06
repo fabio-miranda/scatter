@@ -32,7 +32,7 @@ class ScatterPage:
 
     buffer = StringIO.StringIO()
     tile.write_to_png(buffer)
-    tile.write_to_png("t1.png")
+    #tile.write_to_png("t1.png")
     buffer.seek(0)
     #return cherrypy.lib.file_generator(buffer)
     #send base64 encoded string
