@@ -29,36 +29,45 @@ function initShaders(){
   shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
   gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
+  shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+  gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+
   shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
   shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
 }
 
-var triangleVertexPositionBuffer;
-var squareVertexPositionBuffer;
-
+var quadBuffer;
+var texCoordBuffer;
 function initBuffers() {
-  triangleVertexPositionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-  var vertices = [
-       0.0,  1.0,  0.0,
-      -1.0, -1.0,  0.0,
-       1.0, -1.0,  0.0
-  ];
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-  triangleVertexPositionBuffer.itemSize = 3;
-  triangleVertexPositionBuffer.numItems = 3;
 
-  squareVertexPositionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-  vertices = [
+  //vertices
+  quadBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+  var vertices = [
        1.0,  1.0,  0.0,
       -1.0,  1.0,  0.0,
        1.0, -1.0,  0.0,
       -1.0, -1.0,  0.0
   ];
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-  squareVertexPositionBuffer.itemSize = 3;
-  squareVertexPositionBuffer.numItems = 4;
+  quadBuffer.itemSize = 3;
+  quadBuffer.numItems = 4;
+
+
+  //tex coord
+  texCoordBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+   
+  var texCoords = [
+       1.0,  1.0,
+      -1.0,  1.0,
+       1.0, -1.0,
+      -1.0, -1.0,
+  ];
+   
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+  texCoordBuffer.itemSize = 2;
+  texCoordBuffer.numItems = 4;
 }
 
 
@@ -77,44 +86,45 @@ function drawScene() {
   gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0);
-
+  mat4.ortho(pMatrix, -1, 1, 1, -1, -1, 1);
   mat4.identity(mvMatrix);
 
-  mat4.translate(mvMatrix, mvMatrix, [-1.5, 0.0, -7.0]);
-  gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-  setMatrixUniforms();
-  gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems);
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, quadBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+  gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
 
-  mat4.translate(mvMatrix, mvMatrix, [3.0, 0.0, 0.0]);
-  gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
   setMatrixUniforms();
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, quadBuffer.numItems);
 }
 
 
 function scattergl(datatile){
+
   var canvas = document.getElementById("scatterplot");
   initGL(canvas);
-  initShaders();
-  initBuffers();
-
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  gl.enable(gl.DEPTH_TEST);
-
-  drawScene();
 
   //texture
-  var texture = gl.createTexture();
+  texture = gl.createTexture();
   var image = new Image();
   image.src="data:image/png;base64,"+datatile;
 
   image.onload = function(){
     createTexture(gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image, texture);
-  }
 
+    initShaders();
+    initBuffers();
+
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+
+    drawScene();
+  }
+  
   
 }

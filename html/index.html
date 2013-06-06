@@ -12,21 +12,26 @@
     <script type="text/javascript" src="js/scatter.js"></script>
     <script type="text/javascript" src="js/scatterd3.js"></script>
     <script id="shader-fs" type="x-shader/x-fragment">
-        precision mediump float;
+        varying highp vec2 vTextureCoord;
+        uniform sampler2D uSampler;
 
         void main(void) {
-            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            gl_FragColor = texture2D(uSampler, vTextureCoord);
         }
     </script>
 
     <script id="shader-vs" type="x-shader/x-vertex">
         attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
 
         uniform mat4 uMVMatrix;
         uniform mat4 uPMatrix;
 
+        varying highp vec2 vTextureCoord;
+
         void main(void) {
-            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+          vTextureCoord = aTextureCoord;
+          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
         }
     </script>
     <script type="text/javascript" src="js/glutil.js"></script>
