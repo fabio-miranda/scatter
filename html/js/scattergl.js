@@ -1,62 +1,89 @@
 
-var gl;
-var shaderProgram;
+function scattergl(canvas, datatile){
+  this.canvas = canvas;
+  this.datatile = datatile;
+  this.gl = null;
+  this.shaderProgram = null;
+  this.texture = null;
+  this.quadBuffer = null;
+  this.texCoordBuffer = null;
+  this.mvMatrix = mat4.create();
+  this.pMatrix = mat4.create();
 
-
-var mvMatrix = mat4.create();
-var pMatrix = mat4.create();
-
-function setMatrixUniforms() {
-  gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-  gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+  this.initialize();
 }
 
-function initShaders(){
-  var fragmentShader = getShader(gl, "shader-fs");
-  var vertexShader = getShader(gl, "shader-vs");
+scattergl.prototype.initialize = function(){
+  this.initGL(this.canvas);
 
-  shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
+  //texture
+  this.texture = this.gl.createTexture();
+  var image = new Image();
+  image.src="data:image/png;base64,"+this.datatile;
+  var that = this;
+  image.onload = function(){
+    createTexture(that.gl, that.gl.RGBA, that.gl.RGBA, that.gl.UNSIGNED_BYTE, image, that.texture);
 
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    that.initShaders();
+    that.initBuffers();
+
+    that.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    that.gl.enable(that.gl.DEPTH_TEST);
+
+    that.drawScene();
+  }
+}
+
+
+scattergl.prototype.setMatrixUniforms = function(){
+  this.gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform, false, this.pMatrix);
+  this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform, false, this.mvMatrix);
+}
+
+scattergl.prototype.initShaders = function(){
+  var fragmentShader = getShader(this.gl, "shader-fs");
+  var vertexShader = getShader(this.gl, "shader-vs");
+
+  this.shaderProgram = this.gl.createProgram();
+  this.gl.attachShader(this.shaderProgram, vertexShader);
+  this.gl.attachShader(this.shaderProgram, fragmentShader);
+  this.gl.linkProgram(this.shaderProgram);
+
+  if (!this.gl.getProgramParameter(this.shaderProgram, this.gl.LINK_STATUS)) {
     alert("Could not initialise shaders");
   }
 
-  gl.useProgram(shaderProgram);
+  this.gl.useProgram(this.shaderProgram);
 
-  shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-  gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+  this.shaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
 
-  shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-  gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+  this.shaderProgram.textureCoordAttribute = this.gl.getAttribLocation(this.shaderProgram, "aTextureCoord");
+  this.gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
 
-  shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-  shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+  this.shaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "uPMatrix");
+  this.shaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
 }
 
-var quadBuffer;
-var texCoordBuffer;
-function initBuffers() {
+scattergl.prototype.initBuffers = function(){
 
   //vertices
-  quadBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+  this.quadBuffer = this.gl.createBuffer();
+  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadBuffer);
   var vertices = [
        1.0,  1.0,  0.0,
       -1.0,  1.0,  0.0,
        1.0, -1.0,  0.0,
       -1.0, -1.0,  0.0
   ];
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-  quadBuffer.itemSize = 3;
-  quadBuffer.numItems = 4;
+  this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+  this.quadBuffer.itemSize = 3;
+  this.quadBuffer.numItems = 4;
 
 
   //tex coord
-  texCoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+  this.texCoordBuffer = this.gl.createBuffer();
+  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
    
   var texCoords = [
        1.0,  1.0,
@@ -65,66 +92,40 @@ function initBuffers() {
       -1.0, -1.0,
   ];
    
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
-  texCoordBuffer.itemSize = 2;
-  texCoordBuffer.numItems = 4;
+  this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(texCoords), this.gl.STATIC_DRAW);
+  this.texCoordBuffer.itemSize = 2;
+  this.texCoordBuffer.numItems = 4;
 }
 
 
-function initGL(canvas) {
+scattergl.prototype.initGL = function(){
 
-  gl = canvas.getContext("experimental-webgl");
-  gl.viewportWidth = canvas.width;
-  gl.viewportHeight = canvas.height;
+  this.gl = this.canvas.getContext("experimental-webgl");
+  this.gl.viewportWidth = this.canvas.width;
+  this.gl.viewportHeight = this.canvas.height;
 
-  if (!gl){
-    alert("Could not initialise WebGL.");
+  if (!this.gl){
+    alert("Could not initialise Webthis.gl.");
   }
 }
 
-function drawScene() {
-  gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+scattergl.prototype.drawScene = function(){
+  this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-  mat4.ortho(pMatrix, 0, 1, 0, 1, 0, 1);
-  mat4.identity(mvMatrix);
+  mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+  mat4.identity(this.mvMatrix);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, quadBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadBuffer);
+  this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, this.quadBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-  gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
+  this.gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute, this.texCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
   
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
+  this.gl.activeTexture(this.gl.TEXTURE0);
+  this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+  this.gl.uniform1i(this.gl.getUniformLocation(this.shaderProgram, "uSampler"), 0);
 
-  setMatrixUniforms();
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, quadBuffer.numItems);
-}
-
-
-function scattergl(datatile){
-
-  var canvas = document.getElementById("scatterplot");
-  initGL(canvas);
-
-  //texture
-  texture = gl.createTexture();
-  var image = new Image();
-  image.src="data:image/png;base64,"+datatile;
-
-  image.onload = function(){
-    createTexture(gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image, texture);
-
-    initShaders();
-    initBuffers();
-
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.enable(gl.DEPTH_TEST);
-
-    drawScene();
-  }
-  
-  
+  this.setMatrixUniforms();
+  this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.quadBuffer.numItems);
 }

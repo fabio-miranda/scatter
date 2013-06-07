@@ -34,22 +34,30 @@ function scatterd3(){
   update();
 }
 
-function generate(){
-  
+function createscatterplot(datatile){
+  var matrix = document.getElementById('matrix');
+  var id = 'scatter_'+datatile['dim1']+'.'+datatile['dim2'];
+
+  var newcanvas = document.createElement('canvas');
+  newcanvas.setAttribute('id',id);
+  newcanvas.setAttribute('class','scatterplot');
+  matrix.appendChild(newcanvas);
+  new scattergl(newcanvas , datatile['data']);
 }
 
 function initialize(){
 
+  
 
-  var postdata = {'dim1': 1, 'dim2' : 1};
-  $.post('/data', postdata, function(aux) {
-    datatile = aux;
-    scattergl(datatile);
-  }) 
+  for(var i = 0; i<1; i++){
+    for(var j = 0; j<16; j++){
+      var postdata = {'dim1': i, 'dim2' : j};
+      
+      $.post('/data', postdata, createscatterplot);
+    }
+  }
 
   return;
-
-  
 
 }
 

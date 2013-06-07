@@ -35,7 +35,7 @@ function getShader(gl, id) {
   return shader;
 }
 
-function createTexture(iformat, format, type, image, tex){
+function createTexture(gl, iformat, format, type, image, tex){
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, tex);
