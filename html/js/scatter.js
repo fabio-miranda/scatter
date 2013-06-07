@@ -49,8 +49,8 @@ function initialize(){
 
   
 
-  for(var i = 0; i<1; i++){
-    for(var j = 0; j<16; j++){
+  for(var i = 0; i<4; i++){
+    for(var j = 0; j<4; j++){
       var postdata = {'dim1': i, 'dim2' : j};
       
       $.post('/data', postdata, createscatterplot);
