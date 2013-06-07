@@ -1,6 +1,6 @@
 html { 
   height: 100%;
-  background-color: #FFFFFF;
+  background-color: #000000;
 }
 
 body { 
@@ -10,8 +10,8 @@ body {
 }
 
 .scatterplot {
-  width : 640px;
-  height: 640px;
+  width : 320px;
+  height: 320px;
 }
 
 .config {

@@ -1,12 +1,12 @@
+from PIL import Image
 import cherrypy
 import simplejson
 import os
 import random
 import StringIO
-import cairo
+import scipy.misc
+import numpy
 import base64
-
-import datatile
 
 
 HTML_DIR = os.path.join(os.path.abspath("."), u"html")
@@ -16,26 +16,15 @@ class ScatterPage:
     return open(os.path.join(HTML_DIR, u'index.html')) 
 
   @cherrypy.expose
-  def data(self, binsize, width, height, numentries, numdim):
-
-    binsize = int(binsize)
-    width = int(width)
-    height = int(height)
-    numentries = int(numentries)
-    numdim = int(numdim)
-
-    datatile.generateData(numentries, numdim)
-    datatile.generateDataTiles(binsize, width, height)
-    tile = datatile.getTile(0, 0)
+  def data(self, dim1, dim2):
 
     cherrypy.response.headers['Content-Type'] = "image/png"
 
     buffer = StringIO.StringIO()
-    tile.write_to_png(buffer)
-    tile.write_to_png("t1.png")
+    img = Image.open('./data/'+str(dim1)+'.'+str(dim2)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+    img.save(buffer, format='PNG')
     buffer.seek(0)
-    #return cherrypy.lib.file_generator(buffer)
-    #send base64 encoded string
+
     return base64.b64encode(buffer.getvalue())
 
 
