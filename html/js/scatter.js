@@ -1,56 +1,28 @@
 
-var datatile;
 
-function update(){
-
-  var points = [];
-  var count = 0;
-  for(var i in data){
-    if(data[i].x > 0){
-      points[count] = {};
-      points[count].x = data[i].x;
-      points[count].y = data[i].y;
-      count++;
-    }
-  }
-  console.log(points);
-  var rfunc = function(d) {return 5;}
-  var xfunc = function(d) { return d.x; }
-  var yfunc = function(d) { return d.y; }
-  scatterplot.setPoints(points, xfunc, yfunc, rfunc, null, null, {x: "", y: ""});
-
-}
-
-function scatterd3(){
-  var percent0 = [];
-  percent0[0] = {};
-  percent0[0].x = 0;
-  percent0[0].y = 0;
-  var margin = {top: 10, right: 10, bottom: 20, left: 80};
-  var rfunc = function(d) {return 1;}
-  var xfunc = function(d) { return d.x; }
-  var yfunc = function(d) { return d.y; }
-  scatterplot = new ScatterPlot(percent0, xfunc, yfunc, rfunc, null, null, {x: "", y: "# Vehicles"}, margin, "#scatterplot");
-  update();
-}
-
+var scattermatrix;
+var count=0;
 function createscatterplot(datatile){
-  var matrix = document.getElementById('matrix');
-  var id = 'scatter_'+datatile['dim1']+'.'+datatile['dim2'];
 
-  var newcanvas = document.createElement('canvas');
-  newcanvas.setAttribute('id',id);
-  newcanvas.setAttribute('class','scatterplot');
-  matrix.appendChild(newcanvas);
-  new scattergl(newcanvas , datatile['data']);
+  var image = new Image();
+  image.src="data:image/png;base64,"+datatile['data'];
+  var that = this;
+  image.onload = function(){
+    scattermatrix.addscatter(datatile['dim1'], datatile['dim2'], image);
+    count++;
+    console.log(count);
+    if(count==8*8)
+      scattermatrix.draw();
+  }
+
+  
 }
 
 function initialize(){
-
   
-
-  for(var i = 0; i<4; i++){
-    for(var j = 0; j<4; j++){
+  scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
+  for(var i = 0; i<8; i++){
+    for(var j = 0; j<8; j++){
       var postdata = {'dim1': i, 'dim2' : j};
       
       $.post('/data', postdata, createscatterplot);
@@ -58,7 +30,7 @@ function initialize(){
   }
 
   return;
-
+  
 }
 
 

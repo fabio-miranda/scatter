@@ -42,8 +42,19 @@
     <script type="text/javascript" src="js/scattercanvas.js"></script>
   </head>
   <body>
-    <div id='matrix' class='matrix'></div>
-    <!--<img id='imgtest' style='width:50px; height: 50px;'></img>-->
-    <!--<canvas id="stage"></canvas>-->
+    <!--<canvas id='scatterplotmatrix' class='scatterplotmatrix'></canvas>-->
+
+
+    <table id='scatterplottable' class='scatterplottable'>
+      <tr>
+        <td style='width:5%; height: 95%;'>dim1</td>
+        <td style='width:95%; height: 95%;'><canvas id='scatterplotmatrix' class='scatterplotmatrix'></canvas></td>
+      </tr>
+      <tr>
+        <td style='width:5%; height: 5%;'></td>
+        <td style='width:95%; height: 5%;'>dim2</td>
+      </tr>
+    </table>
+
   </body>
 </html>

@@ -14,6 +14,17 @@ class ScatterPage:
     return open(os.path.join(HTML_DIR, u'index.html')) 
 
   @cherrypy.expose
+  def dimensions(self):
+
+    cherrypy.response.headers['Content-Type'] = "application/json;"
+
+    data = {}
+    data['dim1'] = 16
+    data['dim2'] = 16
+
+    return json.dumps(data)
+
+  @cherrypy.expose
   def data(self, dim1, dim2):
 
     cherrypy.response.headers['Content-Type'] = "application/json;"
@@ -23,12 +34,12 @@ class ScatterPage:
     img.save(buffer, format='PNG')
     buffer.seek(0)
 
-    datatile = {}
-    datatile['data'] = base64.b64encode(buffer.getvalue())
-    datatile['dim1'] = dim1
-    datatile['dim2'] = dim2
+    data = {}
+    data['data'] = base64.b64encode(buffer.getvalue())
+    data['dim1'] = dim1
+    data['dim2'] = dim2
 
-    return json.dumps(datatile)
+    return json.dumps(data)
 
 
   index.expose = True

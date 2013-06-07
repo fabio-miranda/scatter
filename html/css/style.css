@@ -9,10 +9,16 @@ body {
   font-size: 13pt;
 }
 
-.scatterplot {
-  width : 128px;
-  height: 128px;
+.scatterplotmatrix {
+  width : 1024px;
+  height: 1024px;
 }
+
+.scatterplottable {
+  width : 1024px;
+  height: 1024px;
+}
+
 
 .config {
   
