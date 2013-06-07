@@ -91,10 +91,11 @@ scattergl.prototype.draw = function(){
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
   mat4.identity(this.mvMatrix);
 
-  for(var i=0; i<8; i++){
-    for(var j=0; j<8; j++){
-      var width = this.gl.viewportWidth / 8;
-      var height = this.gl.viewportHeight / 8;
+  var num = 1;
+  for(var i=0; i<num; i++){
+    for(var j=0; j<num; j++){
+      var width = this.gl.viewportWidth / num;
+      var height = this.gl.viewportHeight / num;
       this.gl.viewport(i*width, j*height, width, height);
       if(i > j)
         this.scatterplots[i][j].draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);
