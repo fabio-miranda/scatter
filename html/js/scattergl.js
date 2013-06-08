@@ -67,6 +67,7 @@ function scattergl(canvas){
   this.scatterplots = {};
   this.gl = null;
   this.shaderProgram = null;
+  this.numdim = 0;
   this.mvMatrix = mat4.create();
   this.pMatrix = mat4.create();
 
@@ -76,10 +77,21 @@ function scattergl(canvas){
 
 scattergl.prototype.addscatter = function(i, j, image){
 
-  if(this.scatterplots[i] == null)
+  if(this.scatterplots[i] == null){
     this.scatterplots[i] = {};
+    this.numdim++;
+  }
+
   
   this.scatterplots[i][j] = new scatterquad(this.gl, image);
+
+}
+
+scattergl.prototype.reset = function(){
+
+  delete this.scatterplots;
+  this.scatterplots = {};
+  this.numdim = 0;
 
 }
 
@@ -91,11 +103,10 @@ scattergl.prototype.draw = function(){
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
   mat4.identity(this.mvMatrix);
 
-  var num = 1;
-  for(var i=0; i<num; i++){
-    for(var j=0; j<num; j++){
-      var width = this.gl.viewportWidth / num;
-      var height = this.gl.viewportHeight / num;
+  for(var i=0; i<this.numdim; i++){
+    for(var j=0; j<this.numdim; j++){
+      var width = this.gl.viewportWidth / this.numdim;
+      var height = this.gl.viewportHeight / this.numdim;
       this.gl.viewport(i*width, j*height, width, height);
       if(i > j)
         this.scatterplots[i][j].draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);

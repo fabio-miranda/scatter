@@ -7,6 +7,18 @@ body {
   padding: 30px;
   font-family: 'Yanone Kaffeesatz', sans-serif;
   font-size: 13pt;
+  color: white;
+}
+
+.dropdownmenu {
+
+}
+
+.button {
+  font-size: 15pt;
+  padding: 5px;
+  cursor: hand; /*IE/chrome/firefox compatibility it needs both*/
+  cursor: pointer;
 }
 
 .scatterplotmatrix {

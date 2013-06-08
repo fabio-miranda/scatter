@@ -14,7 +14,7 @@ class ScatterPage:
     return open(os.path.join(HTML_DIR, u'index.html')) 
 
   @cherrypy.expose
-  def dimensions(self):
+  def info(self):
 
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
