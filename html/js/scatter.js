@@ -26,7 +26,7 @@ function createdropdown(dim){
   dropdown.id = currentnumdim;
   dropdown.className = 'dropdownmenu';
   dropdown.onchange = function(){
-
+    alert(dropdown.value);
   };
 
   for(var i=0; i<info[dim]; i++){

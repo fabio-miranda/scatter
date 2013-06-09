@@ -19,7 +19,12 @@
 
         void main(void) {
           vec4 count = texture2D(uSampler, vTextureCoord).rgba;
-          gl_FragColor = vec4(count.r, count.g, count.b, 1);
+          //vec4 count = texelFetch(uSampler, vTextureCoord.rgba;
+          //if(count.r > 0.0)
+            //gl_FragColor = vec4(1.0, 0, 0, 1);
+          //else
+            //gl_FragColor = vec4(0, 0, 0, 1);
+          gl_FragColor = count;
         }
     </script>
 

@@ -100,14 +100,23 @@ scattergl.prototype.draw = function(){
 
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-  mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+
+  var width = this.gl.viewportWidth / this.numdim;
+  var height = this.gl.viewportHeight / this.numdim;
+  //mat4.ortho(this.pMatrix, 0, this.gl.viewportWidth, 0, this.gl.viewportHeight, 0, 1);
   mat4.identity(this.mvMatrix);
+  mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
   for(var i=0; i<this.numdim; i++){
     for(var j=0; j<this.numdim; j++){
-      var width = this.gl.viewportWidth / this.numdim;
-      var height = this.gl.viewportHeight / this.numdim;
+      
+
+      //mat4.identity(this.mvMatrix);
+      //mat4.translate(this.mvMatrix, this.mvMatrix, [i*width, j*height, 0.0]);
+      //mat4.scale(this.mvMatrix, this.mvMatrix, [width, height, 1.0]);
+
       this.gl.viewport(i*width, j*height, width, height);
+
       if(i > j)
         this.scatterplots[i][j].draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);
       else
@@ -146,9 +155,17 @@ scattergl.prototype.initShaders = function(){
 
 scattergl.prototype.initGL = function(){
 
+  //http://www.khronos.org/webgl/wiki/HandlingHighDPI
+  var devicePixelRatio = window.devicePixelRatio || 1;
+  this.canvas.width = this.canvas.clientWidth * devicePixelRatio;
+  this.canvas.height = this.canvas.clientHeight * devicePixelRatio;
+
   this.gl = this.canvas.getContext("experimental-webgl");
   this.gl.viewportWidth = this.canvas.width;
   this.gl.viewportHeight = this.canvas.height;
+
+  //console.log(this.canvas.width);
+  //console.log(this.gl.viewportWidth);
 
   if (!this.gl){
     alert("Could not initialise Webthis.gl.");
