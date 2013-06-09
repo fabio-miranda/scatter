@@ -12,10 +12,10 @@ function createscatterplot(datatile){
   image.src="data:image/png;base64,"+datatile['data'];
   var that = this;
   image.onload = function(){
-    scattermatrix.addscatter(datatile['dim1'], datatile['dim2'], image);
+    scattermatrix.addscatter(datatile['i'], datatile['j'], datatile['dim1'], datatile['dim2'], image);
     count++;
 
-    if(count == currentnumdim*currentnumdim)
+    if(count >= currentnumdim*currentnumdim)
       scattermatrix.draw();
   } 
 }
@@ -24,9 +24,11 @@ function createscatterplot(datatile){
 function createdropdown(dim){
   var dropdown = document.createElement("select");
   dropdown.id = currentnumdim;
-  dropdown.className = 'dropdownmenu';
+  dropdown.className = 'dropdownmenu_'+dim+'_'+currentnumdim;
   dropdown.onchange = function(){
-    alert(dropdown.value);
+    scattermatrix.reset();
+    count = 0;
+    redrawscatterplots();
   };
 
   for(var i=0; i<info[dim]; i++){
@@ -34,21 +36,28 @@ function createdropdown(dim){
     option.text = i;
     dropdown.add(option, null);
   }
+  dropdown.value = currentnumdim;
 
   return dropdown;
+}
+
+function redrawscatterplots(){
+
+  for(var i = 0; i<currentnumdim; i++){
+    for(var j = 0; j<currentnumdim; j++){
+      var postdata = {'i': i, 'j': j, 'dim1': $('.dropdownmenu_dim1_'+i).val(), 'dim2' : $('.dropdownmenu_dim2_'+j).val()};
+      
+      $.post('/data', postdata, createscatterplot);
+    }
+  }
+
 }
 
 function addscatterplot(){
   scattermatrix.reset();
   count = 0;
   adddimension();
-  for(var i = 0; i<currentnumdim; i++){
-    for(var j = 0; j<currentnumdim; j++){
-      var postdata = {'dim1': i, 'dim2' : j};
-      
-      $.post('/data', postdata, createscatterplot);
-    }
-  }
+  redrawscatterplots();
 }
 
 function removescatterplot(){
@@ -56,13 +65,7 @@ function removescatterplot(){
   scattermatrix.reset();
   count = 0;
   removedimension();
-  for(var i = 0; i<currentnumdim; i++){
-    for(var j = 0; j<currentnumdim; j++){
-      var postdata = {'dim1': i, 'dim2' : j};
-      
-      $.post('/data', postdata, createscatterplot);
-    }
-  }
+  redrawscatterplots();
 
 }
 
@@ -80,7 +83,7 @@ function adddimension(){
   //vertical
   dropdown = createdropdown('dim2');
   table = document.getElementById('scatterplotdim2');
-  row = table.insertRow(currentnumdim-1);
+  row = table.insertRow(0);
   cell = row.appendChild(document.createElement("td"));
   //cell.innerHTML = currentnumdim;
   cell.appendChild(dropdown);
@@ -103,7 +106,8 @@ function removedimension(){
 
   //vertical
   table = document.getElementById('scatterplotdim2');
-  table.deleteRow(currentnumdim-1);
+  //table.deleteRow(currentnumdim-1);
+  table.deleteRow(0);
 
 
   currentnumdim--;
@@ -113,7 +117,7 @@ function removedimension(){
 function initializeLayout(json){
   info = json;
   scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
-  $.post('/data', {'dim1': 0, 'dim2' : 0}, createscatterplot);
+  $.post('/data', {'i': 0, 'j': 0, 'dim1': 0, 'dim2' : 0}, createscatterplot);
   adddimension();
 }
 

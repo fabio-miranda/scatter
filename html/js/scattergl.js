@@ -1,8 +1,12 @@
 
 
-function scatterquad(gl, image){
+function scatterquad(gl, i, j, dim1, dim2, image){
   this.quadBuffer = null;
   this.texCoordBuffer = null;
+  this.i = i;
+  this.j = j;
+  this.dim1 = dim1;
+  this.dim2 = dim2;
 
   this.texture = gl.createTexture();
   createTexture(gl, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image, this.texture);
@@ -67,23 +71,26 @@ function scattergl(canvas){
   this.scatterplots = {};
   this.gl = null;
   this.shaderProgram = null;
-  this.numdim = 0;
+  this.maxdim = 0;
   this.mvMatrix = mat4.create();
   this.pMatrix = mat4.create();
 
-  this.initGL(this.canvas);
+  this.initGL();
   this.initShaders();
 }
 
-scattergl.prototype.addscatter = function(i, j, image){
+scattergl.prototype.addscatter = function(i, j, dim1, dim2, image){
 
-  if(this.scatterplots[i] == null){
-    this.scatterplots[i] = {};
-    this.numdim++;
-  }
+  //var dim;
+  //if(dim1 < dim2)
+    //dim = dim1+'_'+dim2;
+  //else
+    //dim = dim2+'_'+dim1;
 
-  
-  this.scatterplots[i][j] = new scatterquad(this.gl, image);
+  //if(this.scatterplots[i+' '+j] == null){
+    this.scatterplots[i+' '+j] = new scatterquad(this.gl, i, j, dim1, dim2, image);
+    this.maxdim = Math.max(i, j, this.maxdim);
+  //}
 
 }
 
@@ -91,7 +98,7 @@ scattergl.prototype.reset = function(){
 
   delete this.scatterplots;
   this.scatterplots = {};
-  this.numdim = 0;
+  this.maxdim = 0;
 
 }
 
@@ -101,28 +108,38 @@ scattergl.prototype.draw = function(){
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
 
-  var width = this.gl.viewportWidth / this.numdim;
-  var height = this.gl.viewportHeight / this.numdim;
+  var width = this.gl.viewportWidth / (this.maxdim + 1);
+  var height = this.gl.viewportHeight / (this.maxdim + 1);
   //mat4.ortho(this.pMatrix, 0, this.gl.viewportWidth, 0, this.gl.viewportHeight, 0, 1);
   mat4.identity(this.mvMatrix);
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
-  for(var i=0; i<this.numdim; i++){
-    for(var j=0; j<this.numdim; j++){
+  //for(var i=0; i<this.numdim; i++){
+    //for(var j=0; j<this.numdim; j++){
+  for(var ij in this.scatterplots) {
+
+    //var dim1 , dim2 = dim.split('_');
       
 
-      //mat4.identity(this.mvMatrix);
-      //mat4.translate(this.mvMatrix, this.mvMatrix, [i*width, j*height, 0.0]);
-      //mat4.scale(this.mvMatrix, this.mvMatrix, [width, height, 1.0]);
+    //mat4.identity(this.mvMatrix);
+    //mat4.translate(this.mvMatrix, this.mvMatrix, [i*width, j*height, 0.0]);
+    //mat4.scale(this.mvMatrix, this.mvMatrix, [width, height, 1.0]);
+    var scatter = this.scatterplots[ij];
+    var i = scatter.i;
+    var j = scatter.j;
 
-      this.gl.viewport(i*width, j*height, width, height);
+    this.gl.viewport(i*width, j*height, width, height);
+    scatter.draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);
 
-      if(i > j)
-        this.scatterplots[i][j].draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);
-      else
-        this.scatterplots[j][i].draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);
+    //this.gl.viewport(j*width, i*height, width, height);
+    //scatter.draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);
+
+    //if(scatter.dim1 > scatter.dim2)
+      //scatter.draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);
+    //else
+      //scatter.draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);
       
-    }
+    
   }
 }
 
@@ -152,13 +169,24 @@ scattergl.prototype.initShaders = function(){
   this.shaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
 }
 
+scattergl.prototype.getPosition = function(evt){
+
+  var rect = this.canvas.getBoundingClientRect();
+  var x = evt.clientX - rect.left;
+  var y = evt.clientY - rect.top;
+  alert("x:" + x + " y:" + y);
+}
+
 
 scattergl.prototype.initGL = function(){
+
+  var that = this;
 
   //http://www.khronos.org/webgl/wiki/HandlingHighDPI
   var devicePixelRatio = window.devicePixelRatio || 1;
   this.canvas.width = this.canvas.clientWidth * devicePixelRatio;
   this.canvas.height = this.canvas.clientHeight * devicePixelRatio;
+  this.canvas.addEventListener("mousedown", function(evt){that.getPosition(evt);}, false);
 
   this.gl = this.canvas.getContext("experimental-webgl");
   this.gl.viewportWidth = this.canvas.width;

@@ -18,13 +18,19 @@
         uniform sampler2D uSampler;
 
         void main(void) {
-          vec4 count = texture2D(uSampler, vTextureCoord).rgba;
+          float count = texture2D(uSampler, vTextureCoord).r;
+
+          if(count > 0.0)
+            gl_FragColor = mix(vec4(0, 1, 1, 1), vec4(1, 0, 0, 1), count);
+          else
+            gl_FragColor = vec4(0);
+
           //vec4 count = texelFetch(uSampler, vTextureCoord.rgba;
           //if(count.r > 0.0)
             //gl_FragColor = vec4(1.0, 0, 0, 1);
           //else
             //gl_FragColor = vec4(0, 0, 0, 1);
-          gl_FragColor = count;
+          //gl_FragColor = color;
         }
     </script>
 

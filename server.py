@@ -25,7 +25,7 @@ class ScatterPage:
     return json.dumps(data)
 
   @cherrypy.expose
-  def data(self, dim1, dim2):
+  def data(self, i, j, dim1, dim2):
 
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
@@ -36,6 +36,8 @@ class ScatterPage:
 
     data = {}
     data['data'] = base64.b64encode(buffer.getvalue())
+    data['i'] = i
+    data['j'] = j
     data['dim1'] = dim1
     data['dim2'] = dim2
 
