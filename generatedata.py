@@ -4,10 +4,12 @@ import random
 import StringIO
 import scipy.misc
 import numpy
+import math
 
 data = None
 datatiles = None
 interdatatiles = None
+
 
 def generateData(numentries, numdim):
 
@@ -29,133 +31,68 @@ def generateData(numentries, numdim):
         data[entry, dim] = random.betavariate(alpha, beta)
 
 
-def createDataTile(binsize, width, height, dimension1, dimension2):
 
+def generateDatatiles(imgsize, numdim, numbin):
+
+  global data
   maxvalue = 1.0
-  numbins = width / binsize
-
-  buf = numpy.zeros(shape=(width/binsize,height/binsize, 4), dtype=numpy.uint8)
-  count = 0
   maxcount = 0
-  for entry in range(0, len(dimension1)):
 
-    val1 = dimension1[entry]
-    val2 = dimension2[entry]
-
-    bini = int((val1 / maxvalue) * (numbins-1))
-    binj = int((val2 / maxvalue) * (numbins-1))
-
-
-    #buf[i, j, 0] = 0   #b
-    #buf[i, j, 1] = 0   #g
-    #buf[i, j, 2] = 255 #r
-    #buf[i, j, 3] = 255 #a
-
-    #TODO: handle binsize
-    buf[bini, binj, 0] += 1
-    buf[bini, binj, 1] += 1
-    buf[bini, binj, 2] += 1
-    buf[bini, binj, 3] += 1
-
-    if(buf[bini, binj, 2] > maxcount):
-      maxcount = buf[bini, binj, 2]
-
-  #normalize. do I really need it?  
-  for i in range(0, width/binsize):
-    for j in range(0, height/binsize):
-      normalizedvalue = (buf[i,j, 0] / float(maxcount)) * 255
-      buf[i,j, 0] = normalizedvalue
-      buf[i,j, 1] = normalizedvalue
-      buf[i,j, 2] = normalizedvalue
-      buf[i,j, 3] = normalizedvalue
-      #print buf[i,j, 2], maxcount
-
-  #http://stackoverflow.com/questions/13901197/retain-unchanged-data-when-saving-numpy-array-to-image-with-scipy-imsave
-  print maxcount
-  #return cairo.ImageSurface.create_for_data(buf, cairo.FORMAT_ARGB32, width, height, width * 4)
-  return buf
-
-def generateDataTiles(binsize, width, height):
-
-  global data
-  global datatiles
-
-  numentries, numdim = data.shape
-
-  datatiles = numpy.zeros(shape=(width/binsize,height/binsize), dtype = object)
-
-  print 'Creating data tiles...'
-  count = 0.0
-  for i in range(0, numdim):
-    for j in range(0, numdim):
-
-      print float(count) / (numdim*numdim)
-
-      datatiles[i, j] = createDataTile(binsize, width, height, data[0:,i], data[0:,j])
-      img = scipy.misc.toimage(datatiles[i,j]) #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
-      img.save('./data/'+str(i)+'.'+str(j)+'.png')
-
-      count+=1.0
-
-  print 'Done'
-
-
-def createInteractionDataTile(binsize, width, height, dimension1, dimension2, dimension3, dimension4):
-
-  maxvalue = 1.0
-  numbins = width / binsize
-
-  buf = numpy.zeros(shape=(width/binsize,height/binsize, 4), dtype=numpy.uint8)
-
-  for entry in range(0, len(dimension1)):
-
-    values = [dimension1[entry], dimension2[entry], dimension3[entry], dimension4[entry]]
-    bins = [0, 0, 0, 0]
-
-    for i in range(0,4):
-      bins[i] = int((values[i] / maxvalue) * (numbins-1))
-
-    
-
-
-
-
-
-
-def generateInteractionDataTiles(binsize, width, height):
-
-  global data
-  global datatiles
-  global interdatatiles
-
-  numentries, numdim = data.shape
-
-  interdatatiles = numpy.zeros(shape=(width/binsize,height/binsize, width/binsize, height/binsize), dtype = object)
-
-  print 'Creating interaction data tiles...'
-  count = 0.0
-  for i in range(0, numdim):
-    for j in range(0, numdim):
-      for k in range(0, numdim):
-        for l in range(0, numdim):
-
-          print float(count) / (numdim*numdim)
-
-          interdatatiles[i, j, k, l] = createInteractionDataTile(binsize, width, height, data[0:,i], data[0:,j], data[0:,k], data[0:,l])
-          img = scipy.misc.toimage(interdatatiles[i, j, k, l]) #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
-          img.save('./data/'+str(i)+'.'+str(j)+'.'+str(k)+'.'+str(l)+'.png')
-
-
-          count+=1.0
-
-  print 'Done'
+  buff = numpy.zeros(shape=(imgsize, imgsize, 3), dtype = numpy.uint8)
   
+
+  for i in range(1, 2):
+    for j in range(0, 1):
+
+      dimension1 = data[0:,i]
+      dimension2 = data[0:,j]
+
+      for entry in range(0, len(dimension1)):
+
+        
+
+        val1 = dimension1[entry]
+        val2 = dimension2[entry]
+
+        bini = int((val1 / maxvalue) * (numbin-1))
+        binj = int((val2 / maxvalue) * (numbin-1))
+
+
+        #indexing
+        numdatatiledim = 2
+        #datatileindex = i*numdim+j
+        datatilesize = imgsize / numdim
+
+        #print numbin, val1, val2, x, datatileindex, bini, binj
+        #print datatilesize
+        #print datatilesize, datatilesize, bini, binj, datatileindex, i, j
+        #print datatilesize*datatileindex + bini, datatilesize*datatileindex + binj
+        #print datatilesize*i + bini, datatilesize*j + binj
+        buff[datatilesize*i + bini, datatilesize*j + binj] = 255
+        newvalue = buff[datatilesize*i + bini, datatilesize*j + binj, 0]
+
+        #print newvalue
+
+        #print newvalue
+        if(newvalue > maxcount):
+          maxcount = newvalue
+
+
+  #print 'ok'
+
+  #normalize TODO see http://stackoverflow.com/questions/13901197/retain-unchanged-data-when-saving-numpy-array-to-image-with-scipy-imsave
+
+  #print buff
+  img = scipy.misc.toimage(buff) 
+  img.save('./data2/test.png')
+
+
 
 
 def main(argv):
   parser = argparse.ArgumentParser(description='Generate data tiles')
   parser.add_argument('imgsize', metavar='imgsize', type=int, nargs='+', help='img size')
-  parser.add_argument('binsize', metavar='binsize', type=int, nargs='+', help='bin size')
+  parser.add_argument('numbin', metavar='numbin', type=int, nargs='+', help='number of bins')
   parser.add_argument('numentries', metavar='numentries', type=int, nargs='+', help='number of entries')
   parser.add_argument('numdim', metavar='numdim', type=int, nargs='+', help='number of dimensions')
 
@@ -164,11 +101,19 @@ def main(argv):
   numdim = args['numdim'][0]
   imgsize = args['imgsize'][0]
   numentries = args['numentries'][0]
-  binsize = args['binsize'][0]
+  numbin = args['numbin'][0]
 
+  print 'Generating data...'
   generateData(numentries, numdim)
-  generateDataTiles(binsize, imgsize, imgsize)
-  generateInteractionDataTiles(binsize, imgsize, imgsize)
+  print 'Done'
+
+  print 'Generating data tiles...'
+  generateDatatiles(imgsize, numdim, numbin)
+  print 'Done'
+
+  #print 'Generating interaction data tiles...'
+  #generateInteractionDataTiles(binsize, imgsize, imgsize)
+  #print 'Done'
 
 
 if __name__ == "__main__":
