@@ -1,28 +1,18 @@
 
-function getShader(gl, id) {
-  var shaderScript = document.getElementById(id);
-  if (!shaderScript) {
-      return null;
-  }
+function getShader(gl, filename, isFragShader) {
 
-  var str = "";
-  var k = shaderScript.firstChild;
-  while (k) {
-      if (k.nodeType == 3) {
-          str += k.textContent;
-      }
-      k = k.nextSibling;
-  }
+
+  var xmlhttp = new XMLHttpRequest(); 
+  xmlhttp.open("GET", filename, false); 
+  xmlhttp.send(); 
+  var str = xmlhttp.responseText;
 
 
   var shader;
-  if (shaderScript.type == "x-shader/x-fragment") {
+  if (isFragShader)
       shader = gl.createShader(gl.FRAGMENT_SHADER);
-  } else if (shaderScript.type == "x-shader/x-vertex") {
+  else
       shader = gl.createShader(gl.VERTEX_SHADER);
-  } else {
-      return null;
-  }
 
   gl.shaderSource(shader, str);
   gl.compileShader(shader);

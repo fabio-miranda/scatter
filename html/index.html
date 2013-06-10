@@ -16,58 +16,6 @@
     <script type="text/javascript" src="js/scattergl.js"></script>
     <script type="text/javascript" src="js/scattercanvas.js"></script>
 
-    <script id="scatter-fs" type="x-shader/x-fragment">
-        precision mediump float;
-
-        varying highp vec2 vTextureCoord;
-        uniform sampler2D uSampler;
-
-        void main(void) {
-          float count = texture2D(uSampler, vTextureCoord).r;
-
-          if(count <= 0.0)
-            gl_FragColor = vec4(0);
-          else if(count < 0.5)
-            gl_FragColor = mix(vec4(0, 0.5, 0.5, 1), vec4(0, 1, 0, 1), count);
-          else
-            gl_FragColor = mix(vec4(0, 1, 0, 1), vec4(1, 0, 0, 1), count);
-        }
-    </script>
-
-    <script id="scatter-vs" type="x-shader/x-vertex">
-        attribute vec3 aVertexPosition;
-        attribute vec2 aTextureCoord;
-
-        uniform mat4 uMVMatrix;
-        uniform mat4 uPMatrix;
-
-        varying highp vec2 vTextureCoord;
-
-        void main(void) {
-          vTextureCoord = aTextureCoord;
-          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-        }
-    </script>
-
-    <script id="selection-fs" type="x-shader/x-fragment">
-        precision mediump float;
-
-        void main(void) {
-          gl_FragColor = vec4(1, 0, 0, 0.8);
-        }
-    </script>
-
-    <script id="selection-vs" type="x-shader/x-vertex">
-        attribute vec3 aVertexPosition;
-
-        uniform mat4 uMVMatrix;
-        uniform mat4 uPMatrix;
-
-        void main(void) {
-          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-        }
-    </script>
-
   </head>
   <body>
     <!--<canvas id='scatterplotmatrix' class='scatterplotmatrix'></canvas>-->

@@ -26,7 +26,7 @@ function scattergl(canvas){
   this.maxdim = 0;
   this.mvMatrix = mat4.create();
   this.pMatrix = mat4.create();
-  this.mousestate = 'WAITP1';
+  this.mousestate = 'MOUSEUP';
   this.devicePixelRatio = 1;
 
   this.initGL();
@@ -101,7 +101,7 @@ scattergl.prototype.draw = function(){
   }
 
   //selection
-  if(this.mousestate == 'IDLE' || this.mousestate == 'WAITP2'){
+  //if(this.mousestate == 'MOUSEDOWN'){
     this.gl.useProgram(this.selectionShader);
     var x, width, y, height;
 
@@ -125,7 +125,7 @@ scattergl.prototype.draw = function(){
 
     this.gl.viewport(x, y, width, height);
     this.selection.quad.draw(this.gl, this.selectionShader, this.mvMatrix, this.pMatrix);
-  }
+  //}
 
   this.gl.useProgram(null);
 
@@ -135,8 +135,8 @@ scattergl.prototype.draw = function(){
 scattergl.prototype.initShaders = function(){
 
   //scatter
-  var fragmentShader = getShader(this.gl, "scatter-fs");
-  var vertexShader = getShader(this.gl, "scatter-vs");
+  var fragmentShader = getShader(this.gl, "./js/glsl/scatter.frag", true);
+  var vertexShader = getShader(this.gl, "./js/glsl/scatter.vert", false);
 
   this.scatterShader = this.gl.createProgram();
   this.gl.attachShader(this.scatterShader, vertexShader);
@@ -159,8 +159,8 @@ scattergl.prototype.initShaders = function(){
   this.scatterShader.mvMatrixUniform = this.gl.getUniformLocation(this.scatterShader, "uMVMatrix");
 
   //selection
-  var fragmentShader = getShader(this.gl, "selection-fs");
-  var vertexShader = getShader(this.gl, "selection-vs");
+  var fragmentShader = getShader(this.gl, "./js/glsl/selection.frag", true);
+  var vertexShader = getShader(this.gl, "./js/glsl/selection.vert", false);
 
   this.selectionShader = this.gl.createProgram();
   this.gl.attachShader(this.selectionShader, vertexShader);
@@ -195,29 +195,35 @@ scattergl.prototype.mousedown = function(evt){
 
   var xy = getxy(this, evt);
 
-  if(this.mousestate == 'IDLE'){
-    this.mousestate = 'WAITP1';
-    this.selection.x = [0,0];
-    this.selection.y = [0,0];
-  }
-  else if(this.mousestate == 'WAITP1'){
-    this.mousestate = 'WAITP2';
+  if(this.mousestate == 'MOUSEUP'){
+    this.mousestate = 'MOUSEDOWN';
     this.selection.x[0] = xy[0];
     this.selection.y[0] = xy[1];
     this.selection.x[1] = xy[0];
     this.selection.y[1] = xy[1];
   }
-  else if(this.mousestate == 'WAITP2'){
-    this.mousestate = 'IDLE';
 
+  this.draw();
+}
+
+scattergl.prototype.mouseup = function(evt){
+
+  var xy = getxy(this, evt);
+
+  if(this.mousestate == 'MOUSEDOWN'){
+    this.mousestate = 'MOUSEUP';
+    this.selection.x[1] = xy[0];
+    this.selection.y[1] = xy[1];
   }
+
+  
 
   this.draw();
 }
 
 scattergl.prototype.mousemove = function(evt){
 
-  if(this.mousestate != 'WAITP2')
+  if(this.mousestate != 'MOUSEDOWN')
     return;
 
   var xy = getxy(this, evt);
@@ -239,6 +245,7 @@ scattergl.prototype.initGL = function(){
   this.canvas.width = this.canvas.clientWidth * this.devicePixelRatio;
   this.canvas.height = this.canvas.clientHeight * this.devicePixelRatio;
   this.canvas.addEventListener("mousedown", function(evt){that.mousedown(evt);}, false);
+  this.canvas.addEventListener("mouseup", function(evt){that.mouseup(evt);}, false);
   this.canvas.addEventListener("mousemove", function(evt){that.mousemove(evt);}, false);
 
   this.gl = this.canvas.getContext("experimental-webgl");
