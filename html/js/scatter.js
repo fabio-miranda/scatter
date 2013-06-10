@@ -22,9 +22,11 @@ function createscatterplot(datatile){
 
 
 function createdropdown(dim){
+
+  //TODO: replace with jquery
   var dropdown = document.createElement("select");
-  dropdown.id = currentnumdim;
-  dropdown.className = 'dropdownmenu_'+dim+'_'+currentnumdim;
+  dropdown.id = 'dropdownmenu_'+dim+'_'+currentnumdim;
+  dropdown.className = 'dropdownmenu';
   dropdown.onchange = function(){
     scattermatrix.reset();
     count = 0;
@@ -45,7 +47,7 @@ function redrawscatterplots(){
 
   for(var i = 0; i<currentnumdim; i++){
     for(var j = 0; j<currentnumdim; j++){
-      var postdata = {'i': i, 'j': j, 'dim1': $('.dropdownmenu_dim1_'+i).val(), 'dim2' : $('.dropdownmenu_dim2_'+j).val()};
+      var postdata = {'i': i, 'j': j, 'dim1': $('#dropdownmenu_dim1_'+i).val(), 'dim2' : $('#dropdownmenu_dim2_'+j).val()};
       
       $.post('/data', postdata, createscatterplot);
     }
@@ -70,6 +72,8 @@ function removescatterplot(){
 }
 
 function adddimension(){
+
+  //TODO: replace with jquery
 
   //horizontal
   var dropdown = createdropdown('dim1');

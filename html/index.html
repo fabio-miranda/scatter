@@ -11,7 +11,12 @@
     <script type="text/javascript" src="js/libs/crossfilter.min.js"></script>
     <script type="text/javascript" src="js/scatter.js"></script>
     <script type="text/javascript" src="js/scatterd3.js"></script>
-    <script id="shader-fs" type="x-shader/x-fragment">
+
+    <script type="text/javascript" src="js/glutil.js"></script>
+    <script type="text/javascript" src="js/scattergl.js"></script>
+    <script type="text/javascript" src="js/scattercanvas.js"></script>
+
+    <script id="scatter-fs" type="x-shader/x-fragment">
         precision mediump float;
 
         varying highp vec2 vTextureCoord;
@@ -20,21 +25,16 @@
         void main(void) {
           float count = texture2D(uSampler, vTextureCoord).r;
 
-          if(count > 0.0)
-            gl_FragColor = mix(vec4(0, 1, 1, 1), vec4(1, 0, 0, 1), count);
-          else
+          if(count <= 0.0)
             gl_FragColor = vec4(0);
-
-          //vec4 count = texelFetch(uSampler, vTextureCoord.rgba;
-          //if(count.r > 0.0)
-            //gl_FragColor = vec4(1.0, 0, 0, 1);
-          //else
-            //gl_FragColor = vec4(0, 0, 0, 1);
-          //gl_FragColor = color;
+          else if(count < 0.5)
+            gl_FragColor = mix(vec4(0, 0.5, 0.5, 1), vec4(0, 1, 0, 1), count);
+          else
+            gl_FragColor = mix(vec4(0, 1, 0, 1), vec4(1, 0, 0, 1), count);
         }
     </script>
 
-    <script id="shader-vs" type="x-shader/x-vertex">
+    <script id="scatter-vs" type="x-shader/x-vertex">
         attribute vec3 aVertexPosition;
         attribute vec2 aTextureCoord;
 
@@ -48,9 +48,26 @@
           gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
         }
     </script>
-    <script type="text/javascript" src="js/glutil.js"></script>
-    <script type="text/javascript" src="js/scattergl.js"></script>
-    <script type="text/javascript" src="js/scattercanvas.js"></script>
+
+    <script id="selection-fs" type="x-shader/x-fragment">
+        precision mediump float;
+
+        void main(void) {
+          gl_FragColor = vec4(1, 0, 0, 0.8);
+        }
+    </script>
+
+    <script id="selection-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        void main(void) {
+          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        }
+    </script>
+
   </head>
   <body>
     <!--<canvas id='scatterplotmatrix' class='scatterplotmatrix'></canvas>-->

@@ -7,62 +7,13 @@ function scatterquad(gl, i, j, dim1, dim2, image){
   this.j = j;
   this.dim1 = dim1;
   this.dim2 = dim2;
-
-  this.texture = gl.createTexture();
-  createTexture(gl, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image, this.texture);
-
-  this.initBuffers(gl);
-
+  this.quad = new quad(gl, image);
 }
 
-scatterquad.prototype.initBuffers = function(gl){
-
-  //vertices
-  this.quadBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
-  var vertices = [
-       1.0,  1.0,  0.0,
-      -1.0,  1.0,  0.0,
-       1.0, -1.0,  0.0,
-      -1.0, -1.0,  0.0
-  ];
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-  this.quadBuffer.itemSize = 3;
-  this.quadBuffer.numItems = 4;
-
-
-  //tex coord
-  this.texCoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
-   
-  var texCoords = [
-       1.0,  1.0,
-      -1.0,  1.0,
-       1.0, -1.0,
-      -1.0, -1.0,
-  ];
-   
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
-  this.texCoordBuffer.itemSize = 2;
-  this.texCoordBuffer.numItems = 4;
-
-}
-
-scatterquad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix){
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.quadBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
-  gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, this.texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-  
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, this.texture);
-  gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
-
-  gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-  gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.quadBuffer.numItems);
+function selectionquad(gl){
+  this.quad = new quad(gl);
+  this.x = [0, 0];
+  this.y = [0, 0];
 }
 
 
@@ -70,13 +21,18 @@ function scattergl(canvas){
   this.canvas = canvas;
   this.scatterplots = {};
   this.gl = null;
-  this.shaderProgram = null;
+  this.scatterShader = null;
+  this.selectionShader = null;
   this.maxdim = 0;
   this.mvMatrix = mat4.create();
   this.pMatrix = mat4.create();
+  this.mousestate = 'WAITP1';
+  this.devicePixelRatio = 1;
 
   this.initGL();
   this.initShaders();
+
+  this.selection = new selectionquad(this.gl);
 }
 
 scattergl.prototype.addscatter = function(i, j, dim1, dim2, image){
@@ -103,10 +59,11 @@ scattergl.prototype.reset = function(){
 }
 
 scattergl.prototype.draw = function(){
-  console.log('called');
 
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
+
+  //plots
 
   var width = this.gl.viewportWidth / (this.maxdim + 1);
   var height = this.gl.viewportHeight / (this.maxdim + 1);
@@ -114,6 +71,7 @@ scattergl.prototype.draw = function(){
   mat4.identity(this.mvMatrix);
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
+  this.gl.useProgram(this.scatterShader);
   //for(var i=0; i<this.numdim; i++){
     //for(var j=0; j<this.numdim; j++){
   for(var ij in this.scatterplots) {
@@ -129,7 +87,7 @@ scattergl.prototype.draw = function(){
     var j = scatter.j;
 
     this.gl.viewport(i*width, j*height, width, height);
-    scatter.draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);
+    scatter.quad.draw(this.gl, this.scatterShader, this.mvMatrix, this.pMatrix);
 
     //this.gl.viewport(j*width, i*height, width, height);
     //scatter.draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);
@@ -141,40 +99,134 @@ scattergl.prototype.draw = function(){
       
     
   }
+
+  //selection
+  if(this.mousestate == 'IDLE' || this.mousestate == 'WAITP2'){
+    this.gl.useProgram(this.selectionShader);
+    var x, width, y, height;
+
+    if(this.selection.x[0] < this.selection.x[1]){
+      x = this.selection.x[0];
+      width = this.selection.x[1] - x;
+    }
+    else{
+      x = this.selection.x[1];
+      width = this.selection.x[0] - x;
+    }
+
+    if(this.selection.y[0] < this.selection.y[1]){
+      y = this.selection.y[0];
+      height = this.selection.y[1] - y;
+    }
+    else{
+      y = this.selection.y[1];
+      height = this.selection.y[0] - y;
+    }
+
+    this.gl.viewport(x, y, width, height);
+    this.selection.quad.draw(this.gl, this.selectionShader, this.mvMatrix, this.pMatrix);
+  }
+
+  this.gl.useProgram(null);
+
 }
 
 
 scattergl.prototype.initShaders = function(){
-  var fragmentShader = getShader(this.gl, "shader-fs");
-  var vertexShader = getShader(this.gl, "shader-vs");
 
-  this.shaderProgram = this.gl.createProgram();
-  this.gl.attachShader(this.shaderProgram, vertexShader);
-  this.gl.attachShader(this.shaderProgram, fragmentShader);
-  this.gl.linkProgram(this.shaderProgram);
+  //scatter
+  var fragmentShader = getShader(this.gl, "scatter-fs");
+  var vertexShader = getShader(this.gl, "scatter-vs");
 
-  if (!this.gl.getProgramParameter(this.shaderProgram, this.gl.LINK_STATUS)) {
+  this.scatterShader = this.gl.createProgram();
+  this.gl.attachShader(this.scatterShader, vertexShader);
+  this.gl.attachShader(this.scatterShader, fragmentShader);
+  this.gl.linkProgram(this.scatterShader);
+
+  if (!this.gl.getProgramParameter(this.scatterShader, this.gl.LINK_STATUS)) {
     alert("Could not initialise shaders");
   }
 
-  this.gl.useProgram(this.shaderProgram);
+  this.gl.useProgram(this.scatterShader);
 
-  this.shaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
-  this.gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
+  this.scatterShader.vertexPositionAttribute = this.gl.getAttribLocation(this.scatterShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.scatterShader.vertexPositionAttribute);
 
-  this.shaderProgram.textureCoordAttribute = this.gl.getAttribLocation(this.shaderProgram, "aTextureCoord");
-  this.gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+  this.scatterShader.textureCoordAttribute = this.gl.getAttribLocation(this.scatterShader, "aTextureCoord");
+  this.gl.enableVertexAttribArray(this.scatterShader.textureCoordAttribute);
 
-  this.shaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "uPMatrix");
-  this.shaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
+  this.scatterShader.pMatrixUniform = this.gl.getUniformLocation(this.scatterShader, "uPMatrix");
+  this.scatterShader.mvMatrixUniform = this.gl.getUniformLocation(this.scatterShader, "uMVMatrix");
+
+  //selection
+  var fragmentShader = getShader(this.gl, "selection-fs");
+  var vertexShader = getShader(this.gl, "selection-vs");
+
+  this.selectionShader = this.gl.createProgram();
+  this.gl.attachShader(this.selectionShader, vertexShader);
+  this.gl.attachShader(this.selectionShader, fragmentShader);
+  this.gl.linkProgram(this.selectionShader);
+
+  if (!this.gl.getProgramParameter(this.selectionShader, this.gl.LINK_STATUS)) {
+    alert("Could not initialise shaders");
+  }
+
+  this.gl.useProgram(this.selectionShader);
+
+  this.selectionShader.vertexPositionAttribute = this.gl.getAttribLocation(this.selectionShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.selectionShader.vertexPositionAttribute);
+
+  this.selectionShader.pMatrixUniform = this.gl.getUniformLocation(this.selectionShader, "uPMatrix");
+  this.selectionShader.mvMatrixUniform = this.gl.getUniformLocation(this.selectionShader, "uMVMatrix");
+
+  this.gl.useProgram(null);
+
 }
 
-scattergl.prototype.getPosition = function(evt){
+function getxy(that, evt){
+  var rect = that.canvas.getBoundingClientRect();
+  var x = that.devicePixelRatio * (evt.clientX - rect.left);
+  var y = that.devicePixelRatio * (evt.clientY - rect.top);
 
-  var rect = this.canvas.getBoundingClientRect();
-  var x = evt.clientX - rect.left;
-  var y = evt.clientY - rect.top;
-  alert("x:" + x + " y:" + y);
+  return [x, that.gl.viewportHeight - y];
+}
+
+scattergl.prototype.mousedown = function(evt){
+
+  var xy = getxy(this, evt);
+
+  if(this.mousestate == 'IDLE'){
+    this.mousestate = 'WAITP1';
+    this.selection.x = [0,0];
+    this.selection.y = [0,0];
+  }
+  else if(this.mousestate == 'WAITP1'){
+    this.mousestate = 'WAITP2';
+    this.selection.x[0] = xy[0];
+    this.selection.y[0] = xy[1];
+    this.selection.x[1] = xy[0];
+    this.selection.y[1] = xy[1];
+  }
+  else if(this.mousestate == 'WAITP2'){
+    this.mousestate = 'IDLE';
+
+  }
+
+  this.draw();
+}
+
+scattergl.prototype.mousemove = function(evt){
+
+  if(this.mousestate != 'WAITP2')
+    return;
+
+  var xy = getxy(this, evt);
+
+  this.selection.x[1] = xy[0];
+  this.selection.y[1] = xy[1];
+
+  this.draw();
+
 }
 
 
@@ -183,17 +235,19 @@ scattergl.prototype.initGL = function(){
   var that = this;
 
   //http://www.khronos.org/webgl/wiki/HandlingHighDPI
-  var devicePixelRatio = window.devicePixelRatio || 1;
-  this.canvas.width = this.canvas.clientWidth * devicePixelRatio;
-  this.canvas.height = this.canvas.clientHeight * devicePixelRatio;
-  this.canvas.addEventListener("mousedown", function(evt){that.getPosition(evt);}, false);
+  this.devicePixelRatio = window.devicePixelRatio || 1;
+  this.canvas.width = this.canvas.clientWidth * this.devicePixelRatio;
+  this.canvas.height = this.canvas.clientHeight * this.devicePixelRatio;
+  this.canvas.addEventListener("mousedown", function(evt){that.mousedown(evt);}, false);
+  this.canvas.addEventListener("mousemove", function(evt){that.mousemove(evt);}, false);
 
   this.gl = this.canvas.getContext("experimental-webgl");
   this.gl.viewportWidth = this.canvas.width;
   this.gl.viewportHeight = this.canvas.height;
 
-  //console.log(this.canvas.width);
-  //console.log(this.gl.viewportWidth);
+  this.gl.disable(this.gl.DEPTH_TEST);
+  this.gl.enable(this.gl.BLEND);
+  this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
 
   if (!this.gl){
     alert("Could not initialise Webthis.gl.");
