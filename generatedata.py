@@ -7,6 +7,7 @@ import numpy
 
 data = None
 datatiles = None
+interdatatiles = None
 
 def generateData(numentries, numdim):
 
@@ -83,21 +84,72 @@ def generateDataTiles(binsize, width, height):
 
   datatiles = numpy.zeros(shape=(width/binsize,height/binsize), dtype = object)
 
-  print 'Creating tiles...'
+  print 'Creating data tiles...'
   count = 0.0
   for i in range(0, numdim):
     for j in range(0, numdim):
+
       print float(count) / (numdim*numdim)
+
       datatiles[i, j] = createDataTile(binsize, width, height, data[0:,i], data[0:,j])
       img = scipy.misc.toimage(datatiles[i,j]) #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
       img.save('./data/'+str(i)+'.'+str(j)+'.png')
 
       count+=1.0
+
   print 'Done'
 
+
+def createInteractionDataTile(binsize, width, height, dimension1, dimension2, dimension3, dimension4):
+
+  maxvalue = 1.0
+  numbins = width / binsize
+
+  buf = numpy.zeros(shape=(width/binsize,height/binsize, 4), dtype=numpy.uint8)
+
+  for entry in range(0, len(dimension1)):
+
+    values = [dimension1[entry], dimension2[entry], dimension3[entry], dimension4[entry]]
+    bins = [0, 0, 0, 0]
+
+    for i in range(0,4):
+      bins[i] = int((values[i] / maxvalue) * (numbins-1))
+
+    
+
+
+
+
+
+
+def generateInteractionDataTiles(binsize, width, height):
+
+  global data
+  global datatiles
+  global interdatatiles
+
+  numentries, numdim = data.shape
+
+  interdatatiles = numpy.zeros(shape=(width/binsize,height/binsize, width/binsize, height/binsize), dtype = object)
+
+  print 'Creating interaction data tiles...'
+  count = 0.0
+  for i in range(0, numdim):
+    for j in range(0, numdim):
+      for k in range(0, numdim):
+        for l in range(0, numdim):
+
+          print float(count) / (numdim*numdim)
+
+          interdatatiles[i, j, k, l] = createInteractionDataTile(binsize, width, height, data[0:,i], data[0:,j], data[0:,k], data[0:,l])
+          img = scipy.misc.toimage(interdatatiles[i, j, k, l]) #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+          img.save('./data/'+str(i)+'.'+str(j)+'.'+str(k)+'.'+str(l)+'.png')
+
+
+          count+=1.0
+
+  print 'Done'
   
-def getTile(dimension1, dimension2):
-  return datatiles[dimension1, dimension2]
 
 
 def main(argv):
@@ -116,6 +168,7 @@ def main(argv):
 
   generateData(numentries, numdim)
   generateDataTiles(binsize, imgsize, imgsize)
+  generateInteractionDataTiles(binsize, imgsize, imgsize)
 
 
 if __name__ == "__main__":
