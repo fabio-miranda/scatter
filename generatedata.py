@@ -38,14 +38,16 @@ def generateDatatiles(imgsize, numdim, numbin):
   maxvalue = 1.0
   maxcount = 0
 
-  buff = numpy.zeros(shape=(imgsize, imgsize, 3), dtype = numpy.uint8)
+  buff = numpy.zeros(shape=(imgsize, imgsize, 3), dtype = numpy.uint32)
   
 
-  for i in range(1, 2):
-    for j in range(0, 1):
+  for i in range(0, numdim):
+    for j in range(0, numdim):
 
       dimension1 = data[0:,i]
       dimension2 = data[0:,j]
+
+      print float(i*numdim+j) / (numdim*numdim)
 
       for entry in range(0, len(dimension1)):
 
@@ -62,19 +64,22 @@ def generateDatatiles(imgsize, numdim, numbin):
         numdatatiledim = 2
         #datatileindex = i*numdim+j
         datatilesize = imgsize / numdim
+        binsize = datatilesize / numbin
+
+        #print bini, binj
 
         #print numbin, val1, val2, x, datatileindex, bini, binj
         #print datatilesize
         #print datatilesize, datatilesize, bini, binj, datatileindex, i, j
         #print datatilesize*datatileindex + bini, datatilesize*datatileindex + binj
         #print datatilesize*i + bini, datatilesize*j + binj
-        buff[datatilesize*i + bini, datatilesize*j + binj] = 255
+        buff[datatilesize*i + binsize*bini, datatilesize*j + binsize*binj] += 1
         newvalue = buff[datatilesize*i + bini, datatilesize*j + binj, 0]
 
         #print newvalue
 
         #print newvalue
-        if(newvalue > maxcount):
+        if(i != j and newvalue > maxcount):
           maxcount = newvalue
 
 
@@ -82,16 +87,21 @@ def generateDatatiles(imgsize, numdim, numbin):
 
   #normalize TODO see http://stackoverflow.com/questions/13901197/retain-unchanged-data-when-saving-numpy-array-to-image-with-scipy-imsave
 
-  #print buff
+  for i in range(0, imgsize):
+    for j in range(0, imgsize):
+      buff[i, j] = 255*(buff[i,j] / float(maxcount))
+
+  #buff /= float(maxcount)
   img = scipy.misc.toimage(buff) 
-  img.save('./data2/test.png')
+  #img.save('./data2/2.'+str(imgsize)+'.'+str(numdim)+'.'+str(numbin)+'.png')
+  img.save('./data2/'+str(numbin)+'.png')
 
 
 
 
 def main(argv):
   parser = argparse.ArgumentParser(description='Generate data tiles')
-  parser.add_argument('imgsize', metavar='imgsize', type=int, nargs='+', help='img size')
+  #parser.add_argument('imgsize', metavar='imgsize', type=int, nargs='+', help='img size')
   parser.add_argument('numbin', metavar='numbin', type=int, nargs='+', help='number of bins')
   parser.add_argument('numentries', metavar='numentries', type=int, nargs='+', help='number of entries')
   parser.add_argument('numdim', metavar='numdim', type=int, nargs='+', help='number of dimensions')
@@ -99,7 +109,6 @@ def main(argv):
   args = vars(parser.parse_args())
 
   numdim = args['numdim'][0]
-  imgsize = args['imgsize'][0]
   numentries = args['numentries'][0]
   numbin = args['numbin'][0]
 
@@ -107,9 +116,13 @@ def main(argv):
   generateData(numentries, numdim)
   print 'Done'
 
-  print 'Generating data tiles...'
-  generateDatatiles(imgsize, numdim, numbin)
-  print 'Done'
+  for i in range(2, 10):
+    numbin = pow(2, i)
+    imgsize = numbin * numdim
+
+    print 'Generating data tiles with imgsize='+str(imgsize)
+    generateDatatiles(imgsize, numdim, numbin)
+    print 'Done'
 
   #print 'Generating interaction data tiles...'
   #generateInteractionDataTiles(binsize, imgsize, imgsize)

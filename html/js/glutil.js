@@ -43,24 +43,18 @@ function createTexture(gl, iformat, format, type, image, tex){
 
 }
 
-function quad(gl, image){
+function quad(gl, texture, texCoords){
 
   this.quadBuffer = null;
   this.texCoordBuffer = null;
   this.color = null;
-  this.image = image;
-  this.texture = null;
+  this.texture = texture;
 
-  if(this.image != null){
-    this.texture = gl.createTexture();
-    createTexture(gl, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image, this.texture);
-  }
-
-  this.initBuffers(gl);
+  this.initBuffers(gl, texCoords);
 
 }
 
-quad.prototype.initBuffers = function(gl){
+quad.prototype.initBuffers = function(gl, texCoords){
 
   //vertices
   this.quadBuffer = gl.createBuffer();
@@ -79,14 +73,16 @@ quad.prototype.initBuffers = function(gl){
     //tex coord
     this.texCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
-     
+    
+    /*
     var texCoords = [
          1.0,  1.0,
         -1.0,  1.0,
          1.0, -1.0,
         -1.0, -1.0,
     ];
-     
+    */
+
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
     this.texCoordBuffer.itemSize = 2;
     this.texCoordBuffer.numItems = 4;

@@ -1,13 +1,13 @@
 
 
-function scatterquad(gl, i, j, dim1, dim2, image){
+function scatterquad(gl, i, j, dim1, dim2, texture, texcoords){
   this.quadBuffer = null;
   this.texCoordBuffer = null;
   this.i = i;
   this.j = j;
   this.dim1 = dim1;
   this.dim2 = dim2;
-  this.quad = new quad(gl, image);
+  this.quad = new quad(gl, texture, texcoords);
 }
 
 function selectionquad(gl){
@@ -17,7 +17,7 @@ function selectionquad(gl){
 }
 
 
-function scattergl(canvas){
+function scattergl(canvas, image, imgsize, numdatatiledim, numdim, numbin){
   this.canvas = canvas;
   this.scatterplots = {};
   this.gl = null;
@@ -29,13 +29,35 @@ function scattergl(canvas){
   this.mousestate = 'MOUSEUP';
   this.devicePixelRatio = 1;
 
+  this.image = image;
+  this.imgsize = imgsize;
+  this.numdatatiledim = numdatatiledim;
+  this.numdim = numdim;
+  this.numbin = numbin;
+
   this.initGL();
   this.initShaders();
 
   this.selection = new selectionquad(this.gl);
+
+  this.texture = this.gl.createTexture();
+  createTexture(this.gl, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.image, this.texture);
 }
 
-scattergl.prototype.addscatter = function(i, j, dim1, dim2, image){
+
+scattergl.prototype.update = function(image, imgsize, numdatatiledim, numdim, numbin){
+
+  this.image = image;
+  this.imgsize = imgsize;
+  this.numdatatiledim = numdatatiledim;
+  this.numdim = numdim;
+  this.numbin = numbin;
+
+  this.texture = this.gl.createTexture();
+  createTexture(this.gl, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.image, this.texture);
+}
+
+scattergl.prototype.addscatter = function(i, j, dim1, dim2){
 
   //var dim;
   //if(dim1 < dim2)
@@ -44,7 +66,16 @@ scattergl.prototype.addscatter = function(i, j, dim1, dim2, image){
     //dim = dim2+'_'+dim1;
 
   //if(this.scatterplots[i+' '+j] == null){
-    this.scatterplots[i+' '+j] = new scatterquad(this.gl, i, j, dim1, dim2, image);
+    var sizedatatile = 1.0 / this.numdim;
+    var texcoords = [
+      (dim1+1.0)*sizedatatile,  (dim2+1.0)*sizedatatile,
+      (dim1-1.0)*sizedatatile,  (dim2+1.0)*sizedatatile,
+      (dim1+1.0)*sizedatatile,  (dim2-1.0)*sizedatatile,
+      (dim1-1.0)*sizedatatile,  (dim2-1.0)*sizedatatile,
+
+    ];
+    console.log(texcoords);
+    this.scatterplots[i+' '+j] = new scatterquad(this.gl, i, j, dim1, dim2, this.texture, texcoords);
     this.maxdim = Math.max(i, j, this.maxdim);
   //}
 

@@ -12,12 +12,31 @@ function createscatterplot(datatile){
   image.src="data:image/png;base64,"+datatile['data'];
   var that = this;
   image.onload = function(){
-    scattermatrix.addscatter(datatile['i'], datatile['j'], datatile['dim1'], datatile['dim2'], image);
-    count++;
+    scattermatrix = new scattergl(
+      document.getElementById('scatterplotmatrix'),
+      image, 
+      datatile['imgsize'],
+      datatile['numdatatiledim'],
+      datatile['numdim'],
+      datatile['numbin']
+    );
 
-    if(count >= currentnumdim*currentnumdim)
-      scattermatrix.draw();
+    scattermatrix.addscatter(0, 0, 0, 0);
+    scattermatrix.draw();
+    adddimension();
   } 
+}
+
+function updatescatterplot(datatile, binsize){
+
+  var image = new Image();
+  image.src="data:image/png;base64,"+datatile['data'];
+  var that = this;
+  image.onload = function(){
+    scattermatrix.update(image, datatile['imgsize'], datatile['numdatatiledim'], datatile['numdim'], datatile['numbin']);
+    redrawscatterplots();
+  } 
+
 }
 
 
@@ -33,7 +52,7 @@ function createdropdown(dim){
     redrawscatterplots();
   };
 
-  for(var i=0; i<info[dim]; i++){
+  for(var i=0; i<scattermatrix.numdim; i++){
     var option=document.createElement("option");
     option.text = i;
     dropdown.add(option, null);
@@ -47,12 +66,17 @@ function redrawscatterplots(){
 
   for(var i = 0; i<currentnumdim; i++){
     for(var j = 0; j<currentnumdim; j++){
-      var postdata = {'i': i, 'j': j, 'dim1': $('#dropdownmenu_dim1_'+i).val(), 'dim2' : $('#dropdownmenu_dim2_'+j).val()};
-      
-      $.post('/data', postdata, createscatterplot);
+      scattermatrix.addscatter(i, j, parseInt($('#dropdownmenu_dim1_'+i).val()), parseInt($('#dropdownmenu_dim2_'+j).val()));
+      scattermatrix.draw();
     }
   }
 
+}
+
+function changebinsize(){
+  scattermatrix.reset();
+  count = 0;
+  $.post('/data', {'numbin' : $('#binsize').val()}, updatescatterplot);
 }
 
 function addscatterplot(){
@@ -118,13 +142,6 @@ function removedimension(){
 
 }
 
-function initializeLayout(json){
-  info = json;
-  scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
-  $.post('/data', {'i': 0, 'j': 0, 'dim1': 0, 'dim2' : 0}, createscatterplot);
-  adddimension();
-}
-
 function initialize(){
   /*
   scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
@@ -139,7 +156,7 @@ function initialize(){
   //scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
   //$.post('/data', {'dim1': 0, 'dim2' : 0}, createscatterplot);
 
-  $.post('/info', {}, initializeLayout);
+  $.post('/data', {'numbin' : 4}, createscatterplot);
 
 }
 
