@@ -49,6 +49,7 @@ def generateDatatiles(imgsize, numdim, numbin):
 
       print float(i*numdim+j) / (numdim*numdim)
 
+      maxcount = 0
       for entry in range(0, len(dimension1)):
 
         
@@ -79,17 +80,20 @@ def generateDatatiles(imgsize, numdim, numbin):
         #print newvalue
 
         #print newvalue
-        if(i != j and newvalue > maxcount):
+        #if(i != j and newvalue > maxcount):
+          #maxcount = newvalue
+        if(newvalue > maxcount):
           maxcount = newvalue
+
+      #normalize each scatterplot separately
+
+      buff[datatilesize*i:datatilesize*(i+1), datatilesize*j:datatilesize*(j+1)] = 255*(buff[datatilesize*i:datatilesize*(i+1), datatilesize*j:datatilesize*(j+1)].astype('float')/maxcount)
+
 
 
   #print 'ok'
 
   #normalize TODO see http://stackoverflow.com/questions/13901197/retain-unchanged-data-when-saving-numpy-array-to-image-with-scipy-imsave
-
-  for i in range(0, imgsize):
-    for j in range(0, imgsize):
-      buff[i, j] = 255*(buff[i,j] / float(maxcount))
 
   #buff /= float(maxcount)
   img = scipy.misc.toimage(buff) 
@@ -120,7 +124,7 @@ def main(argv):
     numbin = pow(2, i)
     imgsize = numbin * numdim
 
-    print 'Generating data tiles with imgsize='+str(imgsize)
+    print 'Generating data tiles with imgsize='+str(imgsize)+', numbin='+str(numbin)
     generateDatatiles(imgsize, numdim, numbin)
     print 'Done'
 
