@@ -4,7 +4,7 @@ varying highp vec2 vTextureCoord;
 uniform sampler2D uSampler;
 
 void main(void) {
-  float count = texture2D(uSampler, vTextureCoord).r;
+  float count = texture2D(uSampler, vTextureCoord).g;
 
   if(count <= 0.0)
     gl_FragColor = vec4(0);

@@ -7,8 +7,6 @@ import numpy
 import math
 
 data = None
-datatiles = None
-interdatatiles = None
 
 
 def generateData(numentries, numdim):
@@ -66,14 +64,7 @@ def generateDatatiles(imgsize, numdim, numbin):
         #datatileindex = i*numdim+j
         datatilesize = imgsize / numdim
         binsize = datatilesize / numbin
-
-        #print bini, binj
-
-        #print numbin, val1, val2, x, datatileindex, bini, binj
-        #print datatilesize
-        #print datatilesize, datatilesize, bini, binj, datatileindex, i, j
-        #print datatilesize*datatileindex + bini, datatilesize*datatileindex + binj
-        #print datatilesize*i + bini, datatilesize*j + binj
+        
         buff[datatilesize*i + binsize*bini, datatilesize*j + binsize*binj] += 1
         newvalue = buff[datatilesize*i + bini, datatilesize*j + binj, 0]
 

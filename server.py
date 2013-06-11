@@ -32,7 +32,7 @@ class ScatterPage:
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
     buffer = StringIO.StringIO()
-    img = Image.open('./data2/'+str(numbin)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+    img = Image.open('./data3/'+str(numbin)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
     imgsize = int(img.size[0])
     img.save(buffer, format='PNG')
     buffer.seek(0)
