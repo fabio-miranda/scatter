@@ -27,22 +27,26 @@ class ScatterPage:
   @cherrypy.expose
   def data(self, numbin):
 
-    numbin = int(numbin)
-
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
-    buffer = StringIO.StringIO()
-    img = Image.open('./data4/2_'+str(numbin)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
-    imgsize = int(img.size[0])
-    img.save(buffer, format='PNG')
-    buffer.seek(0)
-
+    numbin = int(numbin)
     data = {}
-    data['data'] = base64.b64encode(buffer.getvalue())
-    data['numdatatiledim'] = 2
-    data['imgsize'] = imgsize
-    data['numdim'] = imgsize / numbin
-    data['numbin'] = numbin
+    numrelations = [2, 4]
+
+    for i in numrelations:
+
+      buffer = StringIO.StringIO()
+      img = Image.open('./data4/'+str(i)+'_'+str(numbin)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+      imgsize = int(img.size[0])
+      img.save(buffer, format='PNG')
+      buffer.seek(0)
+
+      data[i] = {}
+      data[i]['data'] = base64.b64encode(buffer.getvalue())
+      data[i]['numrelations'] = i
+      data[i]['imgsize'] = imgsize
+      data[i]['numdim'] = imgsize / (numbin * (i/2))
+      data[i]['numbin'] = numbin
 
     return json.dumps(data)
 

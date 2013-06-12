@@ -9,32 +9,49 @@ var info;
 function createscatterplot(datatile){
 
   var image = new Image();
-  image.src="data:image/png;base64,"+datatile['data'];
+  image.src="data:image/png;base64,"+datatile['2']['data'];
   var that = this;
   image.onload = function(){
-    scattermatrix = new scattergl(
-      document.getElementById('scatterplotmatrix'),
-      image, 
-      datatile['imgsize'],
-      datatile['numdatatiledim'],
-      datatile['numdim'],
-      datatile['numbin']
-    );
+
+    scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
+    scattermatrix.update(datatile['2']['numrelations'], image, datatile['2']['imgsize'], datatile['2']['numdim'], datatile['2']['numbin']);
 
     scattermatrix.addscatter(0, 0, 0, 0);
     scattermatrix.draw();
     adddimension();
+
+    image = new Image();
+    image.src="data:image/png;base64,"+datatile['4']['data'];
+    var that = this;
+    image.onload = function(){
+      scattermatrix.update(datatile['4']['imgsize'], image, datatile['4']['numrelations'], datatile['4']['numdim'], datatile['4']['numbin']);
+    }
   } 
 }
 
 function updatescatterplot(datatile, binsize){
 
   var image = new Image();
-  image.src="data:image/png;base64,"+datatile['data'];
+  image.src="data:image/png;base64,"+datatile['2']['data'];
   var that = this;
   image.onload = function(){
-    scattermatrix.update(image, datatile['imgsize'], datatile['numdatatiledim'], datatile['numdim'], datatile['numbin']);
+
+    scattermatrix.update(
+      datatile['2']['numrelations'],
+      image,
+      datatile['2']['imgsize'],
+      datatile['2']['numdim'], 
+      datatile['2']['numbin']
+    );
+
     redrawscatterplots();
+
+    image = new Image();
+    image.src="data:image/png;base64,"+datatile['4']['data'];
+    var that = this;
+    image.onload = function(){
+      scattermatrix.update(datatile['4']['numrelations'], image, datatile['4']['imgsize'], datatile['4']['numdim'], datatile['4']['numbin']);
+    }
   } 
 
 }
@@ -52,7 +69,7 @@ function createdropdown(dim){
     redrawscatterplots();
   };
 
-  for(var i=0; i<scattermatrix.numdim; i++){
+  for(var i=0; i<scattermatrix.numdim[2]; i++){
     var option=document.createElement("option");
     option.text = i;
     dropdown.add(option, null);
