@@ -11,7 +11,7 @@ void main(void) {
 
   vec2 coord = (uDim - vec2(1))*uSizeDataTile + vTexCoord * uSizeDataTile;
   float count = texture2D(uSampler0, coord).g;
-
+  /*
   int rangei = int((selectionQuad.y - selectionQuad.x)*uSizeDataTile);
   int rangej = int((selectionQuad.z - selectionQuad.w)*uSizeDataTile);
   float value = 0.0;
@@ -28,7 +28,7 @@ void main(void) {
 
   gl_FragColor = vec4(value, value, value, 1.0);
   return;
-
+	*/
   if(count <= 0.0)
     gl_FragColor = vec4(0);
   else if(count < 0.5)
