@@ -129,6 +129,7 @@ scattergl.prototype.draw = function(){
       this.selection.topright[0] / this.gl.viewportWidth,
       this.selection.topright[1] / this.gl.viewportHeight
     );
+    console.log(this.selection.bottomleft[0] / this.gl.viewportWidth);
     scatter.quad.draw(this.gl, this.scatterShader, this.mvMatrix, this.pMatrix);
 
     //this.gl.viewport(j*width, i*height, width, height);
