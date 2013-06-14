@@ -4,28 +4,34 @@ varying highp vec2 vTexCoord;
 uniform sampler2D uSampler0;
 uniform sampler2D uSampler1;
 uniform vec2 uDim;
+uniform float uNumDim;
 uniform vec4 uSelectionQuad; //xy: bottom left, zw: top right
-uniform float uSizeDataTile;
+//uniform vec2 uSizeDataTile; //x: 2D, y: 4D
 
-const int maxloop = 100;//50000;
+const int maxloop = 10;//50000;
 //const float maxvalue = 1.0;
 
 void main(void) {
 
   //a, b: current fragment
   //i, j: dimensions to iterate
-
-  vec2 coord2D = (uDim - vec2(1))*uSizeDataTile + vTexCoord * uSizeDataTile; //a, b
+  float sizeDataTile2D = 1.0 / uNumDim;
+  vec2 coord2D = (uDim - vec2(1))*sizeDataTile2D + vTexCoord * sizeDataTile2D; //a, b
   float count = texture2D(uSampler0, coord2D).g;
-  
-  float rangei0 = uSelectionQuad.x / uSizeDataTile;
-  float rangei1 = uSelectionQuad.z / uSizeDataTile;
-  int rangecounti = int((rangei1 - rangei0) * 512.0); //replace with imgsize
 
 
-  float rangej0 = uSelectionQuad.y / uSizeDataTile;
-  float rangej1 = uSelectionQuad.w / uSizeDataTile;
-  int rangecountj = int((rangej1 - rangej0) * 512.0);
+  float sizeDataTile4D = 1.0 / (sqrt(16.0) * uNumDim);
+  float rangei0 = uSelectionQuad.x / sizeDataTile4D;
+  float rangei1 = uSelectionQuad.z / sizeDataTile4D;
+  int rangecounti = int((rangei1 - rangei0)); //replace with imgsize
+
+
+  float rangej0 = uSelectionQuad.y / sizeDataTile4D;
+  float rangej1 = uSelectionQuad.w / sizeDataTile4D;
+  int rangecountj = int((rangej1 - rangej0));
+
+  //gl_FragColor = vec4(float(rangecounti), count, 0, 1.0);
+  //return;
 
 
   float value = 0.0;
@@ -35,7 +41,8 @@ void main(void) {
     for(int j=0; j<maxloop; j++){
       if(j >= rangecountj) break;
 
-      vec4 coord4D = vec4(rangei0 + float(i)/512.0, rangej0 + float(j)/512.0, coord2D.x, coord2D.y);
+      vec2 coordAB = (uDim - vec2(1))*sizeDataTile4D + vTexCoord * sizeDataTile4D;
+      vec4 coord4D = vec4((rangei0+float(i))*sizeDataTile4D, (rangej0+float(j))*sizeDataTile4D, coordAB.x, coordAB.y);
 
       /*
       int bini = round((vali / maxvalue) * (float)(numbin-1));
@@ -53,13 +60,26 @@ void main(void) {
 
       vec2 coord4D = vec2(index0, index1) / 100.0;
       */
-      vec2 coord = vec2(512.0*coord4D.x + coord4D.y, 512.0*coord4D.z + coord4D.w);
-      //vec2 coord = vec2(coord2D.xy);
-      value += texture2D(uSampler1, coord).r;
+      vec2 coord = vec2(coord4D.x*sizeDataTile4D + coord4D.y, coord4D.z*sizeDataTile4D + coord4D.w);
+      //vec2 coord = vec2(coord4D.xy);
+      value = texture2D(uSampler1, coord).r;
+      //value = coord4D.x;
+      /*
+      gl_FragColor = vec4(coord.y, 0, 0, 1.0);
+      return;
+
+      
+      if(coord.x <= 1.0 && coord.x >= 0.0 && coord.y >= 0.0 && coord.y <= 1.0){
+        value += 1.0;
+      }
+      else{
+        value += 0.0;
+      }
+      */
     }
   }
 
-  gl_FragColor = vec4(value, value, value, 1.0);
+  gl_FragColor = vec4(count+value, value, value, 1.0);
   return;
 	
   if(count <= 0.0)

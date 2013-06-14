@@ -24,7 +24,7 @@ function createscatterplot(datatile){
     image.src="data:image/png;base64,"+datatile['4']['data'];
     var that = this;
     image.onload = function(){
-      scattermatrix.update(datatile['4']['imgsize'], image, datatile['4']['numrelations'], datatile['4']['numdim'], datatile['4']['numbin']);
+      scattermatrix.update(datatile['4']['numrelations'], datatile['4']['imgsize'], image, datatile['4']['numdim'], datatile['4']['numbin']);
     }
   } 
 }
@@ -173,7 +173,7 @@ function initialize(){
   //scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
   //$.post('/data', {'dim1': 0, 'dim2' : 0}, createscatterplot);
 
-  $.post('/data', {'numbin' : 4}, createscatterplot);
+  $.post('/data', {'numbin' : 2}, createscatterplot);
 
 }
 

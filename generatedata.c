@@ -172,7 +172,7 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin){
 
   float maxvalue = 1.0f;
   float maxcount = 0.0f;
-  int datatilesize = imgsize / (2 * numdim);
+  int datatilesize = sqrt(imgsize) / numdim;
   int binsize = datatilesize / numbin;
 
   printf("binsize: %d datatilesize: %d numbin: %d\n", binsize, datatilesize, numbin);
@@ -201,19 +201,25 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin){
             //printf("5\n");
             float vall = data[l*numentries+entry];
             //printf("6\n");
+
+            //position inside datatile
             int bini = round((vali / maxvalue) * (float)(numbin-1));
             int binj = round((valj / maxvalue) * (float)(numbin-1));
             int bink = round((valk / maxvalue) * (float)(numbin-1));
             int binl = round((vall / maxvalue) * (float)(numbin-1));
 
-
+            //position (x,y,z,w) in 4d texture
             int x = datatilesize*i + binsize*bini;
             int y = datatilesize*j + binsize*binj;
             int z = datatilesize*k + binsize*bink;
             int w = datatilesize*l + binsize*binl;
-            int index0 = x * (sqrt(imgsize)) + y;
-            int index1 = z * (sqrt(imgsize)) + w;
-            int index = index0 * (sqrt(imgsize)) + index1;
+
+            //from 4d to 2d
+            int index0 = x * imgsize + y * sqrt(imgsize);
+            int index1 = z * sqrt(imgsize) + w;
+
+            //from 2d to 1d (linear array)
+            int index = index0 * sqrt(imgsize) + index1;
 
             if(index >= imgsize*imgsize){
               printf("index: %d imgsize2: %d \n", index, imgsize*imgsize);
@@ -275,6 +281,8 @@ void generate2DTiles(int imgsize, int numentries, int numdim, int numbin){
   float maxcount = 0.0f;
   int datatilesize = imgsize / numdim;
   int binsize = datatilesize / numbin;
+
+  printf("%d\n", datatilesize);
 
   printf("binsize: %d datatilesize: %d numbin: %d\n", binsize, datatilesize, numbin);
 
@@ -351,7 +359,8 @@ int main(int argc, char* argv[]){
     printf("Done\n");
 
     int i;
-    int aux[8] = {4, 8, 16, 32, 64, 128, 256, 512};
+    //int aux[8] = {4, 8, 16, 32, 64, 128, 256, 512};
+    int aux[1] = {2};
     for(i=0; i<sizeof(aux)/sizeof(int); i++){
       int numbin = aux[i];
       int imgsize = numbin * numdim;
@@ -362,10 +371,11 @@ int main(int argc, char* argv[]){
 
     }
 
-    int aux2[8] = {4, 8, 16, 32, 64, 128, 256};
+    //int aux2[8] = {4, 8, 16, 32, 64, 128, 256};
+    int aux2[1] = {2};
     for(i=0; i<sizeof(aux2)/sizeof(int); i++){
       int numbin = aux2[i];
-      int imgsize = 2 * (numbin * numdim);
+      int imgsize = (numbin * numdim) * (numbin * numdim);
 
       printf("Generating 4d data tile with imgsize=%d, numbin=%d...\n", imgsize, numbin);
       generate4DTiles(imgsize, numentries, numdim, numbin);

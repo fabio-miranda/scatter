@@ -44,7 +44,7 @@ function scattergl(canvas){
   this.numdim = {};
   this.numbin = {};
   this.texture = {};
-  this.sizedatatile = {};
+  //this.sizedatatile = {};
 
   this.initGL();
   this.initShaders();
@@ -61,7 +61,7 @@ scattergl.prototype.update = function(numrelations, image, imgsize, numdim, numb
   this.numrelations[numrelations] = numrelations;
   this.numdim[numrelations] = numdim;
   this.numbin[numrelations] = numbin;
-  this.sizedatatile[numrelations] = 1.0 / this.numdim[2];
+  //this.sizedatatile[numrelations] = 1.0 / numdim;
 
   this.texture[numrelations] = this.gl.createTexture();
   createTexture(this.gl, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.image[numrelations], this.texture[numrelations]);
@@ -121,7 +121,8 @@ scattergl.prototype.draw = function(){
     this.gl.viewport(i*width, j*height, width, height);
 
     this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
-    this.gl.uniform1f(this.scatterShader.sizeDataTile, this.sizedatatile[2]);
+    //this.gl.uniform2f(this.scatterShader.sizeDataTile, this.sizedatatile[2], this.sizedatatile[4]);
+    this.gl.uniform1f(this.scatterShader.numDim, this.numdim['2']);
     this.gl.uniform4f(
       this.scatterShader.selectionQuad,
       this.selection.bottomleft[0] / this.gl.viewportWidth,
@@ -202,7 +203,8 @@ scattergl.prototype.initShaders = function(){
   this.gl.enableVertexAttribArray(this.scatterShader.textureCoordAttribute);
 
   this.scatterShader.dim = this.gl.getUniformLocation(this.scatterShader, 'uDim');
-  this.scatterShader.sizeDataTile = this.gl.getUniformLocation(this.scatterShader, 'uSizeDataTile');
+  //this.scatterShader.sizeDataTile = this.gl.getUniformLocation(this.scatterShader, 'uSizeDataTile');
+  this.scatterShader.numDim = this.gl.getUniformLocation(this.scatterShader, 'uNumDim');
   this.scatterShader.selectionQuad = this.gl.getUniformLocation(this.scatterShader, 'uSelectionQuad');
 
   this.scatterShader.pMatrixUniform = this.gl.getUniformLocation(this.scatterShader, "uPMatrix");
