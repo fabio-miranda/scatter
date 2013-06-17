@@ -62,9 +62,9 @@ quad.prototype.initBuffers = function(gl){
   gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
   var vertices = [
        1.0,  1.0,  0.0,
-      -1.0,  1.0,  0.0,
-       1.0, -1.0,  0.0,
-      -1.0, -1.0,  0.0
+       0.0,  1.0,  0.0,
+       1.0,  0.0,  0.0,
+       0.0,  0.0,  0.0
   ];
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
   this.quadBuffer.itemSize = 3;
@@ -78,9 +78,9 @@ quad.prototype.initBuffers = function(gl){
     
     var texCoords = [
          1.0,  1.0,
-        -1.0,  1.0,
-         1.0, -1.0,
-        -1.0, -1.0,
+         0.0,  1.0,
+         1.0,  0.0,
+         0.0,  0.0,
     ];
     
 
@@ -104,8 +104,8 @@ quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix){
     gl.bindTexture(gl.TEXTURE_2D, this.texture2d);
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler0"), 0);
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.texture2d);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this.texture4d);
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler1"), 0);
   }
 

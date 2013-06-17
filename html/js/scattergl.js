@@ -7,6 +7,8 @@ function scatterquad(gl, i, j, dim1, dim2, texture2d, texture4d){
   this.j = j;
   this.dim1 = dim1;
   this.dim2 = dim2;
+  console.log(texture2d);
+  console.log(texture4d);
   this.quad = new quad(gl, texture2d, texture4d);
 }
 
@@ -123,6 +125,9 @@ scattergl.prototype.draw = function(){
     this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
     //this.gl.uniform2f(this.scatterShader.sizeDataTile, this.sizedatatile[2], this.sizedatatile[4]);
     this.gl.uniform1f(this.scatterShader.numDim, this.numdim['2']);
+    console.log(this.maxdim);
+    this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
+    this.gl.uniform1f(this.scatterShader.numBins, this.numbin['2']);
     this.gl.uniform4f(
       this.scatterShader.selectionQuad,
       this.selection.bottomleft[0] / this.gl.viewportWidth,
@@ -204,6 +209,8 @@ scattergl.prototype.initShaders = function(){
 
   this.scatterShader.dim = this.gl.getUniformLocation(this.scatterShader, 'uDim');
   //this.scatterShader.sizeDataTile = this.gl.getUniformLocation(this.scatterShader, 'uSizeDataTile');
+  this.scatterShader.numBins = this.gl.getUniformLocation(this.scatterShader, 'uNumBins');
+  this.scatterShader.maxDim = this.gl.getUniformLocation(this.scatterShader, 'uMaxDim');
   this.scatterShader.numDim = this.gl.getUniformLocation(this.scatterShader, 'uNumDim');
   this.scatterShader.selectionQuad = this.gl.getUniformLocation(this.scatterShader, 'uSelectionQuad');
 

@@ -146,7 +146,8 @@ void generateData(int numentries, int numdim){
   srand (time(NULL));
   int dim;
   for(dim=0; dim<numdim; dim++){
-    float mean = randf(0.2f, 0.8f);
+    //float mean = randf(0.2f, 0.8f);
+    float mean = 0.5;
     float std;
     if(mean < 0.5f){
       std = mean / 2.0f;
@@ -359,8 +360,8 @@ int main(int argc, char* argv[]){
     printf("Done\n");
 
     int i;
-    //int aux[8] = {4, 8, 16, 32, 64, 128, 256, 512};
-    int aux[1] = {2};
+    int aux[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
+    //int aux[1] = {2};
     for(i=0; i<sizeof(aux)/sizeof(int); i++){
       int numbin = aux[i];
       int imgsize = numbin * numdim;
@@ -371,8 +372,8 @@ int main(int argc, char* argv[]){
 
     }
 
-    //int aux2[8] = {4, 8, 16, 32, 64, 128, 256};
-    int aux2[1] = {2};
+    int aux2[9] = {2, 4, 8, 16, 32, 64, 128, 256};
+    //int aux2[1] = {2};
     for(i=0; i<sizeof(aux2)/sizeof(int); i++){
       int numbin = aux2[i];
       int imgsize = (numbin * numdim) * (numbin * numdim);
