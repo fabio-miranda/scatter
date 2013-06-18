@@ -12,7 +12,7 @@ uniform vec4 uSelectionBinRange;  //xy: range in x, zw: range in y
 //uniform vec4 uSelectionQuad; //xy: bottom left, zw: top right
 //uniform vec2 uSizeDataTile; //x: 2D, y: 4D
 
-const int maxloop = 10;//50000;
+const int maxloop = 100;//50000;
 //const float maxvalue = 1.0;
 
 
@@ -103,17 +103,12 @@ void main(void) {
 
   //gl_FragColor = vec4(count, uSelectionBinRange.x, uSelectionBinRange.z, 0.5);
   //gl_FragColor = vec4(count, uSelectionDim.x, uSelectionDim.y, 0.5);
-  if(value > 0.0)
-    gl_FragColor = vec4(0, value, 0, 1.0);
-  else
-    gl_FragColor = vec4(count, count, count, 0.5);
-  return;
-	
+
   if(count <= 0.0)
     gl_FragColor = vec4(0);
   else if(count < 0.5)
-    gl_FragColor = mix(vec4(0, 0.5, 0.5, 1), vec4(0, 1, 0, 1), count);
+    gl_FragColor = mix(vec4(0.0+value, 0.5, 0.5, 1), vec4(0.0+value, 1, 0, 1), count);
   else
-    gl_FragColor = mix(vec4(0, 1, 0, 1), vec4(1, 0, 0, 1), count);
-
+    gl_FragColor = mix(vec4(0.0+value, 1, 0, 1), vec4(1, 0, 0, 1), count);
+  
 }

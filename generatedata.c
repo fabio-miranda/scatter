@@ -163,6 +163,7 @@ void generateData(int numentries, int numdim){
       val = fmaxf(0.0f, fminf(1.0f, val));
       //float val = 0.25f;
       //float val = entry / (float)numentries;
+      //val = randf(0, 1);
 
       data[dim*numentries+entry] = val;
     }
@@ -372,7 +373,7 @@ int main(int argc, char* argv[]){
       int numbin = aux[i];
       int imgsize = numbin * numdim;
 
-      if(imgsize >= 4096)
+      if(imgsize > 4096)
         break;
 
       printf("Generating 2d data tile with imgsize=%d, numbin=%d...\n", imgsize, numbin);
@@ -387,7 +388,7 @@ int main(int argc, char* argv[]){
       int numbin = aux2[i];
       int imgsize = (numbin * numdim) * (numbin * numdim);
 
-      if(imgsize >= 4096)
+      if(imgsize > 4096)
         break;
 
       printf("Generating 4d data tile with imgsize=%d, numbin=%d...\n", imgsize, numbin);

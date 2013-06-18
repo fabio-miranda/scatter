@@ -334,6 +334,7 @@ scattergl.prototype.initGL = function(){
   this.gl.disable(this.gl.DEPTH_TEST);
   this.gl.enable(this.gl.BLEND);
   this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+  //this.gl.clearColor(1, 0, 0, 1);
 
   if (!this.gl){
     alert("Could not initialise Webthis.gl.");
