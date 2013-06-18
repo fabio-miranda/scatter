@@ -26,14 +26,21 @@ void main(void) {
 
 
   float sizeBin = (1.0 / (uMaxDim + 1.0)) / uNumBins;
-  float rangei0 = uSelectionQuad.x / sizeBin;
-  float rangei1 = uSelectionQuad.z / sizeBin;
+  float rangei0 = floor(uSelectionQuad.x / sizeBin);
+  float rangei1 = floor(uSelectionQuad.z / sizeBin);
   int rangecounti = int(abs(rangei1 - rangei0)); //replace with imgsize
 
 
-  float rangej0 = uSelectionQuad.y / sizeBin;
-  float rangej1 = uSelectionQuad.w / sizeBin;
+  float rangej0 = floor(uSelectionQuad.y / sizeBin);
+  float rangej1 = floor(uSelectionQuad.w / sizeBin);
   int rangecountj = int(abs(rangej1 - rangej0));
+
+
+  //
+  //rangei0 = 0.0;
+  //rangecounti = 1;
+  //rangej0 = 0.0;
+  //rangecountj = 1;
 
   //gl_FragColor = vec4(uMaxDim, 0, 0, 1.0);
   //return;
@@ -53,7 +60,7 @@ void main(void) {
       //sizeDataTile4D = 1.0;
       vec2 coordIJ = vec2((rangei0+float(i))*sizeDataTile4D, (rangej0+float(j))*sizeDataTile4D);
       vec2 coordAB = uDim * sizeDataTile4D + vTexCoord * sizeDataTile4D;
-      vec4 coord4D = vec4(coordIJ.x, coordIJ.y, coordAB.x, coordAB.y);
+      //vec4 coord4D = vec4(coordIJ.x, coordIJ.y, coordAB.x, coordAB.y);
 
       /*
       int bini = round((vali / maxvalue) * (float)(numbin-1));
@@ -72,7 +79,7 @@ void main(void) {
       vec2 coord4D = vec2(index0, index1) / 100.0;
       */
       //vec2 coord = vec2(coordIJ.x*coordAB.x, coordIJ.y*coordAB.y);
-      vec2 coord = vec2(coord4D.x*sizeDataTile4D*coordAB.x + coord4D.y*coordAB.y, coord4D.z*sizeDataTile4D + coord4D.w);
+      vec2 coord = vec2(coordIJ.x*sizeDataTile4D + coordAB.x, coordIJ.y*sizeDataTile4D + coordAB.y);
       //vec2 coord = vec2(coord4D.xy);
       value += texture2D(uSampler1, coord).r;
       //value += texture2D(uSampler1, coordAB).r;

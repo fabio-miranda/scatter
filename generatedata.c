@@ -173,7 +173,7 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin){
 
   float maxvalue = 1.0f;
   float maxcount = 0.0f;
-  int datatilesize = sqrt(imgsize) / numdim;
+  int datatilesize = sqrt(imgsize) / numdim; //TODO: ij is the same as ji, take that into account, and remove the 2 *
   int binsize = datatilesize / numbin;
 
   printf("binsize: %d datatilesize: %d numbin: %d\n", binsize, datatilesize, numbin);
@@ -216,11 +216,13 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin){
             int w = datatilesize*l + binsize*binl;
 
             //from 4d to 2d
-            int index0 = x * imgsize + y * sqrt(imgsize);
-            int index1 = z * sqrt(imgsize) + w;
+            //int index0 = x * (sqrt(imgsize) / numdim) + y;
+            //int index1 = z * (sqrt(imgsize) / numdim) + w;
 
             //from 2d to 1d (linear array)
-            int index = index0 * sqrt(imgsize) + index1;
+            //int index = index0 * imgsize + index1;
+            int sqrtimg = sqrt(imgsize);
+            int index = x * pow(sqrtimg, 3) + y * pow(sqrtimg, 2) + z * sqrtimg + w;
 
             if(index >= imgsize*imgsize){
               printf("index: %d imgsize2: %d \n", index, imgsize*imgsize);
