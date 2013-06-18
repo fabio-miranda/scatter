@@ -146,8 +146,8 @@ void generateData(int numentries, int numdim){
   srand (time(NULL));
   int dim;
   for(dim=0; dim<numdim; dim++){
-    //float mean = randf(0.2f, 0.8f);
-    float mean = 0.5;
+    float mean = randf(0.2f, 0.8f);
+    //float mean = 0.5;
     float std;
     if(mean < 0.5f){
       std = mean / 2.0f;
@@ -161,6 +161,8 @@ void generateData(int numentries, int numdim){
 
       float val = gaussrand(mean, std);
       val = fmaxf(0.0f, fminf(1.0f, val));
+      //float val = 0.25f;
+      //float val = entry / (float)numentries;
 
       data[dim*numentries+entry] = val;
     }
@@ -245,6 +247,7 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin){
           
           //printf("8\n");
           //normalize
+          /*
           int bini, binj, bink, binl;
           for(bini=0; bini<datatilesize; bini++){
             for(binj=0; binj<datatilesize; binj++){
@@ -262,6 +265,7 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin){
               }
             }
           }
+          */
           //printf("9\n");
           
         }
@@ -368,17 +372,23 @@ int main(int argc, char* argv[]){
       int numbin = aux[i];
       int imgsize = numbin * numdim;
 
+      if(imgsize >= 4096)
+        break;
+
       printf("Generating 2d data tile with imgsize=%d, numbin=%d...\n", imgsize, numbin);
       generate2DTiles(imgsize, numentries, numdim, numbin);
       printf("Done\n");
 
     }
 
-    int aux2[9] = {2, 4, 8, 16, 32, 64, 128, 256};
+    int aux2[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
     //int aux2[1] = {2};
     for(i=0; i<sizeof(aux2)/sizeof(int); i++){
       int numbin = aux2[i];
       int imgsize = (numbin * numdim) * (numbin * numdim);
+
+      if(imgsize >= 4096)
+        break;
 
       printf("Generating 4d data tile with imgsize=%d, numbin=%d...\n", imgsize, numbin);
       generate4DTiles(imgsize, numentries, numdim, numbin);

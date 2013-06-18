@@ -7,7 +7,9 @@ uniform vec2 uDim;
 uniform float uMaxDim; //current num of dimensions being displayed
 uniform float uNumDim;
 uniform float uNumBins;
-uniform vec4 uSelectionQuad; //xy: bottom left, zw: top right
+uniform vec2 uSelectionDim;
+uniform vec4 uSelectionBinRange;  //xy: range in x, zw: range in y
+//uniform vec4 uSelectionQuad; //xy: bottom left, zw: top right
 //uniform vec2 uSizeDataTile; //x: 2D, y: 4D
 
 const int maxloop = 10;//50000;
@@ -25,15 +27,10 @@ void main(void) {
   float count = texture2D(uSampler0, coord2D).g;
 
 
-  float sizeBin = (1.0 / (uMaxDim + 1.0)) / uNumBins;
-  float rangei0 = floor(uSelectionQuad.x / sizeBin);
-  float rangei1 = floor(uSelectionQuad.z / sizeBin);
-  int rangecounti = int(abs(rangei1 - rangei0)); //replace with imgsize
-
-
-  float rangej0 = floor(uSelectionQuad.y / sizeBin);
-  float rangej1 = floor(uSelectionQuad.w / sizeBin);
-  int rangecountj = int(abs(rangej1 - rangej0));
+  int rangecounti = int(abs(uSelectionBinRange.x - uSelectionBinRange.y));
+  int rangecountj = int(abs(uSelectionBinRange.z - uSelectionBinRange.w));
+  float rangei0 = uSelectionBinRange.x;
+  float rangej0 = uSelectionBinRange.z;
 
 
   //
@@ -42,24 +39,26 @@ void main(void) {
   //rangej0 = 0.0;
   //rangecountj = 1;
 
-  //gl_FragColor = vec4(uMaxDim, 0, 0, 1.0);
+  //gl_FragColor = vec4(rangecounti, rangecountj, 0, 0.5);
   //return;
 
-  //gl_FragColor = vec4(coord2D.x, coord2D.y, 0, 1.0);
+  //gl_FragColor = vec4(vTexCoord.x, vTexCoord.y, 0, 1.0);
   //return;
 
-  float sizeDataTile4D = 1.0 / uNumDim; //1.0 / (sqrt(16.0) * uNumDim);
+  float sizeDataTile4D = 1.0 /  ((uNumBins * uNumDim));
   float value = 0.0;
   //hack for Loop index cannot be compared with non-constant expression error
   for(int i=0; i<maxloop; i++){
-    if(i >= rangecounti) break;
+    if(i > rangecounti) break;
     for(int j=0; j<maxloop; j++){
-      if(j >= rangecountj) break;
+      if(j > rangecountj) break;
 
       //vec2 coordAB = (uDim + 0.5*(vTexCoord + vec2(1.0)) / sizeDataTile2D) * sizeDataTile2D;
       //sizeDataTile4D = 1.0;
-      vec2 coordIJ = vec2((rangei0+float(i))*sizeDataTile4D, (rangej0+float(j))*sizeDataTile4D);
-      vec2 coordAB = uDim * sizeDataTile4D + vTexCoord * sizeDataTile4D;
+      float aux = uNumBins;
+      vec2 coordIJ = uSelectionDim * sizeDataTile2D + vec2((rangei0 + float(i)) / aux, (rangej0 + float(j)) / aux) * sizeDataTile2D;
+      vec2 coordAB = uDim * sizeDataTile2D + vTexCoord * sizeDataTile2D;
+      //coordAB = vec2(0.0);
       //vec4 coord4D = vec4(coordIJ.x, coordIJ.y, coordAB.x, coordAB.y);
 
       /*
@@ -79,7 +78,9 @@ void main(void) {
       vec2 coord4D = vec2(index0, index1) / 100.0;
       */
       //vec2 coord = vec2(coordIJ.x*coordAB.x, coordIJ.y*coordAB.y);
-      vec2 coord = vec2(coordIJ.x*sizeDataTile4D + coordAB.x, coordIJ.y*sizeDataTile4D + coordAB.y);
+      vec2 coord = vec2(coordAB.x*sizeDataTile4D + coordIJ.x, coordAB.y*sizeDataTile4D + coordIJ.y);
+
+
       //vec2 coord = vec2(coord4D.xy);
       value += texture2D(uSampler1, coord).r;
       //value += texture2D(uSampler1, coordAB).r;
@@ -98,8 +99,14 @@ void main(void) {
       */
     }
   }
+  //value = 0.0;
 
-  gl_FragColor = vec4(count+value, value, value, 1.0);
+  //gl_FragColor = vec4(count, uSelectionBinRange.x, uSelectionBinRange.z, 0.5);
+  //gl_FragColor = vec4(count, uSelectionDim.x, uSelectionDim.y, 0.5);
+  if(value > 0.0)
+    gl_FragColor = vec4(0, value, 0, 1.0);
+  else
+    gl_FragColor = vec4(count, count, count, 0.5);
   return;
 	
   if(count <= 0.0)
