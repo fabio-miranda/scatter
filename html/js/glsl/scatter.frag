@@ -103,17 +103,22 @@ void main(void) {
 
   //gl_FragColor = vec4(count, uSelectionBinRange.x, uSelectionBinRange.z, 0.5);
   //gl_FragColor = vec4(count, uSelectionDim.x, uSelectionDim.y, 0.5);
-
+  /*
   if(value > 0.0){
   	gl_FragColor = vec4(1, 0, 0, 1);
   	return;
   }
+  */
+
+  float highlight = 0.0;
+  if(value > 0.0)
+    highlight = 0.8;
 
   if(count <= 0.0)
     gl_FragColor = vec4(0);
   else if(count < 0.5)
-    gl_FragColor = mix(vec4(0.0+value, 0.5, 0.5, 1), vec4(0.0+value, 1, 0, 1), count);
+    gl_FragColor = mix(vec4(0.0+highlight, 0.5, 0.5, 1), vec4(0.0+highlight, 1, 0, 1), count);
   else
-    gl_FragColor = mix(vec4(0.0+value, 1, 0, 1), vec4(1, 0, 0, 1), count);
+    gl_FragColor = mix(vec4(0.0+highlight, 1, 0, 1), vec4(1, 0, 0, 1), count);
   
 }
