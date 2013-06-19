@@ -182,7 +182,12 @@ void saveinfo(char* filename, float min, float max){
 
 }
 
-void generate4DTiles(int imgsize, int numentries, int numdim, int numbin, float maxdatavalue){
+int generate4DTiles(int numentries, int numdim, int numbin, float maxdatavalue){
+
+  int imgsize = (numbin * numdim) * (numbin * numdim);
+
+  if(imgsize > 4096)
+    return 0;
 
   //printf("0\n");
   float minvalue = INFINITY;
@@ -301,9 +306,16 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin, float 
 
   //free
   free(buff);
+
+  return 1;
 }
 
-void generate2DTiles(int imgsize, int numentries, int numdim, int numbin, float maxdatavalue){
+int generate2DTiles(int numentries, int numdim, int numbin, float maxdatavalue){
+
+  int imgsize = numbin * numdim;
+
+  if(imgsize > 4096)
+    return 0;
 
   float minvalue = INFINITY;
   float maxvalue = -INFINITY;
@@ -382,6 +394,84 @@ void generate2DTiles(int imgsize, int numentries, int numdim, int numbin, float 
   //free
   free(buff);
 
+  return 1;
+
+}
+
+int generateHistogramTile(int numentries, int numdim, int numbinscatter,
+                           int numbinhistogram, float maxdatavalue){
+
+  float minvalue = INFINITY;
+  float maxvalue = -INFINITY;
+
+  int imgsizex = numbinscatter * numdim;
+  int imgsizey = numbinscatter * numdim;
+  int imgsizez = numbinhistogram * numdim;
+
+
+  if(imgsizex*imgsizey > 4096 || imgsizez > 4096)
+    return 0;
+
+  int datatilesizex = imgsizex / numdim;
+  int datatilesizey = imgsizey / numdim;
+  int datatilesizez = imgsizez / numdim;
+
+  int binsizex = datatilesizex / numbinhistogram;
+  int binsizey = datatilesizey / numbinhistogram;
+  int binsizez = datatilesizez / numbinhistogram;
+
+  float* buff = malloc(imgsizex*imgsizey*imgsizez*sizeof(float));
+  int i,j,k;
+  for(i=0; i<imgsizex*imgsizey*imgsizez; i++)
+    buff[i] = 0.0f;
+
+  for(i=0; i<numdim; i++){
+    for(j=0; j<numdim; j++){
+      for(k=0; k<numdim; k++){
+
+        int entry;
+        for(entry=0; entry<numentries; entry++){
+
+          float vali = data[i*numentries+entry];
+          float valj = data[j*numentries+entry];
+          float valk = data[k*numentries+entry];
+
+          int binj = round((valj / maxdatavalue) * (float)(numbinscatter-1));
+          int bini = round((vali / maxdatavalue) * (float)(numbinscatter-1));
+          int bink = round((valk / maxdatavalue) * (float)(numbinhistogram-1));
+
+          int x = datatilesizex*i + binsizex*bini;
+          int y = datatilesizey*j + binsizey*binj;
+          int z = datatilesizez*k + binsizez*bink;
+
+          int index = x * imgsizex + y * imgsizey + z;
+
+          //buff[index]++;
+          buff[index] += (vali + valj + valk);
+
+          if(buff[index] > maxvalue)
+            maxvalue = buff[index];
+
+          if(buff[index] < minvalue)
+            minvalue = buff[index];
+
+        }
+      }
+    }
+  }
+
+
+
+  //save to image
+  char filenamepng[100];
+  snprintf(filenamepng, 100, "./data4/hist_%d_%d.png", numbinscatter, numbinhistogram);
+  writeImage(filenamepng, imgsizex*imgsizey, imgsizez, minvalue, maxvalue, buff);
+
+  //free
+  free(buff);
+
+  return 1;
+
 }
  
 int main(int argc, char* argv[]){
@@ -401,35 +491,34 @@ int main(int argc, char* argv[]){
     generateData(numentries, numdim);
     printf("Done\n");
 
+    int numbinscatter[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
+    int numbinhistogram[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
     int i;
-    int aux[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
-    //int aux[1] = {2};
-    for(i=0; i<sizeof(aux)/sizeof(int); i++){
-      int numbin = aux[i];
-      int imgsize = numbin * numdim;
+    for(i=0; i<sizeof(numbinscatter)/sizeof(int); i++){
 
-      if(imgsize > 4096)
+      printf("Generating 2d data tile with numbin=%d...\n", numbinscatter[i]);
+      if(!generate2DTiles(numentries, numdim, numbinscatter[i], 1.0f))
         break;
-
-      printf("Generating 2d data tile with imgsize=%d, numbin=%d...\n", imgsize, numbin);
-      generate2DTiles(imgsize, numentries, numdim, numbin, 1.0f);
       printf("Done\n");
+
+      printf("Generating 4d data tile with numbin=%d...\n", numbinscatter[i]);
+      if(!generate4DTiles(numentries, numdim, numbinscatter[i], 1.0f))
+        break;
+      printf("Done\n");
+
+      //histogram
+      int j;
+      for(j=0; j<sizeof(numbinhistogram)/sizeof(int); j++){
+
+        printf("Generating 3d histogram data tile with numbin=%d...\n", numbinhistogram[j]);
+        if(!generateHistogramTile(numentries, numdim, numbinscatter[i],  numbinhistogram[j],1.0f))
+          break;
+        printf("Done\n");
+
+      }
 
     }
 
-    int aux2[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
-    //int aux2[1] = {2};
-    for(i=0; i<sizeof(aux2)/sizeof(int); i++){
-      int numbin = aux2[i];
-      int imgsize = (numbin * numdim) * (numbin * numdim);
-
-      if(imgsize > 4096)
-        break;
-
-      printf("Generating 4d data tile with imgsize=%d, numbin=%d...\n", imgsize, numbin);
-      generate4DTiles(imgsize, numentries, numdim, numbin, 1.0f);
-      printf("Done\n");
-    }
 
     free(data);
 
