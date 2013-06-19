@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h> 
 #include <png.h>
+#include <limits.h>
 
 #define PI 3.141592654
 
@@ -170,16 +171,27 @@ void generateData(int numentries, int numdim){
   }
 }
 
-void generate4DTiles(int imgsize, int numentries, int numdim, int numbin){
+void saveinfo(char* filename, float min, float max){
+
+  FILE *file;
+
+  file = fopen(filename,"w+");
+  fprintf(file,"%f\n",min);
+  fprintf(file,"%f",max);
+  fclose(file);
+
+}
+
+void generate4DTiles(int imgsize, int numentries, int numdim, int numbin, float maxdatavalue){
 
   //printf("0\n");
-
-  float maxvalue = 1.0f;
+  float minvalue = INFINITY;
+  float maxvalue = -INFINITY;
   float maxcount = 0.0f;
   int datatilesize = sqrt(imgsize) / numdim; //TODO: ij is the same as ji, take that into account, and remove the 2 *
   int binsize = datatilesize / numbin;
 
-  printf("binsize: %d datatilesize: %d numbin: %d\n", binsize, datatilesize, numbin);
+  //printf("binsize: %d datatilesize: %d numbin: %d\n", binsize, datatilesize, numbin);
   //return;
 
   float* buff = malloc(imgsize*imgsize*sizeof(float));
@@ -196,21 +208,17 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin){
           maxcount=0;
           int entry;
           for(entry=0; entry<numentries; entry++){
-            //printf("2\n");
+
             float vali = data[i*numentries+entry];
-            //printf("3\n");
             float valj = data[j*numentries+entry];
-            //printf("4\n");
             float valk = data[k*numentries+entry];
-            //printf("5\n");
             float vall = data[l*numentries+entry];
-            //printf("6\n");
 
             //position inside datatile
-            int bini = round((vali / maxvalue) * (float)(numbin-1));
-            int binj = round((valj / maxvalue) * (float)(numbin-1));
-            int bink = round((valk / maxvalue) * (float)(numbin-1));
-            int binl = round((vall / maxvalue) * (float)(numbin-1));
+            int bini = round((vali / maxdatavalue) * (float)(numbin-1));
+            int binj = round((valj / maxdatavalue) * (float)(numbin-1));
+            int bink = round((valk / maxdatavalue) * (float)(numbin-1));
+            int binl = round((vall / maxdatavalue) * (float)(numbin-1));
 
             //position (x,y,z,w) in 4d texture
             int x = datatilesize*i + binsize*bini;
@@ -235,11 +243,18 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin){
               printf("l: %d vall: %f binl: %d w: %d \n", l, vall, binl, w);
               exit(1);
             }
-            //printf("7\n");
-            buff[index]++;
-            //printf("7\n");
+
+            //buff[index]++;
+            buff[index] += (vali + valj + valk + vall);
+
             if(buff[index] > maxcount)
               maxcount = buff[index];
+
+            if(buff[index] > maxvalue)
+              maxvalue = buff[index];
+
+            if(buff[index] < minvalue)
+              minvalue = buff[index];
 
 
 
@@ -275,24 +290,30 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin){
   }
 
   //save to image
-  char filename[100];
-  snprintf(filename, 100, "./data4/4_%d.png", numbin);
-  writeImage(filename, imgsize, imgsize, buff);
+  char filenamepng[100];
+  snprintf(filenamepng, 100, "./data4/4_%d.png", numbin);
+  writeImage(filenamepng, imgsize, imgsize, buff);
+
+  //save info
+  char filenametxt[100];
+  snprintf(filenametxt, 100, "./data4/4_%d.txt", numbin);
+  saveinfo(filenametxt, minvalue, maxvalue);
 
   //free
   free(buff);
 }
 
-void generate2DTiles(int imgsize, int numentries, int numdim, int numbin){
+void generate2DTiles(int imgsize, int numentries, int numdim, int numbin, float maxdatavalue){
 
-  float maxvalue = 1.0f;
+  float minvalue = INFINITY;
+  float maxvalue = -INFINITY;
   float maxcount = 0.0f;
   int datatilesize = imgsize / numdim;
   int binsize = datatilesize / numbin;
 
-  printf("%d\n", datatilesize);
+  //printf("%d\n", datatilesize);
 
-  printf("binsize: %d datatilesize: %d numbin: %d\n", binsize, datatilesize, numbin);
+  //printf("binsize: %d datatilesize: %d numbin: %d\n", binsize, datatilesize, numbin);
 
   float* buff = malloc(imgsize*imgsize*sizeof(float));
   int i,j;
@@ -309,21 +330,29 @@ void generate2DTiles(int imgsize, int numentries, int numdim, int numbin){
         float vali = data[i*numentries+entry];
         float valj = data[j*numentries+entry];
 
-        int binj = round((valj / maxvalue) * (float)(numbin-1));
-        int bini = round((vali / maxvalue) * (float)(numbin-1));
+        int binj = round((valj / maxdatavalue) * (float)(numbin-1));
+        int bini = round((vali / maxdatavalue) * (float)(numbin-1));
 
         //int numdatatiledim = 2;
         int x = datatilesize*i + binsize*bini;
         int y = datatilesize*j + binsize*binj;
         int index = x * imgsize + y;
 
-        buff[index]++;
+        //buff[index]++;
+        buff[index] += (vali + valj);
 
         if(buff[index] > maxcount)
           maxcount = buff[index];
+
+        if(buff[index] > maxvalue)
+              maxvalue = buff[index];
+
+        if(buff[index] < minvalue)
+          minvalue = buff[index];
       }
       
       //normalize
+      /*
       int bini;
       for(bini=0; bini<datatilesize; bini++){
         int binj;
@@ -336,13 +365,19 @@ void generate2DTiles(int imgsize, int numentries, int numdim, int numbin){
           //}
         }
       }
+      */
     }
   }
 
   //save to image
-  char filename[100];
-  snprintf(filename, 100, "./data4/2_%d.png", numbin);
-  writeImage(filename, imgsize, imgsize, buff);
+  char filenamepng[100];
+  snprintf(filenamepng, 100, "./data4/2_%d.png", numbin);
+  writeImage(filenamepng, imgsize, imgsize, buff);
+
+  //save info
+  char filenametxt[100];
+  snprintf(filenametxt, 100, "./data4/2_%d.txt", numbin);
+  saveinfo(filenametxt, minvalue, maxvalue);
 
   //free
   free(buff);
@@ -377,7 +412,7 @@ int main(int argc, char* argv[]){
         break;
 
       printf("Generating 2d data tile with imgsize=%d, numbin=%d...\n", imgsize, numbin);
-      generate2DTiles(imgsize, numentries, numdim, numbin);
+      generate2DTiles(imgsize, numentries, numdim, numbin, 1.0f);
       printf("Done\n");
 
     }
@@ -392,7 +427,7 @@ int main(int argc, char* argv[]){
         break;
 
       printf("Generating 4d data tile with imgsize=%d, numbin=%d...\n", imgsize, numbin);
-      generate4DTiles(imgsize, numentries, numdim, numbin);
+      generate4DTiles(imgsize, numentries, numdim, numbin, 1.0f);
       printf("Done\n");
     }
 
