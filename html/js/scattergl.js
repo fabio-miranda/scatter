@@ -1,8 +1,6 @@
 
 
 function scatterquad(gl, i, j, dim1, dim2, texture2d, texture4d){
-  this.quadBuffer = null;
-  this.texCoordBuffer = null;
   this.i = i;
   this.j = j;
   this.dim1 = dim1;
@@ -90,6 +88,33 @@ scattergl.prototype.reset = function(){
 
 }
 
+scattergl.prototype.getSelection = function(){
+
+  var uSelectionQuad = {};
+  uSelectionQuad.x = this.selection.bottomleft[0] / this.gl.viewportWidth;
+  uSelectionQuad.y = this.selection.bottomleft[1] / this.gl.viewportHeight;
+  uSelectionQuad.z = this.selection.topright[0] / this.gl.viewportWidth;
+  uSelectionQuad.w = this.selection.topright[1] / this.gl.viewportHeight;
+  var sizeBin = (1.0 / (this.maxdim + 1.0)) / this.numbin['2'];
+  var datatilei = Math.floor(uSelectionQuad.z * (this.maxdim+1));
+  var datatilej = Math.floor(uSelectionQuad.w * (this.maxdim+1));
+  var rangei0 = Math.floor((uSelectionQuad.x / sizeBin) - datatilei * this.numbin['2']);
+  var rangei1 = Math.floor((uSelectionQuad.z / sizeBin) - datatilei * this.numbin['2']);
+  var rangej0 = Math.floor((uSelectionQuad.y / sizeBin) - datatilej * this.numbin['2']);
+  var rangej1 = Math.floor((uSelectionQuad.w / sizeBin) - datatilej * this.numbin['2']);
+
+  var selection = {};
+  selection.datatilei = datatilei;
+  selection.datatilej = datatilej;
+  selection.rangei0 = rangei0;
+  selection.rangei1 = rangei1;
+  selection.rangej0 = rangej0;
+  selection.rangej1 = rangej1;
+
+  return selection;
+
+}
+
 scattergl.prototype.draw = function(){
 
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
@@ -120,28 +145,16 @@ scattergl.prototype.draw = function(){
 
     this.gl.viewport(i*width, j*height, width, height);
 
-    var uSelectionQuad = {};
-    uSelectionQuad.x = this.selection.bottomleft[0] / this.gl.viewportWidth;
-    uSelectionQuad.y = this.selection.bottomleft[1] / this.gl.viewportHeight;
-    uSelectionQuad.z = this.selection.topright[0] / this.gl.viewportWidth;
-    uSelectionQuad.w = this.selection.topright[1] / this.gl.viewportHeight;
-    var sizeBin = (1.0 / (this.maxdim + 1.0)) / this.numbin['2'];
-    var datatilei = Math.floor(uSelectionQuad.z * (this.maxdim+1));
-    var datatilej = Math.floor(uSelectionQuad.w * (this.maxdim+1));
-    var rangei0 = Math.floor((uSelectionQuad.x / sizeBin) - datatilei * this.numbin['2']);
-    var rangei1 = Math.floor((uSelectionQuad.z / sizeBin) - datatilei * this.numbin['2']);
-    var rangej0 = Math.floor((uSelectionQuad.y / sizeBin) - datatilej * this.numbin['2']);
-    var rangej1 = Math.floor((uSelectionQuad.w / sizeBin) - datatilej * this.numbin['2']);
-
+    var selection = this.getSelection();
 
     this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
     //this.gl.uniform2f(this.scatterShader.sizeDataTile, this.sizedatatile[2], this.sizedatatile[4]);
     this.gl.uniform1f(this.scatterShader.numDim, this.numdim['2']);
     this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
     this.gl.uniform1f(this.scatterShader.numBins, this.numbin['2']);
-    this.gl.uniform2f(this.scatterShader.selectionDim, datatilei, datatilej);
+    this.gl.uniform2f(this.scatterShader.selectionDim, selection.datatilei, selection.datatilej);
     this.gl.uniform4f(this.scatterShader.selectionBinRange,
-      rangei0, rangei1, rangej0, rangej1
+      selection.rangei0, selection.rangei1, selection.rangej0, selection.rangej1
     );
     /*
     this.gl.uniform4f(
@@ -237,6 +250,8 @@ scattergl.prototype.initShaders = function(){
 
   this.scatterShader.pMatrixUniform = this.gl.getUniformLocation(this.scatterShader, "uPMatrix");
   this.scatterShader.mvMatrixUniform = this.gl.getUniformLocation(this.scatterShader, "uMVMatrix");
+
+  this.gl.useProgram(null);
 
   //selection
   var fragmentShader = getShader(this.gl, "./js/glsl/selection.frag", true);
@@ -337,6 +352,6 @@ scattergl.prototype.initGL = function(){
   //this.gl.clearColor(1, 0, 0, 1);
 
   if (!this.gl){
-    alert("Could not initialise Webthis.gl.");
+    alert("Could not initialise Webgl.");
   }
 }

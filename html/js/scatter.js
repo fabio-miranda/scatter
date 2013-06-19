@@ -1,5 +1,6 @@
 
 
+var histogram;
 var scattermatrix;
 var count=0;
 var currentnumdim=0;
@@ -14,7 +15,7 @@ function createscatterplot(datatile){
   image.onload = function(){
 
     scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
-    scattermatrix.update(datatile['2']['numrelations'], image, datatile['2']['imgsize'], datatile['2']['numdim'], datatile['2']['numbin']);
+    scattermatrix.update(datatile['2']['numrelations'], image, datatile['2']['width'], datatile['2']['numdim'], datatile['2']['numbin']);
 
     scattermatrix.addscatter(0, 0, 0, 0);
     scattermatrix.draw();
@@ -24,7 +25,24 @@ function createscatterplot(datatile){
     image.src="data:image/png;base64,"+datatile['4']['data'];
     var that = this;
     image.onload = function(){
-      scattermatrix.update(datatile['4']['numrelations'], image, datatile['4']['imgsize'], datatile['4']['numdim'], datatile['4']['numbin']);
+      scattermatrix.update(datatile['4']['numrelations'], image, datatile['4']['width'], datatile['4']['numdim'], datatile['4']['numbin']);
+
+      image = new Image();
+      image.src="data:image/png;base64,"+datatile['histogram']['data'];
+      image.onload = function(){
+
+        histogram = new histogram(document.getElementById('histogram'));
+        histogram.update(
+          image,
+          datatile['histogram']['width'],
+          datatile['histogram']['height'],
+          datatile['4']['numdim'],
+          datatile['4']['numbin'],
+          datatile['histogram']['numbin']
+        );
+        histogram.draw(scattermatrix.getSelection());
+
+      }
     }
   } 
 }
@@ -39,7 +57,7 @@ function updatescatterplot(datatile, binsize){
     scattermatrix.update(
       datatile['2']['numrelations'],
       image,
-      datatile['2']['imgsize'],
+      datatile['2']['width'],
       datatile['2']['numdim'], 
       datatile['2']['numbin']
     );
@@ -48,9 +66,22 @@ function updatescatterplot(datatile, binsize){
     image.src="data:image/png;base64,"+datatile['4']['data'];
     var that = this;
     image.onload = function(){
-      scattermatrix.update(datatile['4']['numrelations'], image, datatile['4']['imgsize'], datatile['4']['numdim'], datatile['4']['numbin']);
-    
+      scattermatrix.update(datatile['4']['numrelations'], image, datatile['4']['width'], datatile['4']['numdim'], datatile['4']['numbin']);
       redrawscatterplots();
+
+      image = new Image();
+      image.src="data:image/png;base64,"+datatile['histogram']['data'];
+      image.onload = function(){
+        histogram.update(
+          image,
+          datatile['histogram']['width'],
+          datatile['histogram']['height'],
+          datatile['4']['numdim'],
+          datatile['4']['numbin'],
+          datatile['histogram']['numbin']
+        );
+        histogram.draw(scattermatrix.getSelection());
+      }
     }
   } 
 
@@ -90,10 +121,10 @@ function redrawscatterplots(){
 
 }
 
-function changebinsize(){
+function changeNumBin(){
   scattermatrix.reset();
   count = 0;
-  $.post('/data', {'numbin' : $('#binsize').val()}, updatescatterplot);
+  $.post('/data', {'numbinscatter' : $('#numbinscatter').val(), 'numbinhistogram': $('#numbinscatter').val()}, updatescatterplot);
 }
 
 function addscatterplot(){
@@ -173,7 +204,7 @@ function initialize(){
   //scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
   //$.post('/data', {'dim1': 0, 'dim2' : 0}, createscatterplot);
 
-  $.post('/data', {'numbin' : 2}, createscatterplot);
+  $.post('/data', {'numbinscatter' : 2, 'numbinhistogram': 2}, createscatterplot);
 
 }
 

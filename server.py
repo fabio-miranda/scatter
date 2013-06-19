@@ -25,35 +25,63 @@ class ScatterPage:
     return json.dumps(data)
 
   @cherrypy.expose
-  def data(self, numbin):
+  def data(self, numbinscatter, numbinhistogram):
 
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
-    numbin = int(numbin)
+    numbinscatter = int(numbinscatter)
+    numbinhistogram = int(numbinhistogram)
     data = {}
     numrelations = [2, 4]
 
+    #scatterplot matrix
     for i in numrelations:
 
-      f = open('./data4/'+str(i)+'_'+str(numbin)+'.txt', 'r')
+      f = open('./data4/'+str(i)+'_'+str(numbinscatter)+'.txt', 'r')
+      numdim = f.readline()
       minvalue = f.readline()
       maxvalue = f.readline()
       f.close()
 
       buffer = StringIO.StringIO()
-      img = Image.open('./data4/'+str(i)+'_'+str(numbin)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
-      imgsize = int(img.size[0])
+      img = Image.open('./data4/'+str(i)+'_'+str(numbinscatter)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+      width = int(img.size[0])
+      height = int(img.size[1])
       img.save(buffer, format='PNG')
       buffer.seek(0)
 
       data[i] = {}
       data[i]['data'] = base64.b64encode(buffer.getvalue())
       data[i]['numrelations'] = i
-      data[i]['imgsize'] = imgsize
-      data[i]['numdim'] = imgsize / (numbin * (i/2))
-      data[i]['numbin'] = numbin
+      data[i]['width'] = width
+      data[i]['height'] = height
+      data[i]['numdim'] = numdim
+      data[i]['numbin'] = numbinscatter
       data[i]['minvalue'] = minvalue
       data[i]['maxvalue'] = maxvalue
+
+    #histogram
+    f = open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'.txt', 'r')
+    numdim = f.readline()
+    minvalue = f.readline()
+    maxvalue = f.readline()
+    f.close()
+
+    buffer = StringIO.StringIO()
+    img = Image.open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+    width = int(img.size[0])
+    height = int(img.size[1])
+    img.save(buffer, format='PNG')
+    buffer.seek(0)
+
+    data['histogram'] = {}
+    data['histogram']['data'] = base64.b64encode(buffer.getvalue())
+    data['histogram']['width'] = width
+    data['histogram']['height'] = width
+    data['histogram']['numdim'] = numdim
+    data['histogram']['numbin'] = numbinhistogram
+    data['histogram']['minvalue'] = minvalue
+    data['histogram']['maxvalue'] = maxvalue
 
     return json.dumps(data)
 

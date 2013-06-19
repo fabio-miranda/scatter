@@ -171,11 +171,12 @@ void generateData(int numentries, int numdim){
   }
 }
 
-void saveinfo(char* filename, float min, float max){
+void writeInfo(char* filename, int numdim, float min, float max){
 
   FILE *file;
 
   file = fopen(filename,"w+");
+  fprintf(file,"%d\n",numdim);
   fprintf(file,"%f\n",min);
   fprintf(file,"%f",max);
   fclose(file);
@@ -302,7 +303,7 @@ int generate4DTiles(int numentries, int numdim, int numbin, float maxdatavalue){
   //save info
   char filenametxt[100];
   snprintf(filenametxt, 100, "./data4/4_%d.txt", numbin);
-  saveinfo(filenametxt, minvalue, maxvalue);
+  writeInfo(filenametxt, numdim, minvalue, maxvalue);
 
   //free
   free(buff);
@@ -389,7 +390,7 @@ int generate2DTiles(int numentries, int numdim, int numbin, float maxdatavalue){
   //save info
   char filenametxt[100];
   snprintf(filenametxt, 100, "./data4/2_%d.txt", numbin);
-  saveinfo(filenametxt, minvalue, maxvalue);
+  writeInfo(filenametxt, numdim, minvalue, maxvalue);
 
   //free
   free(buff);
@@ -466,6 +467,11 @@ int generateHistogramTile(int numentries, int numdim, int numbinscatter,
   char filenamepng[100];
   snprintf(filenamepng, 100, "./data4/hist_%d_%d.png", numbinscatter, numbinhistogram);
   writeImage(filenamepng, imgsizex*imgsizey, imgsizez, minvalue, maxvalue, buff);
+
+  //save info
+  char filenametxt[100];
+  snprintf(filenametxt, 100, "./data4/hist_%d_%d.txt", numbinscatter, numbinhistogram);
+  writeInfo(filenametxt, numdim, minvalue, maxvalue);
 
   //free
   free(buff);
