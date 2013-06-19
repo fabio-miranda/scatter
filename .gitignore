@@ -1,6 +1,6 @@
-*.c
+*.o
 *.DS_Store
-*.pycc
+*.pyc
 data/
 data2/
 data3/
