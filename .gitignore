@@ -1,0 +1,8 @@
+*.c
+*.DS_Store
+*.pycc
+data/
+data2/
+data3/
+data4/
+
