@@ -48,7 +48,7 @@ inline void setRGB(png_byte *ptr, float val)
   }
 }
 
-int writeImage(char* filename, int width, int height, float *buffer)
+int writeImage(char* filename, int width, int height, float minvalue, float maxvalue, float *buffer)
 {
   int code = 0;
   FILE *fp;
@@ -115,7 +115,7 @@ int writeImage(char* filename, int width, int height, float *buffer)
   int x, y;
   for (y=0 ; y<height ; y++) {
     for (x=0 ; x<width ; x++) {
-      row[x] = 255.0f*buffer[y*width + x];
+      row[x] = 255.0f*((buffer[y*width + x] - minvalue) / (maxvalue - minvalue));
       //setRGB(&(row[x*3]), buffer[y*width + x]);
     }
     png_write_row(png_ptr, row);
@@ -292,7 +292,7 @@ void generate4DTiles(int imgsize, int numentries, int numdim, int numbin, float 
   //save to image
   char filenamepng[100];
   snprintf(filenamepng, 100, "./data4/4_%d.png", numbin);
-  writeImage(filenamepng, imgsize, imgsize, buff);
+  writeImage(filenamepng, imgsize, imgsize, minvalue, maxvalue, buff);
 
   //save info
   char filenametxt[100];
@@ -372,7 +372,7 @@ void generate2DTiles(int imgsize, int numentries, int numdim, int numbin, float 
   //save to image
   char filenamepng[100];
   snprintf(filenamepng, 100, "./data4/2_%d.png", numbin);
-  writeImage(filenamepng, imgsize, imgsize, buff);
+  writeImage(filenamepng, imgsize, imgsize, minvalue, maxvalue, buff);
 
   //save info
   char filenametxt[100];

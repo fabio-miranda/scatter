@@ -104,6 +104,11 @@ void main(void) {
   //gl_FragColor = vec4(count, uSelectionBinRange.x, uSelectionBinRange.z, 0.5);
   //gl_FragColor = vec4(count, uSelectionDim.x, uSelectionDim.y, 0.5);
 
+  if(value > 0.0){
+  	gl_FragColor = vec4(1, 0, 0, 1);
+  	return;
+  }
+
   if(count <= 0.0)
     gl_FragColor = vec4(0);
   else if(count < 0.5)

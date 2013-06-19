@@ -35,6 +35,11 @@ class ScatterPage:
 
     for i in numrelations:
 
+      f = open('./data4/'+str(i)+'_'+str(numbin)+'.txt', 'r')
+      minvalue = f.readline()
+      maxvalue = f.readline()
+      f.close()
+
       buffer = StringIO.StringIO()
       img = Image.open('./data4/'+str(i)+'_'+str(numbin)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
       imgsize = int(img.size[0])
@@ -47,6 +52,8 @@ class ScatterPage:
       data[i]['imgsize'] = imgsize
       data[i]['numdim'] = imgsize / (numbin * (i/2))
       data[i]['numbin'] = numbin
+      data[i]['minvalue'] = minvalue
+      data[i]['maxvalue'] = maxvalue
 
     return json.dumps(data)
 
