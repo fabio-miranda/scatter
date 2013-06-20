@@ -124,7 +124,7 @@ function redrawscatterplots(){
 function changeNumBin(){
   scattermatrix.reset();
   count = 0;
-  $.post('/data', {'numbinscatter' : $('#numbinscatter').val(), 'numbinhistogram': $('#numbinscatter').val()}, updatescatterplot);
+  $.post('/data', {'numbinscatter' : $('#numbinscatter').val(), 'numbinhistogram': $('#numbinhistogram').val()}, updatescatterplot);
 }
 
 function addscatterplot(){

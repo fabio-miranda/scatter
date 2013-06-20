@@ -1,7 +1,7 @@
 
 
-function histogram(parentNode){
-  this.parentNode = parentNode
+function histogram(canvas){
+  this.canvas = canvas
   this.gl = null;
   this.histogramShader = null;
   this.mvMatrix = mat4.create();
@@ -15,6 +15,7 @@ function histogram(parentNode){
   this.numbinscatter = null;
   this.numbinhistogram = null;
   this.texture = null;
+  this.data = [];
 
 }
 
@@ -62,6 +63,16 @@ histogram.prototype.draw = function(selection){
 
   this.gl.useProgram(null);
 
+  //Histogram values
+  var pixelValues = new Uint8Array(4 * this.numbinhistogram);
+  this.gl.readPixels(0, 0, this.numbinhistogram, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixelValues);
+  //console.log(pixelValues);
+  for(var i=0; i<this.numbinhistogram; i++){
+    this.data[i] = pixelValues[4*i];
+  }
+  console.log(pixelValues);
+  console.log(this.data);
+
 }
 
 
@@ -103,7 +114,7 @@ histogram.prototype.initShaders = function(){
 
 histogram.prototype.initGL = function(){
 
-  this.gl = this.parentNode.getContext("experimental-webgl");
+  this.gl = this.canvas.getContext("experimental-webgl");
   this.gl.viewportWidth = this.numbinhistogram;
   this.gl.viewportHeight = 1;
 
