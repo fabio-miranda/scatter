@@ -417,8 +417,8 @@ int generateHistogramTile(int numentries, int numdim, int numbinscatter,
   int datatilesizey = imgsizey / numdim;
   int datatilesizez = imgsizez / numdim;
 
-  int binsizex = datatilesizex / numbinhistogram;
-  int binsizey = datatilesizey / numbinhistogram;
+  int binsizex = datatilesizex / numbinscatter;
+  int binsizey = datatilesizey / numbinscatter;
   int binsizez = datatilesizez / numbinhistogram;
 
   float* buff = malloc(imgsizex*imgsizey*imgsizez*sizeof(float));
