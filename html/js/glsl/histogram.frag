@@ -13,10 +13,11 @@ const int maxloop = 100;//50000;
 void main(void) {
 
 	//a: current histogram fragment
-  //i: dimensions to iterate
+  //i, j: dimensions to iterate
   //vec2 texCoord = 0.5*(vTexCoord + vec2(1.0));
   float sizeDataTileX = 1.0 / uNumDim;
-  float sizeDataTileZ = 1.0;
+  float sizeDataTileZ = 1.0 / uNumDim;
+  float sizeDataTile3D = 1.0 / (uNumBinsScatter * uNumDim);
 
 
   int rangecounti = int(abs(uSelectionBinRange.x - uSelectionBinRange.y));
@@ -25,6 +26,7 @@ void main(void) {
   float rangej0 = uSelectionBinRange.z;
 
 
+  float uHistogramDim = 0.0;
   float value = 0.0;
   //hack for Loop index cannot be compared with non-constant expression error
   for(int i=0; i<maxloop; i++){
@@ -33,10 +35,13 @@ void main(void) {
       if(j > rangecountj) break;
 
       float aux = uNumBinsScatter;
-      float coordA = vTexCoord.x;
+      float coordA = uHistogramDim * sizeDataTileZ + vTexCoord.x * sizeDataTileZ; //take into consideration histogram dimension
       vec2 coordIJ = uSelectionDim * sizeDataTileX + vec2((rangei0 + float(i)) / aux, (rangej0 + float(j)) / aux) * sizeDataTileX;
 
-      vec2 coord = vec2(coordA*sizeDataTileX + coordIJ.x, coordA*sizeDataTileX + coordIJ.y);
+      vec2 coord = vec2(sizeDataTile3D * coordIJ.x + coordIJ.y, coordA);
+
+      //gl_FragColor = vec4(coord.x);
+      //return;
 
 
       //vec2 coord = vec2(coord4D.xy);

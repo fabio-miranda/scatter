@@ -31,7 +31,7 @@ function createscatterplot(datatile){
       image.src="data:image/png;base64,"+datatile['histogram']['data'];
       image.onload = function(){
 
-        histogram = new histogram(document.getElementById('histogram'));
+        histogram = new histogram($('#histogram'), $('#histogramdiv'));
         histogram.update(
           image,
           datatile['histogram']['width'],

@@ -162,7 +162,7 @@ void generateData(int numentries, int numdim){
 
       float val = gaussrand(mean, std);
       val = fmaxf(0.0f, fminf(1.0f, val));
-      //float val = 0.25f;
+      //float val = 0.5f;
       //float val = entry / (float)numentries;
       //val = randf(0, 1);
 
@@ -445,10 +445,10 @@ int generateHistogramTile(int numentries, int numdim, int numbinscatter,
           int y = datatilesizey*j + binsizey*binj;
           int z = datatilesizez*k + binsizez*bink;
 
-          int index = x * imgsizex + y * imgsizey + z;
+          int index = x * imgsizey * imgsizez + y * imgsizey + z;
 
-          //buff[index]++;
-          buff[index] += (vali + valj + valk);
+          buff[index]++;
+          //buff[index] += (vali + valj + valk);
 
           if(buff[index] > maxvalue)
             maxvalue = buff[index];

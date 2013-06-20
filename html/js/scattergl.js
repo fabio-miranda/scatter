@@ -13,7 +13,7 @@ function selectionquad(gl){
   this.p0 = [0, 0];
   this.p1 = [0, 0];
   this.bottomleft = [0, 0];
-  this.topright = [0, 0];
+  this.topright = [gl.viewportWidth, gl.viewportHeight];
 }
 
 selectionquad.prototype.updateBB = function(){
