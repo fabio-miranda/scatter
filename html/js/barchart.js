@@ -4,7 +4,7 @@ function BarChart(parentNode, xlabel, ylabel, margin, onBrushFunc){
 
   var that = this; //cant see this in nested functions
   
-  this.parentNode = parentNode
+  this.parentNode = d3.select(parentNode[0]);
   this.onBrushFunc = onBrushFunc;
   
   this.data = [];
@@ -16,15 +16,10 @@ function BarChart(parentNode, xlabel, ylabel, margin, onBrushFunc){
   
   this.width = parentNode.width() - this.margin.left - this.margin.right;
   this.height = parentNode.height() - this.margin.bottom - this.margin.top;
-  
-  //fix it
-  //this.xDomain = []; //ordinal
-  this.xDomain = d3.range(0,60,1);
-  this.yDomain = [Infinity, -Infinity];
+
     
 
   this.xScale = d3.scale.ordinal()
-    .domain(this.xDomain)
     .rangeBands([this.margin.left, this.width+this.margin.left]);
     
     
@@ -44,8 +39,8 @@ function BarChart(parentNode, xlabel, ylabel, margin, onBrushFunc){
     .ticks(5)
     .orient("left");
   
-  this.svg = d3.select('#'+parentNode.id)
-    .append("svg")
+  this.svg = this.parentNode
+    .append("svg:svg")
     .attr("width", this.width+this.margin.left+this.margin.right)
     .attr("height", this.height+this.margin.bottom+this.margin.top);
     
@@ -94,11 +89,9 @@ BarChart.prototype.add = function(data) {
   
   this.data = data;
   var count = 0;
-  var xlimits = [0, data.length];
-  var ylimits = [0, 255];
   
-  this.xDomain = xlimits;
-  this.yDomain = ylimits;
+  this.xDomain = d3.range(0,data.length,1);;
+  this.yDomain = [0,255];
   
   this.xScale.domain(this.xDomain);
   this.yScale.domain(this.yDomain);
@@ -107,19 +100,20 @@ BarChart.prototype.add = function(data) {
   this.yAxis.scale(this.yScale);
   this.svg.select(".xAxis").call(this.xAxis);
   this.svg.select(".yAxis").call(this.yAxis);
+
+  console.log(this.data);
   
-  this.svg.selectAll(".bars")
-      .datum(this.data)
-      .attr("y", function(d,i) {return that.yScale(d.y);})
-      .attr("height", function(d,i) {return that.height + that.margin.top - that.yScale(d.y);})
-      .attr("x", function(d,i) { return  that.xScale(d.x);})
+  this.svg.selectAll("rect")
+      .data(data)
+      .attr("y", function(d,i) {return that.yScale(d);})
+      .attr("height", function(d,i) {return that.height + that.margin.top - that.yScale(d);})
+      .attr("x", function(d,i) { return  that.xScale(i);})
       .attr("visibility", "visible")
       .enter()
       .append("rect")
-      .data(this.data)
-      .attr("x", function(d,i) { return that.xScale(d.x);})
-      .attr("y", function(d,i) {return that.yScale(d.y);})
-      .attr("height", function(d,i) {return that.height + that.margin.top - that.yScale(d.y);})
+      .attr("x", function(d,i) { return that.xScale(i);})
+      .attr("y", function(d,i) { return that.yScale(d);})
+      .attr("height", function(d,i) {return that.height + that.margin.top - that.yScale(d);})
       .attr("width", that.xScale.rangeBand())
       .attr("fill", 'red')
       .attr("stroke", 'black')
