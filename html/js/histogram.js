@@ -12,6 +12,7 @@ function histogram(canvas, chart){
   this.width = null;
   this.height = null;
   this.numdim = null;
+  this.dim = 0;
   this.numbinscatter = null;
   this.numbinhistogram = null;
   this.texture = null;
@@ -42,6 +43,7 @@ histogram.prototype.update = function(image, width, height, numdim, numbinscatte
 
 histogram.prototype.draw = function(selection){
 
+
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
 
@@ -54,6 +56,7 @@ histogram.prototype.draw = function(selection){
   this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
 
   this.gl.uniform1f(this.histogramShader.numDim, this.numdim);
+  this.gl.uniform1f(this.histogramShader.dim, this.dim);
   this.gl.uniform1f(this.histogramShader.numBinsScatter, this.numbinscatter);
   this.gl.uniform1f(this.histogramShader.numBinsHistogram, this.numbinhistogram);
   this.gl.uniform2f(this.histogramShader.selectionDim, selection.datatilei, selection.datatilej);
@@ -76,8 +79,10 @@ histogram.prototype.draw = function(selection){
 
   this.chart.add(this.data);
 
-  console.log(this.data);
+}
 
+histogram.prototype.setDim = function(dim){
+  this.dim = dim;
 }
 
 
@@ -109,6 +114,7 @@ histogram.prototype.initShaders = function(){
   this.histogramShader.numDim = this.gl.getUniformLocation(this.histogramShader, 'uNumDim');
   this.histogramShader.selectionDim = this.gl.getUniformLocation(this.histogramShader, 'uSelectionDim');
   this.histogramShader.selectionBinRange = this.gl.getUniformLocation(this.histogramShader, 'uSelectionBinRange');
+  this.histogramShader.dim = this.gl.getUniformLocation(this.histogramShader, 'uDim');
 
   this.histogramShader.pMatrixUniform = this.gl.getUniformLocation(this.histogramShader, "uPMatrix");
   this.histogramShader.mvMatrixUniform = this.gl.getUniformLocation(this.histogramShader, "uMVMatrix");

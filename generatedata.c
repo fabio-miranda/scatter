@@ -402,6 +402,7 @@ int generate2DTiles(int numentries, int numdim, int numbin, float maxdatavalue){
 int generateHistogramTile(int numentries, int numdim, int numbinscatter,
                            int numbinhistogram, float maxdatavalue){
 
+  
   float minvalue = INFINITY;
   float maxvalue = -INFINITY;
 
@@ -445,7 +446,7 @@ int generateHistogramTile(int numentries, int numdim, int numbinscatter,
           int y = datatilesizey*j + binsizey*binj;
           int z = datatilesizez*k + binsizez*bink;
 
-          int index = x * imgsizey * imgsizez + y * imgsizey + z;
+          int index = x * imgsizey * imgsizez + y * imgsizez + z;
 
           buff[index]++;
           //buff[index] += (vali + valj + valk);

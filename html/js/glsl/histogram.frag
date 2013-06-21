@@ -2,6 +2,7 @@ precision mediump float;
 
 varying highp vec2 vTexCoord;
 uniform sampler2D uSampler0;
+uniform float uDim;
 uniform float uNumDim;
 uniform float uNumBinsScatter;
 uniform float uNumBinsHistogram;
@@ -26,7 +27,6 @@ void main(void) {
   float rangej0 = uSelectionBinRange.z;
 
 
-  float uHistogramDim = 0.0;
   float value = 0.0;
   //hack for Loop index cannot be compared with non-constant expression error
   for(int i=0; i<maxloop; i++){
@@ -35,10 +35,11 @@ void main(void) {
       if(j > rangecountj) break;
 
       float aux = uNumBinsScatter;
-      float coordA = uHistogramDim * sizeDataTileZ + vTexCoord.x * sizeDataTileZ; //take into consideration histogram dimension
+      float coordA = uDim * sizeDataTileZ + vTexCoord.x * sizeDataTileZ; //take into consideration histogram dimension
       vec2 coordIJ = uSelectionDim * sizeDataTileX + vec2((rangei0 + float(i)) / aux, (rangej0 + float(j)) / aux) * sizeDataTileX;
 
-      vec2 coord = vec2(sizeDataTile3D * coordIJ.x + coordIJ.y, coordA);
+      //vec2 coord = vec2(sizeDataTile3D * coordIJ.x + coordIJ.y, coordA);
+      vec2 coord = vec2(sizeDataTile3D * coordA + coordIJ.x, sizeDataTile3D * coordA + coordIJ.y);
 
       //gl_FragColor = vec4(coord.x);
       //return;

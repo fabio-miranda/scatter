@@ -119,4 +119,6 @@ BarChart.prototype.add = function(data) {
       .attr("stroke", 'black')
       .attr("stroke-width", 1)
       .attr("class", "bars");
+
+  this.svg.selectAll("rect").data(data).exit().remove();
 };

@@ -13,7 +13,7 @@ function selectionquad(gl){
   this.p0 = [0, 0];
   this.p1 = [0, 0];
   this.bottomleft = [0, 0];
-  this.topright = [gl.viewportWidth, gl.viewportHeight];
+  this.topright = [0, 0];//[gl.viewportWidth, gl.viewportHeight];
 }
 
 selectionquad.prototype.updateBB = function(){
@@ -42,6 +42,7 @@ function scattergl(canvas){
   this.numdim = {};
   this.numbin = {};
   this.texture = {};
+  this.histogram = null;
   //this.sizedatatile = {};
 
   this.initGL();
@@ -79,6 +80,14 @@ scattergl.prototype.addscatter = function(i, j, dim1, dim2){
   //}
 
 }
+
+scattergl.prototype.setHistogram = function(histogram){
+
+  this.histogram = histogram;
+
+}
+
+
 
 scattergl.prototype.reset = function(){
 
@@ -298,6 +307,7 @@ scattergl.prototype.mousedown = function(evt){
   }
 
   this.draw();
+  if(this.histogram != null) this.histogram.draw(this.getSelection());
 }
 
 scattergl.prototype.mouseup = function(evt){
@@ -311,8 +321,8 @@ scattergl.prototype.mouseup = function(evt){
   }
 
   
-
   this.draw();
+  if(this.histogram != null) this.histogram.draw(this.getSelection());
 }
 
 scattergl.prototype.mousemove = function(evt){
@@ -326,6 +336,7 @@ scattergl.prototype.mousemove = function(evt){
   this.selection.updateBB();
 
   this.draw();
+  if(this.histogram != null) this.histogram.draw(this.getSelection());
 
 }
 

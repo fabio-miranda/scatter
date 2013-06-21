@@ -41,6 +41,15 @@ function createscatterplot(datatile){
           datatile['histogram']['numbin']
         );
         histogram.draw(scattermatrix.getSelection());
+        scattermatrix.setHistogram(histogram);
+
+        var onchange = function(){
+          histogram.setDim($('#histogramdim').val());
+          histogram.draw(scattermatrix.getSelection());
+        };
+
+        var dropdown = createdropdown('histogramdim', onchange);
+        document.getElementById('histogramdropdowndim').appendChild(dropdown);
 
       }
     }
@@ -88,24 +97,19 @@ function updatescatterplot(datatile, binsize){
 }
 
 
-function createdropdown(dim){
+function createdropdown(id, onchange){
 
   //TODO: replace with jquery
   var dropdown = document.createElement("select");
-  dropdown.id = 'dropdownmenu_'+dim+'_'+currentnumdim;
+  dropdown.id = id;
   dropdown.className = 'dropdownmenu';
-  dropdown.onchange = function(){
-    scattermatrix.reset();
-    count = 0;
-    redrawscatterplots();
-  };
+  dropdown.onchange = onchange;
 
   for(var i=0; i<scattermatrix.numdim[2]; i++){
     var option=document.createElement("option");
     option.text = i;
     dropdown.add(option, null);
   }
-  dropdown.value = currentnumdim;
 
   return dropdown;
 }
@@ -147,8 +151,15 @@ function adddimension(){
 
   //TODO: replace with jquery
 
+  var onchange = function(){
+    scattermatrix.reset();
+    count = 0;
+    redrawscatterplots();
+  };
+
   //horizontal
-  var dropdown = createdropdown('dim1');
+  var dropdown = createdropdown('dropdownmenu_dim1_'+currentnumdim, onchange);
+  dropdown.value = currentnumdim;
   var table = document.getElementById('scatterplotdim1');
   row = table.rows[0];
   var cell = row.appendChild(document.createElement("td"));
@@ -157,7 +168,8 @@ function adddimension(){
 
 
   //vertical
-  dropdown = createdropdown('dim2');
+  dropdown = createdropdown('dropdownmenu_dim2_'+currentnumdim, onchange);
+  dropdown.value = currentnumdim;
   table = document.getElementById('scatterplotdim2');
   row = table.insertRow(0);
   cell = row.appendChild(document.createElement("td"));
