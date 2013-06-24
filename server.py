@@ -60,6 +60,7 @@ class ScatterPage:
       data[i]['minvalue'] = minvalue
       data[i]['maxvalue'] = maxvalue
 
+
     #histogram
     f = open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'.txt', 'r')
     numdim = f.readline()

@@ -18,7 +18,7 @@ void main(void) {
   //vec2 texCoord = 0.5*(vTexCoord + vec2(1.0));
   float sizeDataTileX = 1.0 / uNumDim;
   float sizeDataTileZ = 1.0 / uNumDim;
-  float sizeDataTile3D = 1.0 / (uNumBinsScatter * uNumDim);
+  float sizeDataTile3D = 1.0 / (uNumBinsHistogram * uNumDim);
 
 
   int rangecounti = int(abs(uSelectionBinRange.x - uSelectionBinRange.y));
@@ -34,12 +34,13 @@ void main(void) {
     for(int j=0; j<maxloop; j++){
       if(j > rangecountj) break;
 
-      float aux = uNumBinsScatter;
+      float aux = uNumBinsHistogram;
       float coordA = uDim * sizeDataTileZ + vTexCoord.x * sizeDataTileZ; //take into consideration histogram dimension
+      //coordA = 0.0;
       vec2 coordIJ = uSelectionDim * sizeDataTileX + vec2((rangei0 + float(i)) / aux, (rangej0 + float(j)) / aux) * sizeDataTileX;
-
+      //vec2 coordIJ = vec2(0);
       //vec2 coord = vec2(sizeDataTile3D * coordIJ.x + coordIJ.y, coordA);
-      vec2 coord = vec2(sizeDataTile3D * coordA + coordIJ.x, sizeDataTile3D * coordA + coordIJ.y);
+      vec2 coord = vec2(sizeDataTile3D * coordA + coordIJ.x, coordIJ.y);
 
       //gl_FragColor = vec4(coord.x);
       //return;

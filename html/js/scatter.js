@@ -128,7 +128,9 @@ function redrawscatterplots(){
 function changeNumBin(){
   scattermatrix.reset();
   count = 0;
-  $.post('/data', {'numbinscatter' : $('#numbinscatter').val(), 'numbinhistogram': $('#numbinhistogram').val()}, updatescatterplot);
+  //$.post('/data', {'numbinscatter' : $('#numbinscatter').val(), 'numbinhistogram': $('#numbinhistogram').val()}, updatescatterplot);
+  //TODO: numbinhistogram with a different bin count
+  $.post('/data', {'numbinscatter' : $('#numbinscatter').val(), 'numbinhistogram': $('#numbinscatter').val()}, updatescatterplot);
 }
 
 function addscatterplot(){

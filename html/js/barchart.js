@@ -102,12 +102,15 @@ BarChart.prototype.add = function(data) {
   this.svg.select(".yAxis").call(this.yAxis);
 
   console.log(this.data);
+  //console.log(that.xScale.rangeBand());
+  //console.log(this.xDomain);
   
   this.svg.selectAll("rect")
       .data(data)
       .attr("y", function(d,i) {return that.yScale(d);})
       .attr("height", function(d,i) {return that.height + that.margin.top - that.yScale(d);})
       .attr("x", function(d,i) { return  that.xScale(i);})
+      .attr("width", that.xScale.rangeBand())
       .attr("visibility", "visible")
       .enter()
       .append("rect")
