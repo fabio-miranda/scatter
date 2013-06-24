@@ -1,6 +1,6 @@
 
 
-function histogram(canvas, chart){
+function Histogram(canvas, chart){
   this.canvas = canvas
   this.gl = null;
   this.histogramShader = null;
@@ -22,7 +22,7 @@ function histogram(canvas, chart){
 
 }
 
-histogram.prototype.update = function(image, width, height, numdim, numbinscatter, numbinhistogram){
+Histogram.prototype.update = function(image, width, height, numdim, numbinscatter, numbinhistogram){
 
   this.image = image;
   this.width = width;
@@ -38,10 +38,10 @@ histogram.prototype.update = function(image, width, height, numdim, numbinscatte
   this.texture = this.gl.createTexture();
   createTexture(this.gl, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.image, this.texture);
 
-  this.histogramquad = new quad(this.gl, this.texture);
+  this.histogramquad = new quad(this.gl, true);
 }
 
-histogram.prototype.draw = function(selection){
+Histogram.prototype.draw = function(selection){
 
 
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
@@ -64,7 +64,7 @@ histogram.prototype.draw = function(selection){
     selection.rangei0, selection.rangei1, selection.rangej0, selection.rangej1
   );
 
-  this.histogramquad.draw(this.gl, this.histogramShader, this.mvMatrix, this.pMatrix);
+  this.histogramquad.draw(this.gl, this.histogramShader, this.mvMatrix, this.pMatrix, this.texture);
 
   this.gl.useProgram(null);
 
@@ -81,12 +81,12 @@ histogram.prototype.draw = function(selection){
 
 }
 
-histogram.prototype.setDim = function(dim){
+Histogram.prototype.setDim = function(dim){
   this.dim = dim;
 }
 
 
-histogram.prototype.initShaders = function(){
+Histogram.prototype.initShaders = function(){
 
 
   var fragmentShader = getShader(this.gl, "./js/glsl/histogram.frag", true);
@@ -123,7 +123,7 @@ histogram.prototype.initShaders = function(){
 
 }
 
-histogram.prototype.initGL = function(){
+Histogram.prototype.initGL = function(){
 
   this.gl = this.canvas[0].getContext("experimental-webgl");
   this.gl.viewportWidth = this.numbinhistogram;

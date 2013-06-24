@@ -25,64 +25,88 @@ class ScatterPage:
     return json.dumps(data)
 
   @cherrypy.expose
-  def data(self, numbinscatter, numbinhistogram):
+  def data(self, firsttime, numbinscatter, numbinhistogram, dimperimage):
 
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
     numbinscatter = int(numbinscatter)
     numbinhistogram = int(numbinhistogram)
+    dimperimage = int(dimperimage)
     data = {}
+    data['firsttime'] = firsttime
+    data['dimperimage'] = dimperimage
     numrelations = [2, 4]
 
-    #scatterplot matrix
-    for i in numrelations:
+    loadedAllDim = False
+    count = 0
+    while(loadedAllDim == False):
+      data[count] = {}
+      dim0 = count*dimperimage;
+      dim1 = (count+1)*dimperimage;
 
-      f = open('./data4/'+str(i)+'_'+str(numbinscatter)+'.txt', 'r')
-      numdim = f.readline()
-      minvalue = f.readline()
-      maxvalue = f.readline()
+      #scatterplot matrix
+      for j in numrelations:
+
+        f = open('./data4/'+str(j)+'_'+str(numbinscatter)+'_'+str(dim0)+'_'+str(dim1)+'.txt', 'r')
+        fnumdim = f.readline()
+        fdim0 = f.readline()
+        fdim1 = f.readline()
+        fminvalue = f.readline()
+        fmaxvalue = f.readline()
+        f.close()
+
+        buffer = StringIO.StringIO()
+        img = Image.open('./data4/'+str(j)+'_'+str(numbinscatter)+'_'+str(dim0)+'_'+str(dim1)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+        width = int(img.size[0])
+        height = int(img.size[1])
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+
+        data[count][j] = {}
+        data[count][j]['data'] = base64.b64encode(buffer.getvalue())
+        data[count][j]['numrelations'] = j
+        data[count][j]['width'] = width
+        data[count][j]['height'] = height
+
+        data[count][j]['numdim'] = fnumdim
+        data[count][j]['numbin'] = numbinscatter
+        data[count][j]['dim0'] = dim0
+        data[count][j]['dim1'] = dim1
+        data[count][j]['minvalue'] = fminvalue
+        data[count][j]['maxvalue'] = fmaxvalue
+
+
+      #histogram
+      f = open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'_'+str(dim0)+'_'+str(dim1)+'.txt', 'r')
+      fnumdim = f.readline()
+      fdim0 = f.readline()
+      fdim1 = f.readline()
+      fminvalue = f.readline()
+      fmaxvalue = f.readline()
       f.close()
 
       buffer = StringIO.StringIO()
-      img = Image.open('./data4/'+str(i)+'_'+str(numbinscatter)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+      img = Image.open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'_'+str(dim0)+'_'+str(dim1)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
       width = int(img.size[0])
       height = int(img.size[1])
       img.save(buffer, format='PNG')
       buffer.seek(0)
 
-      data[i] = {}
-      data[i]['data'] = base64.b64encode(buffer.getvalue())
-      data[i]['numrelations'] = i
-      data[i]['width'] = width
-      data[i]['height'] = height
-      data[i]['numdim'] = numdim
-      data[i]['numbin'] = numbinscatter
-      data[i]['minvalue'] = minvalue
-      data[i]['maxvalue'] = maxvalue
+      data[count]['histogram'] = {}
+      data[count]['histogram']['data'] = base64.b64encode(buffer.getvalue())
+      data[count]['histogram']['width'] = width
+      data[count]['histogram']['height'] = height
+      data[count]['histogram']['numdim'] = fnumdim
+      data[count]['histogram']['dim0'] = fdim0
+      data[count]['histogram']['dim1'] = fdim1
+      data[count]['histogram']['numbin'] = numbinhistogram
+      data[count]['histogram']['minvalue'] = fminvalue
+      data[count]['histogram']['maxvalue'] = fmaxvalue
 
-
-    #histogram
-    f = open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'.txt', 'r')
-    numdim = f.readline()
-    minvalue = f.readline()
-    maxvalue = f.readline()
-    f.close()
-
-    buffer = StringIO.StringIO()
-    img = Image.open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
-    width = int(img.size[0])
-    height = int(img.size[1])
-    img.save(buffer, format='PNG')
-    buffer.seek(0)
-
-    data['histogram'] = {}
-    data['histogram']['data'] = base64.b64encode(buffer.getvalue())
-    data['histogram']['width'] = width
-    data['histogram']['height'] = width
-    data['histogram']['numdim'] = numdim
-    data['histogram']['numbin'] = numbinhistogram
-    data['histogram']['minvalue'] = minvalue
-    data['histogram']['maxvalue'] = maxvalue
+      if(int(fdim1) >= int(fnumdim)):
+        loadedAllDim = True
+      else:
+        count+=1
 
     return json.dumps(data)
 

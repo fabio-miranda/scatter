@@ -1,15 +1,15 @@
 
 
-function scatterquad(gl, i, j, dim1, dim2, texture2d, texture4d){
+function scatterquad(gl, i, j, dim1, dim2){
   this.i = i;
   this.j = j;
   this.dim1 = dim1;
   this.dim2 = dim2;
-  this.quad = new quad(gl, texture2d, texture4d);
+  this.quad = new quad(gl, true);
 }
 
 function selectionquad(gl){
-  this.quad = new quad(gl);
+  this.quad = new quad(gl, false);
   this.p0 = [0, 0];
   this.p1 = [0, 0];
   this.bottomleft = [0, 0];
@@ -52,8 +52,18 @@ function scattergl(canvas){
 }
 
 
-scattergl.prototype.update = function(numrelations, image, imgsize, numdim, numbin){
+scattergl.prototype.update = function(numrelations, image, imgsize, numdim, imgdim0, imgdim1, numbin){
 
+  var index = imgdim0+' '+imgdim1;
+  /*
+  if(this.texture[index] == null){
+    this.texture[index] = {};
+    this.image[index] = {};
+    this.imgsize[index] = {};
+    this.numrelations[index] = {};
+    this.numdim[index] = {}
+  }
+  */
   this.image[numrelations] = image;
   this.imgsize[numrelations] = imgsize;
 
@@ -177,7 +187,7 @@ scattergl.prototype.draw = function(){
     //console.log(this.scatterShader.selectionBinRange);
     //console.log(rangei0+' '+rangei1+' '+rangej0+' '+rangej1);
     
-    scatter.quad.draw(this.gl, this.scatterShader, this.mvMatrix, this.pMatrix);
+    scatter.quad.draw(this.gl, this.scatterShader, this.mvMatrix, this.pMatrix, this.texture['2'], this.texture['4']);
 
     //this.gl.viewport(j*width, i*height, width, height);
     //scatter.draw(this.gl, this.shaderProgram, this.mvMatrix, this.pMatrix);

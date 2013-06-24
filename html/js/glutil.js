@@ -43,13 +43,12 @@ function createTexture(gl, iformat, format, type, image, tex){
 
 }
 
-function quad(gl, texture0, texture1){
+function quad(gl, hasTexture){
 
   this.quadBuffer = null;
   this.texCoordBuffer = null;
   this.color = null;
-  this.texture0 = texture0;
-  this.texture1 = texture1;
+  this.hasTexture = hasTexture;
 
   this.initBuffers(gl);
 
@@ -70,7 +69,7 @@ quad.prototype.initBuffers = function(gl){
   this.quadBuffer.itemSize = 3;
   this.quadBuffer.numItems = 4;
 
-  if(this.texture0 != null){
+  if(this.hasTexture){
     //tex coord
     this.texCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
@@ -91,23 +90,23 @@ quad.prototype.initBuffers = function(gl){
 
 }
 
-quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix){
+quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, texture0, texture1){
 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.quadBuffer.itemSize, gl.FLOAT, false, 0, 0);
   
-  if(this.texture0 != null){
+  if(texture0 != null){
     gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
     gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, this.texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.texture0);
+    gl.bindTexture(gl.TEXTURE_2D, texture0);
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler0"), 0);
   }
 
-  if(this.texture1 != null){
+  if(texture1 != null){
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this.texture1);
+    gl.bindTexture(gl.TEXTURE_2D, texture1);
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler1"), 1);
   }
 
