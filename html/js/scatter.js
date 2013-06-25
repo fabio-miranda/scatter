@@ -271,7 +271,7 @@ function initialize(){
   */
   //scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
   //$.post('/data', {'dim1': 0, 'dim2' : 0}, createscatterplot);
-  scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
+  scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
   histogram = new Histogram($('#histogram'), $('#histogramdiv'));
   scattermatrix.setHistogram(histogram);
   
