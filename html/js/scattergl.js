@@ -36,12 +36,13 @@ SelectionQuad.prototype.updateBB = function(){
 }
 
 
-function ScatterGL(canvas){
+function ScatterGL(canvas, numdim){
   this.canvas = canvas;
   this.scatterplots = {};
   this.gl = null;
   this.scatterShader = null;
   this.selectionShader = null;
+  this.numdim = numdim;
   this.maxdim = 0;
   this.mvMatrix = mat4.create();
   this.pMatrix = mat4.create();
@@ -141,28 +142,40 @@ ScatterGL.prototype.draw = function(){
     var scatter = this.scatterplots[ij];
     var i = scatter.i;
     var j = scatter.j;
+    
+    goibaoingaoinga
+    ngioanoiga
+    ngoianoiganoigaoinga
+    var index2 = scatter.dim1+' '+((scatter.dim2/this.datafiles['2'].numdim)+1);
+    var index4 = scatter.dim1+' '+((scatter.dim2/this.datafiles['4'].numdim)+1);
 
-    this.gl.viewport(i*width, j*height, width, height);
+    //Check if textures have been loaded
+    if(this.datatiles['2'] != null && this.datatiles['4'] != null
+      && this.datatiles['2'][index2] != null && this.datatiles['4'][index4] != null){
 
-    var selection = this.getSelection();
+      this.gl.viewport(i*width, j*height, width, height);
 
-    this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
-    this.gl.uniform1f(this.scatterShader.numDim, this.numdim);
-    this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
-    this.gl.uniform1f(this.scatterShader.numBins, this.numbin);
-    this.gl.uniform2f(this.scatterShader.selectionDim, selection.datatilei, selection.datatilej);
-    this.gl.uniform4f(this.scatterShader.selectionBinRange,
-      selection.rangei0, selection.rangei1, selection.rangej0, selection.rangej1
-    );
+      var selection = this.getSelection();
 
-    scatter.quad.draw(
-      this.gl,
-      this.scatterShader,
-      this.mvMatrix,
-      this.pMatrix,
-      this.datatiles['2']['0 4'].texture,
-      this.datatiles['4']['0 4'].texture
-    );
+      this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
+      this.gl.uniform1f(this.scatterShader.numDim, this.numdim);
+      this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
+      this.gl.uniform1f(this.scatterShader.numBins, this.numbin);
+      this.gl.uniform2f(this.scatterShader.selectionDim, selection.datatilei, selection.datatilej);
+      this.gl.uniform4f(this.scatterShader.selectionBinRange,
+        selection.rangei0, selection.rangei1, selection.rangej0, selection.rangej1
+      );
+      //var index2 = '0 4'
+      //var index4 = '0 4';
+      scatter.quad.draw(
+        this.gl,
+        this.scatterShader,
+        this.mvMatrix,
+        this.pMatrix,
+        this.datatiles['2'][index2].texture,
+        this.datatiles['4'][index4].texture
+      );
+    }
   }
 
   //selection
@@ -171,8 +184,10 @@ ScatterGL.prototype.draw = function(){
   
   width = this.selection.topright[0] - this.selection.bottomleft[0];
   height = this.selection.topright[1] - this.selection.bottomleft[1];
-  this.gl.viewport(this.selection.bottomleft[0], this.selection.bottomleft[1], width, height);
-  this.selection.quad.draw(this.gl, this.selectionShader, this.mvMatrix, this.pMatrix);
+  if(width > 0 && height > 0){
+    this.gl.viewport(this.selection.bottomleft[0], this.selection.bottomleft[1], width, height);
+    this.selection.quad.draw(this.gl, this.selectionShader, this.mvMatrix, this.pMatrix);
+  }
 
   this.gl.useProgram(null);
 

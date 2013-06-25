@@ -109,6 +109,8 @@ void main(void) {
   	return;
   }
   */
+  //gl_FragColor = vec4(1, 0, 0, 1);
+  //return;
 
   float highlight = 0.0;
   if(value > 0.0)
