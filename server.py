@@ -68,12 +68,12 @@ class ScatterPage:
         data[count][j]['width'] = width
         data[count][j]['height'] = height
 
-        data[count][j]['numdim'] = fnumdim
-        data[count][j]['numbin'] = numbinscatter
-        data[count][j]['dim0'] = dim0
-        data[count][j]['dim1'] = dim1
-        data[count][j]['minvalue'] = fminvalue
-        data[count][j]['maxvalue'] = fmaxvalue
+        data[count][j]['numdim'] = int(fnumdim)
+        data[count][j]['numbin'] = int(numbinscatter)
+        data[count][j]['dim0'] = int(dim0)
+        data[count][j]['dim1'] = int(dim1)
+        data[count][j]['minvalue'] = float(fminvalue)
+        data[count][j]['maxvalue'] = float(fmaxvalue)
 
 
       #histogram
@@ -96,12 +96,12 @@ class ScatterPage:
       data[count]['histogram']['data'] = base64.b64encode(buffer.getvalue())
       data[count]['histogram']['width'] = width
       data[count]['histogram']['height'] = height
-      data[count]['histogram']['numdim'] = fnumdim
-      data[count]['histogram']['dim0'] = fdim0
-      data[count]['histogram']['dim1'] = fdim1
-      data[count]['histogram']['numbin'] = numbinhistogram
-      data[count]['histogram']['minvalue'] = fminvalue
-      data[count]['histogram']['maxvalue'] = fmaxvalue
+      data[count]['histogram']['numdim'] = int(fnumdim)
+      data[count]['histogram']['dim0'] = int(fdim0)
+      data[count]['histogram']['dim1'] = int(fdim1)
+      data[count]['histogram']['numbin'] = int(numbinhistogram)
+      data[count]['histogram']['minvalue'] = float(fminvalue)
+      data[count]['histogram']['maxvalue'] = float(fmaxvalue)
 
       if(int(fdim1) >= int(fnumdim)):
         loadedAllDim = True

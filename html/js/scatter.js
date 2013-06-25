@@ -27,7 +27,7 @@ function updatescatterplot(firsttime, datatile){
     //diff:
     if(firsttime){
       scattermatrix.addscatter(0, 0, 0, 0);
-      scattermatrix.draw();
+      //scattermatrix.draw();
       adddimension();
     }
 
@@ -150,7 +150,7 @@ function createdropdown(id, onchange){
   dropdown.className = 'dropdownmenu';
   dropdown.onchange = onchange;
 
-  for(var i=0; i<scattermatrix.numdim[2]; i++){
+  for(var i=0; i<scattermatrix.numdim; i++){
     var option=document.createElement("option");
     option.text = i;
     dropdown.add(option, null);
