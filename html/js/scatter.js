@@ -88,59 +88,6 @@ function cb_updatescatterplot(datatile){
   }
 }
 
-/*
-function updatescatterplot(datatile){
-
-  console.log(datatile['firsttime']);
-
-  datatile = datatile[0];
-
-  var image = new Image();
-  image.src="data:image/png;base64,"+datatile['2']['data'];
-  var that = this;
-  image.onload = function(){
-
-    scattermatrix.update(
-      datatile['2']['numrelations'],
-      image,
-      datatile['2']['width'],
-      datatile['2']['numdim'],0,4,
-      datatile['2']['numbin']
-    );
-
-    image = new Image();
-    image.src="data:image/png;base64,"+datatile['4']['data'];
-    var that = this;
-    image.onload = function(){
-      scattermatrix.update(
-        datatile['4']['numrelations'],
-        image, datatile['4']['width'],
-        datatile['4']['numdim'], 0,4,
-        datatile['4']['numbin']
-      );
-      redrawscatterplots();
-
-      image = new Image();
-      image.src="data:image/png;base64,"+datatile['histogram']['data'];
-      image.onload = function(){
-
-        histogram.update(
-          image,
-          datatile['histogram']['width'],
-          datatile['histogram']['height'],
-          datatile['4']['numdim'],
-          datatile['4']['numbin'],
-          datatile['histogram']['numbin']
-        );
-        histogram.draw(scattermatrix.getSelection());
-
-      }
-    }
-  } 
-
-}
-*/
-
 
 function createdropdown(id, onchange){
 
@@ -173,7 +120,7 @@ function redrawscatterplots(){
 function changeNumBin(){
   scattermatrix.reset();
   count = 0;
-  //$.post('/data', {'numbinscatter' : $('#numbinscatter').val(), 'numbinhistogram': $('#numbinhistogram').val()}, updatescatterplot);
+
   //TODO: numbinhistogram with a different bin count
   $.post(
     '/data',
@@ -259,18 +206,7 @@ function removedimension(){
 }
 
 function initialize(){
-  /*
-  scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
-  for(var i = 0; i<8; i++){
-    for(var j = 0; j<8; j++){
-      var postdata = {'dim1': i, 'dim2' : j};
-      
-      $.post('/data', postdata, createscatterplot);
-    }
-  }
-  */
-  //scattermatrix = new scattergl(document.getElementById('scatterplotmatrix'));
-  //$.post('/data', {'dim1': 0, 'dim2' : 0}, createscatterplot);
+  
   scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
   histogram = new Histogram($('#histogram'), $('#histogramdiv'));
   scattermatrix.setHistogram(histogram);
