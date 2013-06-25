@@ -8,13 +8,7 @@ var dim=16;
 var dimperimage = 4;
 var info;
 
-
-
-function cb_updatescatterplot(datatile){
-
-  firsttime = eval(datatile['firsttime']);
-  datatile = datatile[0]
-
+function updatescatterplot(firsttime, datatile){
   var image = new Image();
   image.src="data:image/png;base64,"+datatile['2']['data'];
   var that = this;
@@ -24,7 +18,9 @@ function cb_updatescatterplot(datatile){
       datatile['2']['numrelations'],
       image,
       datatile['2']['width'],
-      datatile['2']['numdim'],0,4,
+      datatile['2']['numdim'],
+      datatile['2']['dim0'],
+      datatile['2']['dim1'],
       datatile['2']['numbin']
     );
 
@@ -42,7 +38,9 @@ function cb_updatescatterplot(datatile){
       scattermatrix.update(
         datatile['4']['numrelations'],
         image, datatile['4']['width'],
-        datatile['4']['numdim'], 0,4,
+        datatile['4']['numdim'],
+        datatile['4']['dim0'],
+        datatile['4']['dim1'],
         datatile['4']['numbin']
       );
       redrawscatterplots();
@@ -74,6 +72,20 @@ function cb_updatescatterplot(datatile){
       }
     }
   } 
+}
+
+
+function cb_updatescatterplot(datatile){
+
+
+
+  var firsttime = eval(datatile['firsttime']);
+  var dimperimage = datatile['dimperimage'];
+  var numdim = datatile[0]['histogram']['numdim'];
+
+  for(var i=0; i<numdim/dimperimage; i++){
+    updatescatterplot(firsttime, datatile[i]);
+  }
 }
 
 /*
