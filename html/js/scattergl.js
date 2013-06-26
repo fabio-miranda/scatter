@@ -16,12 +16,11 @@ function SelectionQuad(gl){
   this.topright = [0, 0];//[gl.viewportWidth, gl.viewportHeight];
 }
 
-function Datatile(gl, numrelations, image, imgsize, numdim, imgdim0, imgdim1, numbin){
+function Datatile(gl, numrelations, image, imgsize, numdim, index, numbin){
   this.image = image;
   this.imgsize = imgsize;
   this.numdim = numdim;
-  this.imgdim0 = imgdim0;
-  this.imgdim1 = imgdim1;
+  this.index = index;
   this.numbin = numbin;
 
   this.texture = gl.createTexture();
@@ -60,9 +59,8 @@ function ScatterGL(canvas){
 }
 
 
-ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimperimage, imgdim0, imgdim1, numbin){
+ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimperimage, index, numbin){
 
-  var index = imgdim0+' '+imgdim1;
 
   if(this.datatiles[numrelations] == null)
     this.datatiles[numrelations] = {};
@@ -70,7 +68,7 @@ ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimp
   this.numbin = numbin;
   this.numdim = numdim;
   this.datatiles[numrelations]['dimperimage'] = dimperimage;
-  this.datatiles[numrelations][index] = new Datatile(this.gl, numrelations, image, imgsize, numdim, imgdim0, imgdim1, numbin);
+  this.datatiles[numrelations][index] = new Datatile(this.gl, numrelations, image, imgsize, numdim, index, numbin);
 
 }
 
@@ -142,23 +140,28 @@ ScatterGL.prototype.draw = function(){
 
     for(var ij in this.scatterplots) {
 
+      var selection = this.getSelection();
+
       var scatter = this.scatterplots[ij];
       var i = scatter.i;
       var j = scatter.j;
+
+      var dim0 = Math.floor(scatter.i / this.datatiles['2']['dimperimage']);
+      var dim1 = Math.floor(scatter.j / this.datatiles['2']['dimperimage']);
+      var dim2 = Math.floor(selection.datatilei / this.datatiles['4']['dimperimage']);
+      var dim3 = Math.floor(selection.datatilei / this.datatiles['4']['dimperimage']);
       
-      var index2 = Math.floor(scatter.dim1/this.datatiles['2'].dimperimage)+' '+(Math.floor(scatter.dim2/this.datatiles['2'].dimperimage)+1);
-      var index4 = Math.floor(scatter.dim1/this.datatiles['4'].dimperimage)+' '+(Math.floor(scatter.dim2/this.datatiles['4'].dimperimage)+1);
-      //var index2 = '0 1';
-      //var index4 = '0 1';
-      console.log(this.datatiles['2']);
+      //var index2 = Math.floor(scatter.dim1/this.datatiles['2'].dimperimage)+' '+(Math.floor(scatter.dim2/this.datatiles['2'].dimperimage)+1);
+      //var index4 = Math.floor(scatter.dim1/this.datatiles['4'].dimperimage)+' '+(Math.floor(scatter.dim2/this.datatiles['4'].dimperimage)+1);
+      var index2 = dim0+' '+dim1;
+      var index4 = dim0+' '+dim1+' '+dim2+' '+dim3;
+      console.log(selection.datatilei);
       console.log(index4);
 
       //Check if textures have been loaded
       if(this.datatiles['2'][index2] != null && this.datatiles['4'][index4] != null){
 
         this.gl.viewport(i*width, j*height, width, height);
-
-        var selection = this.getSelection();
 
         this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
         this.gl.uniform1f(this.scatterShader.numDim, this.numdim);

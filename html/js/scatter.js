@@ -5,7 +5,7 @@ var scattermatrix;
 var count=0;
 var currentnumdim=0;
 var dim=16;
-var dimperimage = 4;
+var dimperimage = 1;
 var info;
 
 
@@ -36,24 +36,22 @@ function cb_updatescatterplot(datatile){
 
   var dimperimage = datatile['2']['dimperimage'];
   for(var i=0; i<numdim/dimperimage; i++){
-    for(var j=i; j<numdim/dimperimage; j++){
-      var index = i+' '+(j+1);
+    for(var j=0; j<numdim/dimperimage; j++){
 
       //2
       var image2 = new Image();
-      image2.src="data:image/png;base64,"+datatile['2'][index]['data'];
-      var that = this;
+      image2.index = i+' '+j;
+      image2.src="data:image/png;base64,"+datatile['2'][image2.index]['data'];
       image2.onload = function(){
 
         scattermatrix.update(
-          datatile['2'][index]['numrelations'],
+          datatile['2'][this.index]['numrelations'],
           image2,
-          datatile['2'][index]['width'],
-          datatile['2'][index]['numdim'],
+          datatile['2'][this.index]['width'],
+          datatile['2'][this.index]['numdim'],
           datatile['2']['dimperimage'],
-          datatile['2'][index]['dim0'],
-          datatile['2'][index]['dim1'],
-          datatile['2'][index]['numbin']
+          this.index,
+          datatile['2'][this.index]['numbin']
         );
 
         scattermatrix.draw();
@@ -63,27 +61,29 @@ function cb_updatescatterplot(datatile){
 
   var dimperimage = datatile['4']['dimperimage'];
   for(var i=0; i<numdim/dimperimage; i++){
-    for(var j=i; j<numdim/dimperimage; j++){
-      var index = i+' '+(j+1);
+    for(var j=0; j<numdim/dimperimage; j++){
+      for(var k=0; k<numdim/dimperimage; k++){
+        for(var l=0; l<numdim/dimperimage; l++){
 
-      //4
-      var image4 = new Image();
-      image4.src="data:image/png;base64,"+datatile['4'][index]['data'];
-      var that = this;
-      image4.onload = function(){
+          //4
+          var image4 = new Image();
+          image4.index = i+' '+j+' '+k+' '+l;
+          image4.src="data:image/png;base64,"+datatile['4'][image4.index]['data'];
+          image4.onload = function(){
 
-        scattermatrix.update(
-          datatile['4'][index]['numrelations'],
-          image4,
-          datatile['4'][index]['width'],
-          datatile['4'][index]['numdim'],
-          datatile['4']['dimperimage'],
-          datatile['4'][index]['dim0'],
-          datatile['4'][index]['dim1'],
-          datatile['4'][index]['numbin']
-        );
+            scattermatrix.update(
+              datatile['4'][this.index]['numrelations'],
+              image4,
+              datatile['4'][this.index]['width'],
+              datatile['4'][this.index]['numdim'],
+              datatile['4']['dimperimage'],
+              this.index,
+              datatile['4'][this.index]['numbin']
+            );
 
-        scattermatrix.draw();
+            scattermatrix.draw();
+          }
+        }
       }
     }
   }
@@ -91,22 +91,21 @@ function cb_updatescatterplot(datatile){
 
   var dimperimage = datatile['histogram']['dimperimage'];
   for(var i=0; i<numdim/dimperimage; i++){
-    for(var j=i; j<numdim/dimperimage; j++){
-      var index = i+' '+(j+1);
+    for(var j=0; j<numdim/dimperimage; j++){
 
       //histogram
       var imagehist = new Image();
-      imagehist.src="data:image/png;base64,"+datatile['histogram'][index]['data'];
-      var that = this;
+      imagehist.index = i+' '+j;
+      imagehist.src="data:image/png;base64,"+datatile['histogram'][imagehist.index]['data'];
       imagehist.onload = function(){
 
         histogram.update(
           imagehist,
-          datatile['histogram'][index]['width'],
-          datatile['histogram'][index]['height'],
-          datatile['histogram'][index]['numdim'],
-          datatile['histogram'][index]['numbin'],
-          datatile['histogram'][index]['numbin']
+          datatile['histogram'][this.index]['width'],
+          datatile['histogram'][this.index]['height'],
+          datatile['histogram'][this.index]['numdim'],
+          datatile['histogram'][this.index]['numbin'],
+          datatile['histogram'][this.index]['numbin']
         );
 
         scattermatrix.draw();

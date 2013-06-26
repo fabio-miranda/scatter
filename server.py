@@ -41,8 +41,6 @@ class ScatterPage:
     #dim0 = 0
     #dim1 = 0
     numdim = 0
-    dim0 = 0
-    dim1 = 0
 
     #info file
     f = open('./data4/info.txt', 'r')
@@ -63,48 +61,10 @@ class ScatterPage:
 
     for i in range(0, numdim/dimperimage):
       for j in range(0, numdim/dimperimage):
-        dim0 = i
-        dim1 = j
-        index = str(dim0)+' '+str(dim1)
-
-        #scatterplot matrix
-        for k in numrelations:
-
-          f = open('./data4/'+str(k)+'_'+str(numbinscatter)+'_'+str(dimperimage)+'_'+str(dim0)+'_'+str(dim1)+'.txt', 'r')
-          fnumdim = f.readline()
-          fdimperimage = f.readline()
-          fdim0 = f.readline()
-          fdim1 = f.readline()
-          fminvalue = f.readline()
-          fmaxvalue = f.readline()
-          f.close()
-
-          buffer = StringIO.StringIO()
-          img = Image.open('./data4/'+str(k)+'_'+str(numbinscatter)+'_'+str(dimperimage)+'_'+str(dim0)+'_'+str(dim1)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
-          width = int(img.size[0])
-          height = int(img.size[1])
-          img.save(buffer, format='PNG')
-          buffer.seek(0)
-
-          data[k][index] = {}
-          data[k][index]['data'] = base64.b64encode(buffer.getvalue())
-          data[k][index]['numrelations'] = k
-          data[k][index]['width'] = width
-          data[k][index]['height'] = height
-
-          data[k][index]['numdim'] = int(fnumdim)
-          data[k][index]['numbin'] = int(numbinscatter)
-          data[k][index]['dimperimage'] = int(dimperimage)
-          data[k][index]['dim0'] = int(dim0)
-          data[k][index]['dim1'] = int(dim1)
-          data[k][index]['minvalue'] = float(fminvalue)
-          data[k][index]['maxvalue'] = float(fmaxvalue)
-
-          data[k]['dimperimage'] = int(dimperimage)
-
-
-        #histogram
-        f = open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'_'+str(dimperimage)+'_'+str(dim0)+'_'+str(dim1)+'.txt', 'r')
+        
+        #2D
+        index = str(i)+' '+str(j)
+        f = open('./data4/2_'+str(numbinscatter)+'_'+str(dimperimage)+'_'+str(i)+'_'+str(j)+'.txt', 'r')
         fnumdim = f.readline()
         fdimperimage = f.readline()
         fdim0 = f.readline()
@@ -114,7 +74,84 @@ class ScatterPage:
         f.close()
 
         buffer = StringIO.StringIO()
-        img = Image.open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'_'+str(dimperimage)+'_'+str(dim0)+'_'+str(dim1)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+        img = Image.open('./data4/2_'+str(numbinscatter)+'_'+str(dimperimage)+'_'+str(i)+'_'+str(j)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+        width = int(img.size[0])
+        height = int(img.size[1])
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+
+        data['2'][index] = {}
+        data['2'][index]['data'] = base64.b64encode(buffer.getvalue())
+        data['2'][index]['numrelations'] = '2'
+        data['2'][index]['width'] = width
+        data['2'][index]['height'] = height
+
+        data['2'][index]['numdim'] = int(fnumdim)
+        data['2'][index]['numbin'] = int(numbinscatter)
+        data['2'][index]['dimperimage'] = int(dimperimage)
+        data['2'][index]['dim0'] = i
+        data['2'][index]['dim1'] = j
+        data['2'][index]['minvalue'] = float(fminvalue)
+        data['2'][index]['maxvalue'] = float(fmaxvalue)
+
+        data['2']['dimperimage'] = int(dimperimage)
+
+
+
+        #4D
+        for k in range(0, numdim/dimperimage):
+          for l in range(0, numdim/dimperimage):
+            index = str(i)+' '+str(j)+' '+str(k)+' '+str(l)
+            f = open('./data4/4_'+str(numbinscatter)+'_'+str(dimperimage)+'_'+str(i)+'_'+str(j)+'_'+str(k)+'_'+str(l)+'.txt', 'r')
+            fnumdim = f.readline()
+            fdimperimage = f.readline()
+            fdim0 = f.readline()
+            fdim1 = f.readline()
+            fdim2 = f.readline()
+            fdim3 = f.readline()
+            fminvalue = f.readline()
+            fmaxvalue = f.readline()
+            f.close()
+
+            buffer = StringIO.StringIO()
+            img = Image.open('./data4/4_'+str(numbinscatter)+'_'+str(dimperimage)+'_'+str(i)+'_'+str(j)+'_'+str(k)+'_'+str(l)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+            width = int(img.size[0])
+            height = int(img.size[1])
+            img.save(buffer, format='PNG')
+            buffer.seek(0)
+
+            data['4'][index] = {}
+            data['4'][index]['data'] = base64.b64encode(buffer.getvalue())
+            data['4'][index]['numrelations'] = '4'
+            data['4'][index]['width'] = width
+            data['4'][index]['height'] = height
+
+            data['4'][index]['numdim'] = int(fnumdim)
+            data['4'][index]['numbin'] = int(numbinscatter)
+            data['4'][index]['dimperimage'] = int(dimperimage)
+            data['4'][index]['dim0'] = i
+            data['4'][index]['dim1'] = j
+            data['4'][index]['dim2'] = k
+            data['4'][index]['dim3'] = l
+            data['4'][index]['minvalue'] = float(fminvalue)
+            data['4'][index]['maxvalue'] = float(fmaxvalue)
+
+        data['4']['dimperimage'] = int(dimperimage)
+
+
+        #histogram
+        index = str(i)+' '+str(j)
+        f = open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'_'+str(dimperimage)+'_'+str(i)+'_'+str(j)+'.txt', 'r')
+        fnumdim = f.readline()
+        fdimperimage = f.readline()
+        fdim0 = f.readline()
+        fdim1 = f.readline()
+        fminvalue = f.readline()
+        fmaxvalue = f.readline()
+        f.close()
+
+        buffer = StringIO.StringIO()
+        img = Image.open('./data4/hist_'+str(numbinscatter)+'_'+str(numbinhistogram)+'_'+str(dimperimage)+'_'+str(i)+'_'+str(j)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
         width = int(img.size[0])
         height = int(img.size[1])
         img.save(buffer, format='PNG')
@@ -125,8 +162,8 @@ class ScatterPage:
         data['histogram'][index]['width'] = width
         data['histogram'][index]['height'] = height
         data['histogram'][index]['numdim'] = int(fnumdim)
-        data['histogram'][index]['dim0'] = int(fdim0)
-        data['histogram'][index]['dim1'] = int(fdim1)
+        data['histogram'][index]['dim0'] = i
+        data['histogram'][index]['dim1'] = j
         data['histogram'][index]['numbin'] = int(numbinhistogram)
         data['histogram'][index]['minvalue'] = float(fminvalue)
         data['histogram'][index]['maxvalue'] = float(fmaxvalue)

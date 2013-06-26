@@ -21,11 +21,10 @@ void main(void) {
   //a, b: current fragment
   //i, j: dimensions to iterate
   //vec2 texCoord = 0.5*(vTexCoord + vec2(1.0));
-  float sizeDataTile2D = 1.0 / uNumDim;
+  float sizeDataTile2D = 1.0;
 
-  vec2 coord2D = uDim * sizeDataTile2D + vTexCoord * sizeDataTile2D; //a, b
+  vec2 coord2D = vTexCoord * sizeDataTile2D; //a, b
   float count = texture2D(uSampler0, coord2D).g;
-
 
   int rangecounti = int(abs(uSelectionBinRange.x - uSelectionBinRange.y));
   int rangecountj = int(abs(uSelectionBinRange.z - uSelectionBinRange.w));
@@ -45,7 +44,7 @@ void main(void) {
   //gl_FragColor = vec4(vTexCoord.x, vTexCoord.y, 0, 1.0);
   //return;
 
-  float sizeDataTile4D = 1.0 /  ((uNumBins * uNumDim));
+  float sizeDataTile4D = 1.0 /  ((uNumBins));
   float value = 0.0;
   //hack for Loop index cannot be compared with non-constant expression error
   for(int i=0; i<maxloop; i++){
@@ -56,8 +55,8 @@ void main(void) {
       //vec2 coordAB = (uDim + 0.5*(vTexCoord + vec2(1.0)) / sizeDataTile2D) * sizeDataTile2D;
       //sizeDataTile4D = 1.0;
       float aux = uNumBins;
-      vec2 coordIJ = uSelectionDim * sizeDataTile2D + vec2((rangei0 + float(i)) / aux, (rangej0 + float(j)) / aux) * sizeDataTile2D;
-      vec2 coordAB = uDim * sizeDataTile2D + vTexCoord * sizeDataTile2D;
+      vec2 coordIJ =  vec2((rangei0 + float(i)) / aux, (rangej0 + float(j)) / aux) * sizeDataTile2D;
+      vec2 coordAB = vTexCoord * sizeDataTile2D;
       //coordAB = vec2(0.0);
       //vec4 coord4D = vec4(coordIJ.x, coordIJ.y, coordAB.x, coordAB.y);
 

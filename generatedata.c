@@ -188,10 +188,10 @@ void writeInfo(char* filename, int numdim, int dimperimage, int dim0, int dim1, 
 */
 
 int generate4DTiles(int numentries, int numdim,
-                    int dimperimage, int dimi, int dimj,
+                    int dimperimage, int dimi, int dimj,int dimk, int diml,
                     int numbin, float maxdatavalue){
 
-  int imgsize = (numbin * dimperimage) * (numbin * numdim);
+  int imgsize = (numbin * dimperimage) * (numbin * dimperimage);
 
   if(imgsize > 4096)
     return 0;
@@ -201,7 +201,7 @@ int generate4DTiles(int numentries, int numdim,
   float maxvalue = -INFINITY;
   float maxcount = 0.0f;
   int datatilesizex = sqrt(imgsize) / dimperimage; //TODO: ij is the same as ji, take that into account, and remove the 2 *
-  int datatilesizez = sqrt(imgsize) / numdim;
+  int datatilesizez = sqrt(imgsize) / dimperimage;
   int binsizex = datatilesizex / numbin;
   int binsizez = datatilesizez / numbin;
 
@@ -216,8 +216,8 @@ int generate4DTiles(int numentries, int numdim,
 
   for(i=dimi; i<dimi+dimperimage; i++){
     for(j=dimj; j<dimj+dimperimage; j++){
-      for(k=0; k<numdim; k++){
-        for(l=0; l<numdim; l++){
+      for(k=dimk; k<dimk+dimperimage; k++){
+        for(l=diml; l<diml+dimperimage; l++){
 
           maxcount=0;
           int entry;
@@ -237,8 +237,8 @@ int generate4DTiles(int numentries, int numdim,
             //position (x,y,z,w) in 4d texture
             int x = datatilesizex*(i-dimi) + binsizex*bini;
             int y = datatilesizex*(j-dimj) + binsizex*binj;
-            int z = datatilesizez*(k) + binsizez*bink;
-            int w = datatilesizez*(l) + binsizez*binl;
+            int z = datatilesizez*(k-dimk) + binsizez*bink;
+            int w = datatilesizez*(l-diml) + binsizez*binl;
 
             //from 4d to 2d
             //int index0 = x * (sqrt(imgsize) / numdim) + y;
@@ -305,18 +305,20 @@ int generate4DTiles(int numentries, int numdim,
 
   //save to image
   char filenamepng[100];
-  snprintf(filenamepng, 100, "./data4/4_%d_%d_%d_%d.png", numbin, dimperimage, dimi, dimj);
+  snprintf(filenamepng, 100, "./data4/4_%d_%d_%d_%d_%d_%d.png", numbin, dimperimage, dimi, dimj, dimk, diml);
   writeImage(filenamepng, imgsize, imgsize, minvalue, maxvalue, buff);
 
   //save info
   char filenametxt[100];
-  snprintf(filenametxt, 100, "./data4/4_%d_%d_%d_%d.txt", numbin, dimperimage, dimi, dimj);
+  snprintf(filenametxt, 100, "./data4/4_%d_%d_%d_%d_%d_%d.txt", numbin, dimperimage, dimi, dimj, dimk, diml);
   
   FILE* file = fopen(filenametxt,"w+");
   fprintf(file,"%d\n",numdim);
   fprintf(file,"%d\n",dimperimage);
   fprintf(file,"%d\n",dimi);
   fprintf(file,"%d\n",dimj);
+  fprintf(file,"%d\n",dimk);
+  fprintf(file,"%d\n",diml);
   fprintf(file,"%f\n",minvalue);
   fprintf(file,"%f",maxvalue);
   fclose(file);
@@ -549,7 +551,7 @@ int main(int argc, char* argv[]){
 
     int numbinscatter[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
     int numbinhistogram[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
-    int i,j,k;
+    int i,j,k,l,m;
     for(i=0; i<numdim/dimperimage; i++){
 
       for(j=0; j<numdim/dimperimage; j++){
@@ -560,10 +562,15 @@ int main(int argc, char* argv[]){
             break;
           printf("Done\n");
 
-          printf("Generating 4d data tile with numbin=%d, dim=[%d,%d]\n", numbinscatter[k], i, j);
-          if(!generate4DTiles(numentries, numdim, dimperimage, i, j, numbinscatter[k], 1.0f))
-            break;
-          printf("Done\n");
+          for(l=0; l<numdim/dimperimage; l++){
+            for(m=0; m<numdim/dimperimage; m++){
+              printf("Generating 4d data tile with numbin=%d, dim=[%d,%d,%d,%d]\n", numbinscatter[k], i, j, l, m);
+              if(!generate4DTiles(numentries, numdim, dimperimage, i, j, l, m, numbinscatter[k], 1.0f))
+                break;
+              printf("Done\n");
+            }
+          }
+          
 
           //histogram
           int l;
