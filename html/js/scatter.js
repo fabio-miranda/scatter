@@ -11,26 +11,25 @@ var info;
 
 function cb_updatescatterplot(datatile){
 
-  scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'), datatile['numdim']);
-  histogram = new Histogram($('#histogram'), $('#histogramdiv'));
-  scattermatrix.setHistogram(histogram);
+  scattermatrix.numdim = datatile['numdim'];
 
-  addscatterplot(0, 0, 0, 0);
-
-  var onchange = function(){
-    histogram.setDim($('#histogramdim').val());
-    histogram.draw(scattermatrix.getSelection());
-  };
-  var dropdown = createdropdown('histogramdim', onchange);
-  document.getElementById('histogramdropdowndim').appendChild(dropdown);
-
-
-
-  for(var i = 0; i<currentnumdim; i++){
-    for(var j = 0; j<currentnumdim; j++){
-      scattermatrix.addscatter(i, j, parseInt($('#dropdownmenu_dim1_'+i).val()), parseInt($('#dropdownmenu_dim2_'+j).val()));
-    }
+  if(document.getElementById('histogramdim') == null){
+    var onchange = function(){
+      histogram.setDim($('#histogramdim').val());
+      histogram.draw(scattermatrix.getSelection());
+    };
+    var dropdown = createdropdown('histogramdim', onchange);
+    document.getElementById('histogramdropdowndim').appendChild(dropdown);
   }
+
+  if(document.getElementById('dropdownmenu_dim1_0') == null){
+    adddimension();
+  }
+
+
+
+  redrawscatterplots();
+
 
   var firsttime = eval(datatile['firsttime']);
   var numdim = datatile['numdim'];
@@ -51,6 +50,7 @@ function cb_updatescatterplot(datatile){
           image2,
           datatile['2'][index]['width'],
           datatile['2'][index]['numdim'],
+          datatile['2']['dimperimage'],
           datatile['2'][index]['dim0'],
           datatile['2'][index]['dim1'],
           datatile['2'][index]['numbin']
@@ -77,6 +77,7 @@ function cb_updatescatterplot(datatile){
           image4,
           datatile['4'][index]['width'],
           datatile['4'][index]['numdim'],
+          datatile['4']['dimperimage'],
           datatile['4'][index]['dim0'],
           datatile['4'][index]['dim1'],
           datatile['4'][index]['numbin']
@@ -143,6 +144,8 @@ function redrawscatterplots(){
       //scattermatrix.draw();
     }
   }
+
+  scattermatrix.draw();
 }
 
 
@@ -163,21 +166,6 @@ function changeNumBin(){
   );
 }
 
-function addscatterplot(){
-  scattermatrix.reset();
-  count = 0;
-  adddimension();
-  //redrawscatterplots();
-}
-
-function removescatterplot(){
-
-  scattermatrix.reset();
-  count = 0;
-  removedimension();
-  redrawscatterplots();
-
-}
 
 function adddimension(){
 
@@ -209,8 +197,8 @@ function adddimension(){
   cell.appendChild(dropdown);
   $('#dropdownmenu_dim2_'+currentnumdim).val(currentnumdim);
 
-
   currentnumdim++;
+
 }
 
 function removedimension(){
@@ -224,18 +212,33 @@ function removedimension(){
   row.deleteCell(currentnumdim-1);
 
 
-
   //vertical
   table = document.getElementById('scatterplotdim2');
   //table.deleteRow(currentnumdim-1);
   table.deleteRow(0);
 
-
   currentnumdim--;
 
 }
 
+function addscatterplot(){
+  scattermatrix.reset();
+  adddimension();
+  redrawscatterplots();
+}
+
+function removescatterplot(){
+  scattermatrix.reset();
+  removedimension();
+  redrawscatterplots();
+}
+
 function initialize(){
+
+  scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
+  histogram = new Histogram($('#histogram'), $('#histogramdiv'));
+  scattermatrix.setHistogram(histogram);
+
   
   $.post(
     '/data',

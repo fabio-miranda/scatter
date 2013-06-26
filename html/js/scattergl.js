@@ -36,13 +36,13 @@ SelectionQuad.prototype.updateBB = function(){
 }
 
 
-function ScatterGL(canvas, numdim){
+function ScatterGL(canvas){
   this.canvas = canvas;
   this.scatterplots = {};
   this.gl = null;
   this.scatterShader = null;
   this.selectionShader = null;
-  this.numdim = numdim;
+  this.numdim = 0;
   this.maxdim = 0;
   this.mvMatrix = mat4.create();
   this.pMatrix = mat4.create();
@@ -60,7 +60,7 @@ function ScatterGL(canvas, numdim){
 }
 
 
-ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, imgdim0, imgdim1, numbin){
+ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimperimage, imgdim0, imgdim1, numbin){
 
   var index = imgdim0+' '+imgdim1;
 
@@ -69,6 +69,7 @@ ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, imgd
 
   this.numbin = numbin;
   this.numdim = numdim;
+  this.datatiles[numrelations]['dimperimage'] = dimperimage;
   this.datatiles[numrelations][index] = new Datatile(this.gl, numrelations, image, imgsize, numdim, imgdim0, imgdim1, numbin);
 
 }
@@ -137,44 +138,47 @@ ScatterGL.prototype.draw = function(){
 
   this.gl.useProgram(this.scatterShader);
 
-  for(var ij in this.scatterplots) {
+  if(this.datatiles['2'] != null && this.datatiles['4'] != null){
 
-    var scatter = this.scatterplots[ij];
-    var i = scatter.i;
-    var j = scatter.j;
-    
-    goibaoingaoinga
-    ngioanoiga
-    ngoianoiganoigaoinga
-    var index2 = scatter.dim1+' '+((scatter.dim2/this.datafiles['2'].numdim)+1);
-    var index4 = scatter.dim1+' '+((scatter.dim2/this.datafiles['4'].numdim)+1);
+    for(var ij in this.scatterplots) {
 
-    //Check if textures have been loaded
-    if(this.datatiles['2'] != null && this.datatiles['4'] != null
-      && this.datatiles['2'][index2] != null && this.datatiles['4'][index4] != null){
+      var scatter = this.scatterplots[ij];
+      var i = scatter.i;
+      var j = scatter.j;
+      
+      var index2 = Math.floor(scatter.dim1/this.datatiles['2'].dimperimage)+' '+(Math.floor(scatter.dim2/this.datatiles['2'].dimperimage)+1);
+      var index4 = Math.floor(scatter.dim1/this.datatiles['4'].dimperimage)+' '+(Math.floor(scatter.dim2/this.datatiles['4'].dimperimage)+1);
+      //var index2 = '0 1';
+      //var index4 = '0 1';
+      console.log(this.datatiles['2']);
+      console.log(index4);
 
-      this.gl.viewport(i*width, j*height, width, height);
+      //Check if textures have been loaded
+      if(this.datatiles['2'][index2] != null && this.datatiles['4'][index4] != null){
 
-      var selection = this.getSelection();
+        this.gl.viewport(i*width, j*height, width, height);
 
-      this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
-      this.gl.uniform1f(this.scatterShader.numDim, this.numdim);
-      this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
-      this.gl.uniform1f(this.scatterShader.numBins, this.numbin);
-      this.gl.uniform2f(this.scatterShader.selectionDim, selection.datatilei, selection.datatilej);
-      this.gl.uniform4f(this.scatterShader.selectionBinRange,
-        selection.rangei0, selection.rangei1, selection.rangej0, selection.rangej1
-      );
-      //var index2 = '0 4'
-      //var index4 = '0 4';
-      scatter.quad.draw(
-        this.gl,
-        this.scatterShader,
-        this.mvMatrix,
-        this.pMatrix,
-        this.datatiles['2'][index2].texture,
-        this.datatiles['4'][index4].texture
-      );
+        var selection = this.getSelection();
+
+        this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
+        this.gl.uniform1f(this.scatterShader.numDim, this.numdim);
+        this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
+        this.gl.uniform1f(this.scatterShader.numBins, this.numbin);
+        this.gl.uniform2f(this.scatterShader.selectionDim, selection.datatilei, selection.datatilej);
+        this.gl.uniform4f(this.scatterShader.selectionBinRange,
+          selection.rangei0, selection.rangei1, selection.rangej0, selection.rangej1
+        );
+        //var index2 = '0 4'
+        //var index4 = '0 4';
+        scatter.quad.draw(
+          this.gl,
+          this.scatterShader,
+          this.mvMatrix,
+          this.pMatrix,
+          this.datatiles['2'][index2].texture,
+          this.datatiles['4'][index4].texture
+        );
+      }
     }
   }
 

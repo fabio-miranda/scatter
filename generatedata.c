@@ -170,7 +170,7 @@ void generateData(int numentries, int numdim){
     }
   }
 }
-
+/*
 void writeInfo(char* filename, int numdim, int dimperimage, int dim0, int dim1, float min, float max){
 
   FILE *file;
@@ -185,12 +185,13 @@ void writeInfo(char* filename, int numdim, int dimperimage, int dim0, int dim1, 
   fclose(file);
 
 }
+*/
 
 int generate4DTiles(int numentries, int numdim,
-                    int dimperimage, int dim0, int dim1,
+                    int dimperimage, int dimi, int dimj,
                     int numbin, float maxdatavalue){
 
-  int imgsize = (numbin * (dim1-dim0)) * (numbin * (dim1-dim0));
+  int imgsize = (numbin * dimperimage) * (numbin * numdim);
 
   if(imgsize > 4096)
     return 0;
@@ -199,8 +200,10 @@ int generate4DTiles(int numentries, int numdim,
   float minvalue = INFINITY;
   float maxvalue = -INFINITY;
   float maxcount = 0.0f;
-  int datatilesize = sqrt(imgsize) / (dim1-dim0); //TODO: ij is the same as ji, take that into account, and remove the 2 *
-  int binsize = datatilesize / numbin;
+  int datatilesizex = sqrt(imgsize) / dimperimage; //TODO: ij is the same as ji, take that into account, and remove the 2 *
+  int datatilesizez = sqrt(imgsize) / numdim;
+  int binsizex = datatilesizex / numbin;
+  int binsizez = datatilesizez / numbin;
 
   //printf("binsize: %d datatilesize: %d numbin: %d\n", binsize, datatilesize, numbin);
   //return;
@@ -211,10 +214,10 @@ int generate4DTiles(int numentries, int numdim,
   for(i=0; i<imgsize*imgsize; i++)
     buff[i] = 0.0f;
 
-  for(i=dim0; i<dim1; i++){
-    for(j=dim0; j<dim1; j++){
-      for(k=dim0; k<dim1; k++){
-        for(l=dim0; l<dim1; l++){
+  for(i=dimi; i<dimi+dimperimage; i++){
+    for(j=dimj; j<dimj+dimperimage; j++){
+      for(k=0; k<numdim; k++){
+        for(l=0; l<numdim; l++){
 
           maxcount=0;
           int entry;
@@ -232,10 +235,10 @@ int generate4DTiles(int numentries, int numdim,
             int binl = round((vall / maxdatavalue) * (float)(numbin-1));
 
             //position (x,y,z,w) in 4d texture
-            int x = datatilesize*(i-dim0) + binsize*bini;
-            int y = datatilesize*(j-dim0) + binsize*binj;
-            int z = datatilesize*(k-dim0) + binsize*bink;
-            int w = datatilesize*(l-dim0) + binsize*binl;
+            int x = datatilesizex*(i-dimi) + binsizex*bini;
+            int y = datatilesizex*(j-dimj) + binsizex*binj;
+            int z = datatilesizez*(k) + binsizez*bink;
+            int w = datatilesizez*(l) + binsizez*binl;
 
             //from 4d to 2d
             //int index0 = x * (sqrt(imgsize) / numdim) + y;
@@ -302,13 +305,21 @@ int generate4DTiles(int numentries, int numdim,
 
   //save to image
   char filenamepng[100];
-  snprintf(filenamepng, 100, "./data4/4_%d_%d_%d_%d.png", numbin, dimperimage, (int)(dim0/dimperimage), (int)(dim1/dimperimage));
+  snprintf(filenamepng, 100, "./data4/4_%d_%d_%d_%d.png", numbin, dimperimage, dimi, dimj);
   writeImage(filenamepng, imgsize, imgsize, minvalue, maxvalue, buff);
 
   //save info
   char filenametxt[100];
-  snprintf(filenametxt, 100, "./data4/4_%d_%d_%d_%d.txt", numbin, dimperimage, (int)(dim0/dimperimage), (int)(dim1/dimperimage));
-  writeInfo(filenametxt, numdim, dimperimage, dim0, dim1, minvalue, maxvalue);
+  snprintf(filenametxt, 100, "./data4/4_%d_%d_%d_%d.txt", numbin, dimperimage, dimi, dimj);
+  
+  FILE* file = fopen(filenametxt,"w+");
+  fprintf(file,"%d\n",numdim);
+  fprintf(file,"%d\n",dimperimage);
+  fprintf(file,"%d\n",dimi);
+  fprintf(file,"%d\n",dimj);
+  fprintf(file,"%f\n",minvalue);
+  fprintf(file,"%f",maxvalue);
+  fclose(file);
 
   //free
   free(buff);
@@ -317,10 +328,10 @@ int generate4DTiles(int numentries, int numdim,
 }
 
 int generate2DTiles(int numentries, int numdim,
-                    int dimperimage, int dim0, int dim1,
+                    int dimperimage, int dimi, int dimj,
                      int numbin, float maxdatavalue){
 
-  int imgsize = numbin * (dim1-dim0);
+  int imgsize = numbin * dimperimage;
 
   if(imgsize > 4096)
     return 0;
@@ -328,7 +339,7 @@ int generate2DTiles(int numentries, int numdim,
   float minvalue = INFINITY;
   float maxvalue = -INFINITY;
   float maxcount = 0.0f;
-  int datatilesize = imgsize / (dim1-dim0);
+  int datatilesize = imgsize / dimperimage;
   int binsize = datatilesize / numbin;
 
   //printf("%d\n", datatilesize);
@@ -340,8 +351,10 @@ int generate2DTiles(int numentries, int numdim,
   for(i=0; i<imgsize*imgsize; i++)
     buff[i] = 0.0f;
 
-  for(i=dim0; i<dim1; i++){
-    for(j=dim0; j<dim1; j++){
+  for(i=dimi; i<dimi+dimperimage; i++){
+    for(j=dimj; j<dimj+dimperimage; j++){
+
+      
 
       maxcount=0;
       int entry;
@@ -354,8 +367,8 @@ int generate2DTiles(int numentries, int numdim,
         int bini = round((vali / maxdatavalue) * (float)(numbin-1));
 
         //int numdatatiledim = 2;
-        int x = datatilesize*(i-dim0) + binsize*bini;
-        int y = datatilesize*(j-dim0) + binsize*binj;
+        int x = datatilesize*(i-dimi) + binsize*bini;
+        int y = datatilesize*(j-dimj) + binsize*binj;
         int index = x * imgsize + y;
 
         //buff[index]++;
@@ -391,13 +404,22 @@ int generate2DTiles(int numentries, int numdim,
 
   //save to image
   char filenamepng[100];
-  snprintf(filenamepng, 100, "./data4/2_%d_%d_%d_%d.png", numbin, dimperimage, (int)(dim0/dimperimage), (int)(dim1/dimperimage));
+  snprintf(filenamepng, 100, "./data4/2_%d_%d_%d_%d.png", numbin, dimperimage, dimi, dimj);
   writeImage(filenamepng, imgsize, imgsize, minvalue, maxvalue, buff);
 
   //save info
   char filenametxt[100];
-  snprintf(filenametxt, 100, "./data4/2_%d_%d_%d_%d.txt", numbin, dimperimage, (int)(dim0/dimperimage), (int)(dim1/dimperimage));
-  writeInfo(filenametxt, numdim, dimperimage, dim0, dim1, minvalue, maxvalue);
+  snprintf(filenametxt, 100, "./data4/2_%d_%d_%d_%d.txt", numbin, dimperimage, dimi, dimj);
+  
+  FILE* file = fopen(filenametxt,"w+");
+  fprintf(file,"%d\n",numdim);
+  fprintf(file,"%d\n",dimperimage);
+  fprintf(file,"%d\n",dimi);
+  fprintf(file,"%d\n",dimj);
+  fprintf(file,"%f\n",minvalue);
+  fprintf(file,"%f",maxvalue);
+  fclose(file);
+
 
   //free
   free(buff);
@@ -407,24 +429,24 @@ int generate2DTiles(int numentries, int numdim,
 }
 
 int generateHistogramTile(int numentries, int numdim,
-                          int dimperimage, int dim0, int dim1, int numbinscatter,
+                          int dimperimage, int dimi, int dimj, int numbinscatter,
                            int numbinhistogram, float maxdatavalue){
 
   
   float minvalue = INFINITY;
   float maxvalue = -INFINITY;
 
-  int imgsizex = numbinscatter * (dim1 - dim0);
-  int imgsizey = numbinscatter * (dim1 - dim0);
-  int imgsizez = numbinhistogram * (dim1 - dim0);
+  int imgsizex = numbinscatter * dimperimage;
+  int imgsizey = numbinscatter * dimperimage;
+  int imgsizez = numbinhistogram * numdim;
 
 
   if(imgsizex*imgsizey > 4096 || imgsizez > 4096)
     return 0;
 
-  int datatilesizex = imgsizex / (dim1 - dim0);
-  int datatilesizey = imgsizey / (dim1 - dim0);
-  int datatilesizez = imgsizez / (dim1 - dim0);
+  int datatilesizex = imgsizex / dimperimage;
+  int datatilesizey = imgsizey / dimperimage;
+  int datatilesizez = imgsizez / numdim;
 
   int binsizex = datatilesizex / numbinscatter;
   int binsizey = datatilesizey / numbinscatter;
@@ -435,9 +457,9 @@ int generateHistogramTile(int numentries, int numdim,
   for(i=0; i<imgsizex*imgsizey*imgsizez; i++)
     buff[i] = 0.0f;
 
-  for(i=dim0; i<dim1; i++){
-    for(j=dim0; j<dim1; j++){
-      for(k=dim0; k<dim1; k++){
+  for(i=dimi; i<dimi+dimperimage; i++){
+    for(j=dimj; j<dimj+dimperimage; j++){
+      for(k=0; k<numdim; k++){
 
         int entry;
         for(entry=0; entry<numentries; entry++){
@@ -450,9 +472,9 @@ int generateHistogramTile(int numentries, int numdim,
           int bini = round((vali / maxdatavalue) * (float)(numbinscatter-1));
           int bink = round((valk / maxdatavalue) * (float)(numbinhistogram-1));
 
-          int x = datatilesizex*(i-dim0) + binsizex*bini;
-          int y = datatilesizey*(j-dim0) + binsizey*binj;
-          int z = datatilesizez*(k-dim0) + binsizez*bink;
+          int x = datatilesizex*(i-dimi) + binsizex*bini;
+          int y = datatilesizey*(j-dimj) + binsizey*binj;
+          int z = datatilesizez*(k) + binsizez*bink;
 
           int index = x * imgsizey * imgsizez + y * imgsizez + z;
 
@@ -474,13 +496,21 @@ int generateHistogramTile(int numentries, int numdim,
 
   //save to image
   char filenamepng[100];
-  snprintf(filenamepng, 100, "./data4/hist_%d_%d_%d_%d_%d.png", numbinscatter, numbinhistogram, dimperimage, (int)(dim0/dimperimage), (int)(dim1/dimperimage));
+  snprintf(filenamepng, 100, "./data4/hist_%d_%d_%d_%d_%d.png", numbinscatter, numbinhistogram, dimperimage, dimi, dimj);
   writeImage(filenamepng, imgsizex*imgsizey, imgsizez, minvalue, maxvalue, buff);
 
   //save info
   char filenametxt[100];
-  snprintf(filenametxt, 100, "./data4/hist_%d_%d_%d_%d_%d.txt", numbinscatter, numbinhistogram, dimperimage, (int)(dim0/dimperimage), (int)(dim1/dimperimage));
-  writeInfo(filenametxt, numdim, dimperimage, dim0, dim1, minvalue, maxvalue);
+  snprintf(filenametxt, 100, "./data4/hist_%d_%d_%d_%d_%d.txt", numbinscatter, numbinhistogram, dimperimage, dimi, dimj);
+
+  FILE* file = fopen(filenametxt,"w+");
+  fprintf(file,"%d\n",numdim);
+  fprintf(file,"%d\n",dimperimage);
+  fprintf(file,"%d\n",dimi);
+  fprintf(file,"%d\n",dimj);
+  fprintf(file,"%f\n",minvalue);
+  fprintf(file,"%f",maxvalue);
+  fclose(file);
 
   //free
   free(buff);
@@ -521,17 +551,17 @@ int main(int argc, char* argv[]){
     int numbinhistogram[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
     int i,j,k;
     for(i=0; i<numdim/dimperimage; i++){
-      int dim0 = i*dimperimage;
+
       for(j=0; j<numdim/dimperimage; j++){
-        int dim1 = (j+1)*dimperimage;
+
         for(k=0; k<sizeof(numbinscatter)/sizeof(int); k++){
-          printf("Generating 2d data tile with numbin=%d, dim=[%d,%d]\n", numbinscatter[k], dim0, dim1);
-          if(!generate2DTiles(numentries, numdim, dimperimage, dim0, dim1, numbinscatter[k], 1.0f))
+          printf("Generating 2d data tile with numbin=%d, dim=[%d,%d]\n", numbinscatter[k], i, j);
+          if(!generate2DTiles(numentries, numdim, dimperimage, i, j, numbinscatter[k], 1.0f))
             break;
           printf("Done\n");
 
-          printf("Generating 4d data tile with numbin=%d, dim=[%d,%d]\n", numbinscatter[k], dim0, dim1);
-          if(!generate4DTiles(numentries, numdim, dimperimage, dim0, dim1, numbinscatter[k], 1.0f))
+          printf("Generating 4d data tile with numbin=%d, dim=[%d,%d]\n", numbinscatter[k], i, j);
+          if(!generate4DTiles(numentries, numdim, dimperimage, i, j, numbinscatter[k], 1.0f))
             break;
           printf("Done\n");
 
@@ -539,8 +569,8 @@ int main(int argc, char* argv[]){
           int l;
           for(l=0; l<sizeof(numbinhistogram)/sizeof(int); l++){
 
-            printf("Generating 3d histogram data tile with numbin=%d, dim=[%d,%d]\n", numbinhistogram[l], dim0, dim1);
-            if(!generateHistogramTile(numentries, numdim, dimperimage, dim0, dim1, numbinscatter[k],  numbinhistogram[l],1.0f))
+            printf("Generating 3d histogram data tile with numbin=%d, dim=[%d,%d]\n", numbinhistogram[l], i, j);
+            if(!generateHistogramTile(numentries, numdim, dimperimage, i, j, numbinscatter[k],  numbinhistogram[l],1.0f))
               break;
             printf("Done\n");
           }

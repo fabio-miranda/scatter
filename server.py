@@ -62,9 +62,9 @@ class ScatterPage:
     data['histogram']['dimperimage'] = dimperimagehist
 
     for i in range(0, numdim/dimperimage):
-      for j in range(i, numdim/dimperimage):
+      for j in range(0, numdim/dimperimage):
         dim0 = i
-        dim1 = j+1
+        dim1 = j
         index = str(dim0)+' '+str(dim1)
 
         #scatterplot matrix
