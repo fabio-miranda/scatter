@@ -85,6 +85,21 @@ ScatterGL.prototype.setHistogram = function(histogram){
 
 }
 
+ScatterGL.prototype.hasDataTile = function(numrelations, i, j, k, l){
+
+  var index = i;
+  if(j != null) index = index + ' '+j;
+  if(k != null) index = index + ' '+k;
+  if(l != null) index = index + ' '+l;
+
+  
+  if(this.datatiles[numrelations] == null || this.datatiles[numrelations][index] == null)
+    return false;
+  else
+    return true;
+
+}
+
 
 
 ScatterGL.prototype.reset = function(){
@@ -94,6 +109,15 @@ ScatterGL.prototype.reset = function(){
   this.maxdim = 0;
 
 }
+
+
+ScatterGL.prototype.resetDataTiles = function(){
+
+  delete this.datatiles;
+  this.datatiles = {};
+
+}
+
 
 ScatterGL.prototype.getSelection = function(){
 
@@ -155,8 +179,8 @@ ScatterGL.prototype.draw = function(){
       //var index4 = Math.floor(scatter.dim1/this.datatiles['4'].dimperimage)+' '+(Math.floor(scatter.dim2/this.datatiles['4'].dimperimage)+1);
       var index2 = dim0+' '+dim1;
       var index4 = dim0+' '+dim1+' '+dim2+' '+dim3;
-      console.log(selection.datatilei);
-      console.log(index4);
+      //console.log(selection.datatilei);
+      //console.log(index4);
 
       //Check if textures have been loaded
       if(this.datatiles['2'][index2] != null && this.datatiles['4'][index4] != null){

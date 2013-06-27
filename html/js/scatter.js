@@ -2,18 +2,54 @@
 
 var histogram;
 var scattermatrix;
-var count=0;
 var currentnumdim=0;
 var dim=16;
 var dimperimage = 1;
 var info;
 
 
-function cb_updatescatterplot(datatile){
+function cb_receiveDataTile(datatile){
 
   scattermatrix.numdim = datatile['numdim'];
 
+  if(document.getElementById('dropdownmenu_dim1_0') == null){
+    adddimension();
+  }
+
+  redrawscatterplots();
+
+  var firsttime = eval(datatile['firsttime']);
+  var numdim = datatile['numdim'];
+  var dimperimage = datatile['dimperimage'];
+  var numrelations = datatile['numrelations'];
+
+  var image = new Image();
+  image.index = datatile['index'];
+  image.src="data:image/png;base64,"+datatile['data'];
+  image.onload = function(){
+
+    scattermatrix.update(
+      datatile['numrelations'],
+      image,
+      datatile['width'],
+      datatile['numdim'],
+      datatile['dimperimage'],
+      this.index,
+      datatile['numbin']
+    );
+
+    scattermatrix.draw();
+  }
+
+}
+
+function cb_receiveDataTileHistogram(datatile){
+
   if(document.getElementById('histogramdim') == null){
+
+    histogram = new Histogram($('#histogram'), $('#histogramdiv'));
+    scattermatrix.setHistogram(histogram);
+
     var onchange = function(){
       histogram.setDim($('#histogramdim').val());
       histogram.draw(scattermatrix.getSelection());
@@ -22,97 +58,23 @@ function cb_updatescatterplot(datatile){
     document.getElementById('histogramdropdowndim').appendChild(dropdown);
   }
 
-  if(document.getElementById('dropdownmenu_dim1_0') == null){
-    adddimension();
+  //histogram
+  var image = new Image();
+  image.index = datatile['index'];
+  image.src="data:image/png;base64,"+datatile['data'];
+  image.onload = function(){
+
+    histogram.update(
+      image,
+      datatile['width'],
+      datatile['height'],
+      datatile['numdim'],
+      datatile['numbin'],
+      datatile['numbin']
+    );
+
+    scattermatrix.draw();
   }
-
-
-
-  redrawscatterplots();
-
-
-  var firsttime = eval(datatile['firsttime']);
-  var numdim = datatile['numdim'];
-
-  var dimperimage = datatile['2']['dimperimage'];
-  for(var i=0; i<numdim/dimperimage; i++){
-    for(var j=0; j<numdim/dimperimage; j++){
-
-      //2
-      var image2 = new Image();
-      image2.index = i+' '+j;
-      image2.src="data:image/png;base64,"+datatile['2'][image2.index]['data'];
-      image2.onload = function(){
-
-        scattermatrix.update(
-          datatile['2'][this.index]['numrelations'],
-          image2,
-          datatile['2'][this.index]['width'],
-          datatile['2'][this.index]['numdim'],
-          datatile['2']['dimperimage'],
-          this.index,
-          datatile['2'][this.index]['numbin']
-        );
-
-        scattermatrix.draw();
-      }
-    }
-  }
-
-  var dimperimage = datatile['4']['dimperimage'];
-  for(var i=0; i<numdim/dimperimage; i++){
-    for(var j=0; j<numdim/dimperimage; j++){
-      for(var k=0; k<numdim/dimperimage; k++){
-        for(var l=0; l<numdim/dimperimage; l++){
-
-          //4
-          var image4 = new Image();
-          image4.index = i+' '+j+' '+k+' '+l;
-          image4.src="data:image/png;base64,"+datatile['4'][image4.index]['data'];
-          image4.onload = function(){
-
-            scattermatrix.update(
-              datatile['4'][this.index]['numrelations'],
-              image4,
-              datatile['4'][this.index]['width'],
-              datatile['4'][this.index]['numdim'],
-              datatile['4']['dimperimage'],
-              this.index,
-              datatile['4'][this.index]['numbin']
-            );
-
-            scattermatrix.draw();
-          }
-        }
-      }
-    }
-  }
-
-
-  var dimperimage = datatile['histogram']['dimperimage'];
-  for(var i=0; i<numdim/dimperimage; i++){
-    for(var j=0; j<numdim/dimperimage; j++){
-
-      //histogram
-      var imagehist = new Image();
-      imagehist.index = i+' '+j;
-      imagehist.src="data:image/png;base64,"+datatile['histogram'][imagehist.index]['data'];
-      imagehist.onload = function(){
-
-        histogram.update(
-          imagehist,
-          datatile['histogram'][this.index]['width'],
-          datatile['histogram'][this.index]['height'],
-          datatile['histogram'][this.index]['numdim'],
-          datatile['histogram'][this.index]['numbin'],
-          datatile['histogram'][this.index]['numbin']
-        );
-
-        scattermatrix.draw();
-      }
-    }
-  }
-
 
 }
 
@@ -147,22 +109,76 @@ function redrawscatterplots(){
   scattermatrix.draw();
 }
 
+function requestDataTiles(){
+  for(var i = 0; i<currentnumdim; i++){
+    for(var j = 0; j<currentnumdim; j++){
+
+      var dim0 = parseInt($('#dropdownmenu_dim1_'+i).val());
+      var dim1 = parseInt($('#dropdownmenu_dim2_'+j).val());
+
+      if(scattermatrix.hasDataTile('2', i, j) == false){
+        $.post(
+          '/getDataTile2D',
+            {
+              'firsttime' : false,
+              'numbinscatter' : $('#numbinscatter').val(),
+              'dimperimage' : dimperimage,
+              'i' : dim0,
+              'j' : dim1,
+            },
+          cb_receiveDataTile
+        );
+      }
+
+      for(var k = 0; k<currentnumdim; k++){
+        for(var l = 0; l<currentnumdim; l++){
+
+          var dim2 = parseInt($('#dropdownmenu_dim1_'+k).val());
+          var dim3 = parseInt($('#dropdownmenu_dim2_'+l).val());
+
+          if(scattermatrix.hasDataTile('4', i, j, k, l) == false){
+            $.post(
+              '/getDataTile4D',
+                {
+                  'firsttime' : false,
+                  'numbinscatter' : $('#numbinscatter').val(),
+                  'dimperimage' : dimperimage,
+                  'i' : dim0,
+                  'j' : dim1,
+                  'k' : dim2,
+                  'l' : dim3,
+                },
+              cb_receiveDataTile
+            );
+          }
+        }
+      }
+      
+      if(scattermatrix.hasDataTile('histogram', i, j) == false){
+        $.post(
+          '/getDataTileHistogram',
+            {
+              'firsttime' : false,
+              'numbinscatter' : $('#numbinscatter').val(),
+              'numbinhistogram' : $('#numbinscatter').val(),
+              'dimperimage' : dimperimage,
+              'i' : dim0,
+              'j' : dim1,
+            },
+          cb_receiveDataTileHistogram
+        );
+      }
+
+    }
+  }
+}
+
 
 function changeNumBin(){
   scattermatrix.reset();
-  count = 0;
-
-  //TODO: numbinhistogram with a different bin count
-  $.post(
-    '/data',
-      {
-        'firsttime' : false,
-        'numbinscatter' : $('#numbinscatter').val(),
-        'numbinhistogram': $('#numbinscatter').val(),
-        'dimperimage': dimperimage
-      },
-    cb_updatescatterplot
-  );
+  scattermatrix.resetDataTiles();
+  requestDataTiles();
+  
 }
 
 
@@ -172,7 +188,7 @@ function adddimension(){
 
   var onchange = function(){
     scattermatrix.reset();
-    count = 0;
+    requestDataTiles();
     redrawscatterplots();
     scattermatrix.draw();
   };
@@ -223,31 +239,58 @@ function removedimension(){
 function addscatterplot(){
   scattermatrix.reset();
   adddimension();
+  requestDataTiles();
   redrawscatterplots();
 }
 
 function removescatterplot(){
   scattermatrix.reset();
   removedimension();
+  requestDataTiles();
   redrawscatterplots();
 }
 
 function initialize(){
 
   scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
-  histogram = new Histogram($('#histogram'), $('#histogramdiv'));
-  scattermatrix.setHistogram(histogram);
-
   
   $.post(
-    '/data',
+    '/getDataTile2D',
       {
-        'firsttime' : true,
-        'numbinscatter' : 2,
-        'numbinhistogram': 2,
-        'dimperimage' : dimperimage
+        'firsttime' : false,
+        'numbinscatter' : $('#numbinscatter').val(),
+        'dimperimage' : dimperimage,
+        'i' : 0,
+        'j' : 0,
       },
-    cb_updatescatterplot
+    cb_receiveDataTile
+  );
+
+  $.post(
+    '/getDataTile4D',
+      {
+        'firsttime' : false,
+        'numbinscatter' : $('#numbinscatter').val(),
+        'dimperimage' : dimperimage,
+        'i' : 0,
+        'j' : 0,
+        'k' : 0,
+        'l' : 0,
+      },
+    cb_receiveDataTile
+  );
+
+  $.post(
+    '/getDataTileHistogram',
+      {
+        'firsttime' : false,
+        'numbinscatter' : $('#numbinscatter').val(),
+        'numbinhistogram' : $('#numbinscatter').val(),
+        'dimperimage' : dimperimage,
+        'i' : 0,
+        'j' : 0,
+      },
+    cb_receiveDataTileHistogram
   );
 
 }
