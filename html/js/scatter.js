@@ -4,7 +4,7 @@ var histogram;
 var scattermatrix;
 var currentnumdim=0;
 var dim=16;
-var dimperimage = 1;
+var datapath;
 var info;
 
 
@@ -116,20 +116,21 @@ function requestDataTiles(){
       var dim0 = parseInt($('#dropdownmenu_dim1_'+i).val());
       var dim1 = parseInt($('#dropdownmenu_dim2_'+j).val());
 
-      if(scattermatrix.hasDataTile('2', i, j) == false){
+      if(scattermatrix.hasDataTile('2', dim0, dim1) == false){
         $.post(
           '/getDataTile2D',
             {
+              'datapath' : datapath,
               'firsttime' : false,
               'numbinscatter' : $('#numbinscatter').val(),
-              'dimperimage' : dimperimage,
+              //'dimperimage' : dimperimage,
               'i' : dim0,
               'j' : dim1,
             },
           cb_receiveDataTile
         );
       }
-
+      /*
       for(var k = 0; k<currentnumdim; k++){
         for(var l = 0; l<currentnumdim; l++){
 
@@ -168,6 +169,7 @@ function requestDataTiles(){
           cb_receiveDataTileHistogram
         );
       }
+      */
 
     }
   }
@@ -253,19 +255,23 @@ function removescatterplot(){
 function initialize(){
 
   scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
+
+  datapath = window.location.search.substring(window.location.search.indexOf('=')+1);
   
   $.post(
     '/getDataTile2D',
       {
+        'datapath' : datapath,
         'firsttime' : false,
         'numbinscatter' : $('#numbinscatter').val(),
-        'dimperimage' : dimperimage,
+        //'dimperimage' : dimperimage,
         'i' : 0,
         'j' : 0,
       },
     cb_receiveDataTile
   );
 
+  /*
   $.post(
     '/getDataTile4D',
       {
@@ -292,7 +298,7 @@ function initialize(){
       },
     cb_receiveDataTileHistogram
   );
-
+  */
 }
 
 

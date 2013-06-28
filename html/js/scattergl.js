@@ -160,7 +160,7 @@ ScatterGL.prototype.draw = function(){
 
   this.gl.useProgram(this.scatterShader);
 
-  if(this.datatiles['2'] != null && this.datatiles['4'] != null){
+  if(this.datatiles['2'] != null){// && this.datatiles['4'] != null){
 
     for(var ij in this.scatterplots) {
 
@@ -170,20 +170,20 @@ ScatterGL.prototype.draw = function(){
       var i = scatter.i;
       var j = scatter.j;
 
-      var dim0 = Math.floor(scatter.i / this.datatiles['2']['dimperimage']);
-      var dim1 = Math.floor(scatter.j / this.datatiles['2']['dimperimage']);
-      var dim2 = Math.floor(selection.datatilei / this.datatiles['4']['dimperimage']);
-      var dim3 = Math.floor(selection.datatilei / this.datatiles['4']['dimperimage']);
+      var dim0 = Math.floor(scatter.dim1 / this.datatiles['2']['dimperimage']);
+      var dim1 = Math.floor(scatter.dim2 / this.datatiles['2']['dimperimage']);
+      //var dim2 = Math.floor(selection.datatilei / this.datatiles['4']['dimperimage']);
+      //var dim3 = Math.floor(selection.datatilei / this.datatiles['4']['dimperimage']);
       
       //var index2 = Math.floor(scatter.dim1/this.datatiles['2'].dimperimage)+' '+(Math.floor(scatter.dim2/this.datatiles['2'].dimperimage)+1);
       //var index4 = Math.floor(scatter.dim1/this.datatiles['4'].dimperimage)+' '+(Math.floor(scatter.dim2/this.datatiles['4'].dimperimage)+1);
       var index2 = dim0+' '+dim1;
-      var index4 = dim0+' '+dim1+' '+dim2+' '+dim3;
+      //var index4 = dim0+' '+dim1+' '+dim2+' '+dim3;
       //console.log(selection.datatilei);
       //console.log(index4);
 
       //Check if textures have been loaded
-      if(this.datatiles['2'][index2] != null && this.datatiles['4'][index4] != null){
+      if(this.datatiles['2'][index2] != null){// && this.datatiles['4'][index4] != null){
 
         this.gl.viewport(i*width, j*height, width, height);
 
@@ -202,8 +202,8 @@ ScatterGL.prototype.draw = function(){
           this.scatterShader,
           this.mvMatrix,
           this.pMatrix,
-          this.datatiles['2'][index2].texture,
-          this.datatiles['4'][index4].texture
+          this.datatiles['2'][index2].texture
+          //this.datatiles['4'][index4].texture
         );
       }
     }

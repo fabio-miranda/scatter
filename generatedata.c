@@ -140,7 +140,7 @@ float randf(float min, float max){
   return fmaxf(min, fminf(max, val));
 }
 
-void generateData(int numentries, int numdim){
+float generateData(int numentries, int numdim){
 
   data = malloc(numentries*numdim*sizeof(float));
 
@@ -169,24 +169,43 @@ void generateData(int numentries, int numdim){
       data[dim*numentries+entry] = val;
     }
   }
+
+  return 1.0f;
 }
+
+float loadData(char* filename, int numentries, int numdim){
+
+  data = malloc(numentries*numdim*sizeof(float));
+  float maxvalue = -INFINITY;
+
+  FILE* file = fopen(filename, "r");
+  char line[1024];
+  int entry = 0;
+  int dim = 0;
+  while(fgets(line, 1024, file)){
+    dim = 0;
+    char* tok = strtok (line," ;,");
+    while(tok != NULL){
+      float val = atof(tok);
+      data[dim*numentries+entry] = val;
+
+      tok = strtok (NULL," ;,");
+      dim++;
+
+      if(val > maxvalue)
+        maxvalue = val;
+    }
+
+
+    entry++;
+  }
+
+  return maxvalue;
+
+}
+
+
 /*
-void writeInfo(char* filename, int numdim, int dimperimage, int dim0, int dim1, float min, float max){
-
-  FILE *file;
-
-  file = fopen(filename,"w+");
-  fprintf(file,"%d\n",numdim);
-  fprintf(file,"%d\n",dimperimage);
-  fprintf(file,"%d\n",dim0);
-  fprintf(file,"%d\n",dim1);
-  fprintf(file,"%f\n",min);
-  fprintf(file,"%f",max);
-  fclose(file);
-
-}
-*/
-
 int generate4DTiles(int numentries, int numdim,
                     int dimperimage, int dimi, int dimj,int dimk, int diml,
                     int numbin, float maxdatavalue){
@@ -275,29 +294,6 @@ int generate4DTiles(int numentries, int numdim,
 
           }
           
-          //printf("8\n");
-          //normalize
-          /*
-          int bini, binj, bink, binl;
-          for(bini=0; bini<datatilesize; bini++){
-            for(binj=0; binj<datatilesize; binj++){
-              for(bink=0; bink<datatilesize; bink++){
-                for(binl=0; binl<datatilesize; binl++){
-                  int x = datatilesize*i + binsize*bini;
-                  int y = datatilesize*j + binsize*binj;
-                  int z = datatilesize*k + binsize*bink;
-                  int w = datatilesize*l + binsize*binl;
-                  int index0 = x * (sqrt(imgsize)) + y;
-                  int index1 = z * (sqrt(imgsize)) + w;
-                  int index = index0 * (sqrt(imgsize)) + index1;
-                  buff[index] = (buff[index]/(float)maxcount);
-                }
-              }
-            }
-          }
-          */
-          //printf("9\n");
-          
         }
       }
     }
@@ -328,8 +324,9 @@ int generate4DTiles(int numentries, int numdim,
 
   return 1;
 }
+*/
 
-int generate2DTiles(int numentries, int numdim,
+int generate2DTiles(char* outputdir, int numentries, int numdim,
                     int dimperimage, int dimi, int dimj,
                      int numbin, float maxdatavalue){
 
@@ -386,32 +383,17 @@ int generate2DTiles(int numentries, int numdim,
           minvalue = buff[index];
       }
       
-      //normalize
-      /*
-      int bini;
-      for(bini=0; bini<datatilesize; bini++){
-        int binj;
-        for(binj=0; binj<datatilesize; binj++){
-          //if(bini != binj){
-            int x = datatilesize*i + binsize*bini;
-            int y = datatilesize*j + binsize*binj;
-            int index = x * imgsize + y;
-            buff[index] = (buff[index]/(float)maxcount);
-          //}
-        }
-      }
-      */
     }
   }
 
   //save to image
   char filenamepng[100];
-  snprintf(filenamepng, 100, "./data4/2_%d_%d_%d_%d.png", numbin, dimperimage, dimi, dimj);
+  snprintf(filenamepng, 100, "%s/2_%d_%d_%d_%d.png", outputdir, numbin, dimperimage, dimi, dimj);
   writeImage(filenamepng, imgsize, imgsize, minvalue, maxvalue, buff);
 
   //save info
   char filenametxt[100];
-  snprintf(filenametxt, 100, "./data4/2_%d_%d_%d_%d.txt", numbin, dimperimage, dimi, dimj);
+  snprintf(filenametxt, 100, "%s/2_%d_%d_%d_%d.txt", outputdir, numbin, dimperimage, dimi, dimj);
   
   FILE* file = fopen(filenametxt,"w+");
   fprintf(file,"%d\n",numdim);
@@ -429,7 +411,7 @@ int generate2DTiles(int numentries, int numdim,
   return 1;
 
 }
-
+/*
 int generateHistogramTile(int numentries, int numdim,
                           int dimperimage, int dimi, int dimj, int numbinscatter,
                            int numbinhistogram, float maxdatavalue){
@@ -520,11 +502,12 @@ int generateHistogramTile(int numentries, int numdim,
   return 1;
 
 }
+*/
  
 int main(int argc, char* argv[]){
 
-    if(argc < 4){
-      printf("Usage: numentries numdim dimperimage\n");
+    if(argc < 5){
+      printf("Usage: numentries numdim dimperimage outputdir [inputfile]\n");
       return 0;
     }
 
@@ -532,15 +515,26 @@ int main(int argc, char* argv[]){
     int numentries = atoi(argv[1]);
     int numdim = atoi(argv[2]);
     int dimperimage = atoi(argv[3]);
+    char* outputdir = argv[4];
+    float maxvalue;
+
+    if(argc == 6){
+      printf("Loading data... \n");
+      maxvalue = loadData(argv[5], numentries, numdim);
+      printf("Done\n");
+    }
+    else{
+      srand (time(NULL));
+      printf("Generating data... \n");
+      maxvalue = generateData(numentries, numdim);
+      printf("Done\n");
+    }
     
-    srand (time(NULL));
-
-    printf("Generating data... ");
-    generateData(numentries, numdim);
-    printf("Done\n");
-
+    
     FILE *file;
-    file = fopen("./data4/info.txt","w+");
+    char filenametxt[100];
+    snprintf(filenametxt, 100, "%s/info.txt", outputdir);
+    file = fopen(filenametxt,"w+");
     fprintf(file,"%d\n",numdim); //numdim
     fprintf(file,"%d\n",dimperimage); //dimperimage (2)
     fprintf(file,"%d\n",dimperimage); //dimperimage (4)
@@ -549,19 +543,20 @@ int main(int argc, char* argv[]){
     fprintf(file,"%f",1.0f);
     fclose(file);
 
-    int numbinscatter[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
-    int numbinhistogram[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
-    int i,j,k,l,m;
+    int numbinscatter[12] = {2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096};
+    //int numbinhistogram[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
+    int i,j,k;//,l,m;
     for(i=0; i<numdim/dimperimage; i++){
 
       for(j=0; j<numdim/dimperimage; j++){
 
         for(k=0; k<sizeof(numbinscatter)/sizeof(int); k++){
           printf("Generating 2d data tile with numbin=%d, dim=[%d,%d]\n", numbinscatter[k], i, j);
-          if(!generate2DTiles(numentries, numdim, dimperimage, i, j, numbinscatter[k], 1.0f))
+          if(!generate2DTiles(outputdir, numentries, numdim, dimperimage, i, j, numbinscatter[k], maxvalue))
             break;
           printf("Done\n");
 
+          /*
           for(l=0; l<numdim/dimperimage; l++){
             for(m=0; m<numdim/dimperimage; m++){
               printf("Generating 4d data tile with numbin=%d, dim=[%d,%d,%d,%d]\n", numbinscatter[k], i, j, l, m);
@@ -581,6 +576,7 @@ int main(int argc, char* argv[]){
               break;
             printf("Done\n");
           }
+          */
         }
       }
     }
