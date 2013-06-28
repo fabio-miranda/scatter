@@ -7,6 +7,8 @@ uniform vec2 uDim;
 uniform float uMaxDim; //current num of dimensions being displayed
 uniform float uNumDim;
 uniform float uNumBins;
+uniform float uMinValue;
+uniform float uMaxValue;
 uniform vec2 uSelectionDim;
 uniform vec4 uSelectionBinRange;  //xy: range in x, zw: range in y
 //uniform vec4 uSelectionQuad; //xy: bottom left, zw: top right
@@ -36,7 +38,7 @@ void main(void) {
     gl_FragColor = mix(vec4(0.0, 1, 0, 1), vec4(1, 0, 0, 1), count);
   return;
 
-  
+
 
   int rangecounti = int(abs(uSelectionBinRange.x - uSelectionBinRange.y));
   int rangecountj = int(abs(uSelectionBinRange.z - uSelectionBinRange.w));

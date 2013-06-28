@@ -190,6 +190,8 @@ ScatterGL.prototype.draw = function(){
         this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
         this.gl.uniform1f(this.scatterShader.numDim, this.numdim);
         this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
+        this.gl.uniform1f(this.scatterShader.minValue, this.datatiles['2'][index2].minvalue);
+        this.gl.uniform1f(this.scatterShader.maxValue, this.datatiles['2'][index2].maxvalue);
         this.gl.uniform1f(this.scatterShader.numBins, this.numbin);
         this.gl.uniform2f(this.scatterShader.selectionDim, selection.datatilei, selection.datatilej);
         this.gl.uniform4f(this.scatterShader.selectionBinRange,
@@ -251,6 +253,8 @@ ScatterGL.prototype.initShaders = function(){
   this.scatterShader.dim = this.gl.getUniformLocation(this.scatterShader, 'uDim');
   this.scatterShader.numBins = this.gl.getUniformLocation(this.scatterShader, 'uNumBins');
   this.scatterShader.maxDim = this.gl.getUniformLocation(this.scatterShader, 'uMaxDim');
+  this.scatterShader.minValue = this.gl.getUniformLocation(this.scatterShader, 'uMinValue');
+  this.scatterShader.maxValue = this.gl.getUniformLocation(this.scatterShader, 'uMaxValue');
   this.scatterShader.numDim = this.gl.getUniformLocation(this.scatterShader, 'uNumDim');
   this.scatterShader.selectionDim = this.gl.getUniformLocation(this.scatterShader, 'uSelectionDim');
   this.scatterShader.selectionBinRange = this.gl.getUniformLocation(this.scatterShader, 'uSelectionBinRange');
