@@ -30,8 +30,11 @@ void main(void) {
   float count = texture2D(uSampler0, coord2D).g;
 
 
+  //gl_FragColor = vec4(count);
+  //return;
+
   if(count <= 0.0)
-    gl_FragColor = vec4(0);
+    gl_FragColor = vec4(0, 0, 0, 1);
   else if(count < 0.5)
     gl_FragColor = mix(vec4(0.0, 0.5, 0.5, 1), vec4(0.0, 1, 0, 1), count);
   else

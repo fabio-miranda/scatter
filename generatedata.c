@@ -48,7 +48,12 @@ inline void setRGB(png_byte *ptr, float val)
   }
 }
 
-int writeImage(char* filename, int width, int height, float minvalue, float maxvalue, float *buffer)
+int writeImage(char* filename, int width, int height,
+               float minvalueR, float maxvalueR,
+               float minvalueG, float maxvalueG,
+               float minvalueB, float maxvalueB,
+               float minvalueA, float maxvalueA,
+               float *buffer)
 {
   int code = 0;
   FILE *fp;
@@ -140,15 +145,21 @@ float randf(float min, float max){
   return fmaxf(min, fminf(max, val));
 }
 
-float generateData(int numentries, int numdim){
+void generateData(int numentries, int numdim, float* minvalues, float* maxvalues){
 
   data = malloc(numentries*numdim*sizeof(float));
+
+  int i;
+  for(i = 0; i<numdim; i++){
+    minvalues[i] = INFINITY;
+    maxvalues[i] = -INFINITY;
+  }
 
   srand (time(NULL));
   int dim;
   for(dim=0; dim<numdim; dim++){
-    float mean = randf(0.2f, 0.8f);
-    //float mean = 0.5;
+    //float mean = randf(0.2f, 0.8f);
+    float mean = 0.5;
     float std;
     if(mean < 0.5f){
       std = mean / 2.0f;
@@ -167,16 +178,26 @@ float generateData(int numentries, int numdim){
       //val = randf(0, 1);
 
       data[dim*numentries+entry] = val;
+
+      if(val > maxvalues[dim])
+        maxvalues[dim] = val;
+
+      if(val < minvalues[dim])
+        minvalues[dim] = val;
+
     }
   }
-
-  return 1.0f;
 }
 
-float loadData(char* filename, int numentries, int numdim){
+void loadData(char* filename, int numentries, int numdim, float* minvalues, float* maxvalues){
 
   data = malloc(numentries*numdim*sizeof(float));
-  float maxvalue = -INFINITY;
+
+  int i;
+  for(i = 0; i<numdim; i++){
+    minvalues[i] = INFINITY;
+    maxvalues[i] = -INFINITY;
+  }
 
   FILE* file = fopen(filename, "r");
   char line[1024];
@@ -188,19 +209,21 @@ float loadData(char* filename, int numentries, int numdim){
     while(tok != NULL){
       float val = atof(tok);
       data[dim*numentries+entry] = val;
-
       tok = strtok (NULL," ;,");
+      if(val > maxvalues[dim])
+        maxvalues[dim] = val;
+
+      if(val < minvalues[dim])
+        minvalues[dim] = val;
+
       dim++;
 
-      if(val > maxvalue)
-        maxvalue = val;
+      
     }
 
 
     entry++;
   }
-
-  return maxvalue;
 
 }
 
@@ -328,7 +351,7 @@ int generate4DTiles(int numentries, int numdim,
 
 int generate2DTiles(char* outputdir, int numentries, int numdim,
                     int dimperimage, int dimi, int dimj,
-                     int numbin, float maxdatavalue){
+                     int numbin, float* mindatavalues, float* maxdatavalues){
 
   int imgsize = numbin * dimperimage;
 
@@ -353,25 +376,26 @@ int generate2DTiles(char* outputdir, int numentries, int numdim,
   for(i=dimi; i<dimi+dimperimage; i++){
     for(j=dimj; j<dimj+dimperimage; j++){
 
-      
+      //printf("i: %f %f\n", mindatavalues[i], maxdatavalues[i]);
+      //printf("j: %f %f\n", mindatavalues[j], maxdatavalues[j]);
 
       maxcount=0;
       int entry;
       for(entry=0; entry<numentries; entry++){
 
-        float vali = data[i*numentries+entry];
-        float valj = data[j*numentries+entry];
+        float vali = (data[i*numentries+entry] - mindatavalues[i]) / maxdatavalues[i];
+        float valj = (data[j*numentries+entry] - mindatavalues[j]) / maxdatavalues[j];
 
-        int binj = round((valj / maxdatavalue) * (float)(numbin-1));
-        int bini = round((vali / maxdatavalue) * (float)(numbin-1));
+        int binj = round(valj * (float)(numbin-1));
+        int bini = round(vali * (float)(numbin-1));
 
         //int numdatatiledim = 2;
         int x = datatilesize*(i-dimi) + binsize*bini;
         int y = datatilesize*(j-dimj) + binsize*binj;
         int index = x * imgsize + y;
 
-        //buff[index]++;
-        buff[index] += (vali + valj);
+        buff[index]++;
+        //buff[index] += (vali + valj);
 
         if(buff[index] > maxcount)
           maxcount = buff[index];
@@ -389,7 +413,8 @@ int generate2DTiles(char* outputdir, int numentries, int numdim,
   //save to image
   char filenamepng[100];
   snprintf(filenamepng, 100, "%s/2_%d_%d_%d_%d.png", outputdir, numbin, dimperimage, dimi, dimj);
-  writeImage(filenamepng, imgsize, imgsize, minvalue, maxvalue, buff);
+  //writeImage(filenamepng, imgsize, imgsize, minvalue, maxvalue, buff);
+  writeImage(filenamepng, imgsize, imgsize, 0.0f, maxcount, buff);
 
   //save info
   char filenametxt[100];
@@ -400,8 +425,10 @@ int generate2DTiles(char* outputdir, int numentries, int numdim,
   fprintf(file,"%d\n",dimperimage);
   fprintf(file,"%d\n",dimi);
   fprintf(file,"%d\n",dimj);
-  fprintf(file,"%f\n",minvalue);
-  fprintf(file,"%f",maxvalue);
+  //fprintf(file,"%f\n",minvalue);
+  fprintf(file,"%f\n",0.0f);
+  //fprintf(file,"%f",maxvalue);
+  fprintf(file,"%f\n",maxcount);
   fclose(file);
 
 
@@ -516,19 +543,21 @@ int main(int argc, char* argv[]){
     int numdim = atoi(argv[2]);
     int dimperimage = atoi(argv[3]);
     char* outputdir = argv[4];
-    float maxvalue;
+    float* maxvalues = malloc(numdim * sizeof(float));
+    float* minvalues = malloc(numdim * sizeof(float));
 
     if(argc == 6){
       printf("Loading data... \n");
-      maxvalue = loadData(argv[5], numentries, numdim);
+      loadData(argv[5], numentries, numdim, minvalues, maxvalues);
       printf("Done\n");
     }
     else{
       srand (time(NULL));
       printf("Generating data... \n");
-      maxvalue = generateData(numentries, numdim);
+      generateData(numentries, numdim, minvalues, maxvalues);
       printf("Done\n");
     }
+    
     
     
     FILE *file;
@@ -552,7 +581,7 @@ int main(int argc, char* argv[]){
 
         for(k=0; k<sizeof(numbinscatter)/sizeof(int); k++){
           printf("Generating 2d data tile with numbin=%d, dim=[%d,%d]\n", numbinscatter[k], i, j);
-          if(!generate2DTiles(outputdir, numentries, numdim, dimperimage, i, j, numbinscatter[k], maxvalue))
+          if(!generate2DTiles(outputdir, numentries, numdim, dimperimage, i, j, numbinscatter[k], minvalues, maxvalues))
             break;
           printf("Done\n");
 
