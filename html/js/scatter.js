@@ -183,7 +183,11 @@ function changeNumBin(){
   scattermatrix.reset();
   scattermatrix.resetDataTiles();
   requestDataTiles();
-  
+}
+
+function changeBandwidth(){
+  scattermatrix.changeBandwidth($('#bandwidth').val());
+  scattermatrix.draw();
 }
 
 

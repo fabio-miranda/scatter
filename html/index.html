@@ -53,13 +53,12 @@
           <table id='scatterplotdim1' class='scatterplotmatrix scatterplotdim1'>
             <tr></tr>
           </table>
+          <input id='bandwidth' onchange=changeBandwidth()></input>
         </td>
       </tr>
     </table>
-
     <canvas id='histogram' class='histogram'></canvas>
     <div id='histogramdiv' class='histogram' style='width:500px; height:200px;'></div>
-    <div id='histogramdropdowndim'></div>
     <!--
     <select id='numbinhistogram' onchange=changeNumBin()>
         <option>2</option>

@@ -48,12 +48,7 @@ inline void setRGB(png_byte *ptr, float val)
   }
 }
 
-int writeImage(char* filename, int width, int height,
-               float minvalueR, float maxvalueR,
-               float minvalueG, float maxvalueG,
-               float minvalueB, float maxvalueB,
-               float minvalueA, float maxvalueA,
-               float *buffer)
+int writeImage(char* filename, int width, int height, float minvalue, float maxvalue, float *buffer)
 {
   int code = 0;
   FILE *fp;
