@@ -6,6 +6,7 @@ var currentnumdim=0;
 var dim=16;
 var datapath;
 var info;
+var useKDE = true;
 
 
 function cb_receiveDataTile(datatile){
@@ -35,7 +36,9 @@ function cb_receiveDataTile(datatile){
       datatile['numdim'],
       datatile['dimperimage'],
       this.index,
-      datatile['numbin']
+      datatile['numbin'],
+      datatile['minvalue'],
+      datatile['maxvalue']
     );
 
     scattermatrix.draw();

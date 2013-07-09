@@ -16,12 +16,14 @@ function SelectionQuad(gl){
   this.topright = [0, 0];//[gl.viewportWidth, gl.viewportHeight];
 }
 
-function Datatile(gl, numrelations, image, imgsize, numdim, index, numbin){
+function Datatile(gl, numrelations, image, imgsize, numdim, index, numbin, minvalue, maxvalue){
   this.image = image;
   this.imgsize = imgsize;
   this.numdim = numdim;
   this.index = index;
   this.numbin = numbin;
+  this.minvalue = minvalue;
+  this.maxvalue = maxvalue;
 
   this.texture = gl.createTexture();
   createTexture(gl, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image, this.texture);
@@ -59,7 +61,7 @@ function ScatterGL(canvas){
 }
 
 
-ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimperimage, index, numbin){
+ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimperimage, index, numbin, minvalue, maxvalue){
 
 
   if(this.datatiles[numrelations] == null)
@@ -68,7 +70,7 @@ ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimp
   this.numbin = numbin;
   this.numdim = numdim;
   this.datatiles[numrelations]['dimperimage'] = dimperimage;
-  this.datatiles[numrelations][index] = new Datatile(this.gl, numrelations, image, imgsize, numdim, index, numbin);
+  this.datatiles[numrelations][index] = new Datatile(this.gl, numrelations, image, imgsize, numdim, index, numbin, minvalue, maxvalue);
 
 }
 
@@ -158,7 +160,7 @@ ScatterGL.prototype.draw = function(){
   mat4.identity(this.mvMatrix);
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
-  this.gl.useProgram(this.scatterShader);
+  this.gl.useProgram(this.kdeShader);
 
   if(this.datatiles['2'] != null){// && this.datatiles['4'] != null){
 
@@ -187,21 +189,21 @@ ScatterGL.prototype.draw = function(){
 
         this.gl.viewport(i*width, j*height, width, height);
 
-        this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
-        this.gl.uniform1f(this.scatterShader.numDim, this.numdim);
-        this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
-        this.gl.uniform1f(this.scatterShader.minValue, this.datatiles['2'][index2].minvalue);
-        this.gl.uniform1f(this.scatterShader.maxValue, this.datatiles['2'][index2].maxvalue);
-        this.gl.uniform1f(this.scatterShader.numBins, this.numbin);
-        this.gl.uniform2f(this.scatterShader.selectionDim, selection.datatilei, selection.datatilej);
-        this.gl.uniform4f(this.scatterShader.selectionBinRange,
-          selection.rangei0, selection.rangei1, selection.rangej0, selection.rangej1
-        );
+        //this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
+        //this.gl.uniform1f(this.scatterShader.numDim, this.numdim);
+        //this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
+        this.gl.uniform1f(this.kdeShader.minValue, this.datatiles['2'][index2].minvalue);
+        this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
+        this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
+        //this.gl.uniform2f(this.scatterShader.selectionDim, selection.datatilei, selection.datatilej);
+        //this.gl.uniform4f(this.scatterShader.selectionBinRange,
+          //selection.rangei0, selection.rangei1, selection.rangej0, selection.rangej1
+        //);
         //var index2 = '0 4'
         //var index4 = '0 4';
         scatter.quad.draw(
           this.gl,
-          this.scatterShader,
+          this.kdeShader,
           this.mvMatrix,
           this.pMatrix,
           this.datatiles['2'][index2].texture
@@ -212,6 +214,7 @@ ScatterGL.prototype.draw = function(){
   }
 
   //selection
+  /*
   this.gl.useProgram(this.selectionShader);
   var width, height;
   
@@ -221,7 +224,7 @@ ScatterGL.prototype.draw = function(){
     this.gl.viewport(this.selection.bottomleft[0], this.selection.bottomleft[1], width, height);
     this.selection.quad.draw(this.gl, this.selectionShader, this.mvMatrix, this.pMatrix);
   }
-
+  */
   this.gl.useProgram(null);
 
 }
@@ -263,6 +266,37 @@ ScatterGL.prototype.initShaders = function(){
   this.scatterShader.mvMatrixUniform = this.gl.getUniformLocation(this.scatterShader, "uMVMatrix");
 
   this.gl.useProgram(null);
+
+  //kde
+  var fragmentShader = getShader(this.gl, "./js/glsl/kde.frag", true);
+  var vertexShader = getShader(this.gl, "./js/glsl/kde.vert", false);
+
+  this.kdeShader = this.gl.createProgram();
+  this.gl.attachShader(this.kdeShader, vertexShader);
+  this.gl.attachShader(this.kdeShader, fragmentShader);
+  this.gl.linkProgram(this.kdeShader);
+
+  if (!this.gl.getProgramParameter(this.kdeShader, this.gl.LINK_STATUS)) {
+    alert("Could not initialise shaders");
+  }
+
+  this.gl.useProgram(this.kdeShader);
+
+  this.kdeShader.vertexPositionAttribute = this.gl.getAttribLocation(this.kdeShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.kdeShader.vertexPositionAttribute);
+
+  this.kdeShader.textureCoordAttribute = this.gl.getAttribLocation(this.kdeShader, "aTexCoord");
+  this.gl.enableVertexAttribArray(this.kdeShader.textureCoordAttribute);
+
+  this.kdeShader.minValue = this.gl.getUniformLocation(this.kdeShader, 'uMinValue');
+  this.kdeShader.maxValue = this.gl.getUniformLocation(this.kdeShader, 'uMaxValue');
+  this.kdeShader.numBins = this.gl.getUniformLocation(this.kdeShader, 'uNumBins');
+
+  this.kdeShader.pMatrixUniform = this.gl.getUniformLocation(this.kdeShader, "uPMatrix");
+  this.kdeShader.mvMatrixUniform = this.gl.getUniformLocation(this.kdeShader, "uMVMatrix");
+
+  this.gl.useProgram(null);
+
 
   //selection
   var fragmentShader = getShader(this.gl, "./js/glsl/selection.frag", true);
@@ -351,9 +385,9 @@ ScatterGL.prototype.initGL = function(){
   this.devicePixelRatio = window.devicePixelRatio || 1;
   this.canvas.width = this.canvas.clientWidth * this.devicePixelRatio;
   this.canvas.height = this.canvas.clientHeight * this.devicePixelRatio;
-  this.canvas.addEventListener("mousedown", function(evt){that.mousedown(evt);}, false);
-  this.canvas.addEventListener("mouseup", function(evt){that.mouseup(evt);}, false);
-  this.canvas.addEventListener("mousemove", function(evt){that.mousemove(evt);}, false);
+  //this.canvas.addEventListener("mousedown", function(evt){that.mousedown(evt);}, false);
+  //this.canvas.addEventListener("mouseup", function(evt){that.mouseup(evt);}, false);
+  //this.canvas.addEventListener("mousemove", function(evt){that.mousemove(evt);}, false);
 
   this.gl = this.canvas.getContext("experimental-webgl");
   this.gl.viewportWidth = this.canvas.width;
