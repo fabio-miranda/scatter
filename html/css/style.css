@@ -28,6 +28,18 @@ body {
   cursor: pointer;
 }
 
+input {
+  -webkit-appearance: input;
+  border: 0px solid;
+  font-size: 12px;
+}
+
+select {
+  -webkit-appearance: select;
+  border: 0px solid;
+  font-size: 12px;
+}
+
 .button {
   font-size: 15pt;
   padding: 5px;

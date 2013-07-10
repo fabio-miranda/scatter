@@ -2,6 +2,7 @@ precision mediump float;
 
 varying highp vec2 vTexCoord;
 uniform sampler2D uSampler0;
+uniform sampler2D uSampler1;
 uniform float uMinValue;
 uniform float uMaxValue;
 uniform float uNumBins;
@@ -65,12 +66,19 @@ void main(void) {
     gl_FragColor = vec4(sum, sum, sum, 1);
   }
   else{
+
+    vec3 color = texture2D(uSampler1, vec2(sum, 0)).xyz;
+
+    gl_FragColor = vec4(color.xyz, 1);
+
+    /*
     if(sum <= 0.0)
       gl_FragColor = vec4(0.0, 0.5, 0.5, 1);
     else if(sum < 0.5)
       gl_FragColor = mix(vec4(0.0, 0.5, 0.5, 1), vec4(0.0, 1, 0, 1), sum);
     else
       gl_FragColor = mix(vec4(0.0, 1, 0, 1), vec4(1, 0, 0, 1), sum);
+    */
   }
 
   //

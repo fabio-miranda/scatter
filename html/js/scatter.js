@@ -58,6 +58,11 @@ function cb_receiveDataTileHistogram(datatile){
       histogram.setDim($('#histogramdim').val());
       histogram.draw(scattermatrix.getSelection());
     };
+    
+    var values = new Array(scattermatrix.numdim);
+    for(var i=0; i<scattermatrix.numdim; i++)
+      values[i] = i;
+
     var dropdown = createdropdown('histogramdim', onchange);
     document.getElementById('histogramdropdowndim').appendChild(dropdown);
   }
@@ -83,17 +88,17 @@ function cb_receiveDataTileHistogram(datatile){
 }
 
 
-function createdropdown(id, onchange){
+function createdropdown(id, values, onchange, className){
 
   //TODO: replace with jquery
   var dropdown = document.createElement("select");
   dropdown.id = id;
-  dropdown.className = 'dropdownmenu';
+  dropdown.className = className;
   dropdown.onchange = onchange;
 
-  for(var i=0; i<scattermatrix.numdim; i++){
+  for(var i=0; i<values.length; i++){
     var option=document.createElement("option");
-    option.text = i;
+    option.text = values[i];
     dropdown.add(option, null);
   }
 
@@ -191,7 +196,6 @@ function changeBandwidth(){
   scattermatrix.draw();
 }
 
-
 function adddimension(){
 
   //TODO: replace with jquery
@@ -203,8 +207,12 @@ function adddimension(){
     scattermatrix.draw();
   };
 
+  var values = new Array(scattermatrix.numdim);
+  for(var i=0; i<scattermatrix.numdim; i++)
+    values[i] = i;
+
   //horizontal
-  var dropdown = createdropdown('dropdownmenu_dim1_'+currentnumdim, onchange);
+  var dropdown = createdropdown('dropdownmenu_dim1_'+currentnumdim, values, onchange);
   var table = document.getElementById('scatterplotdim1');
   row = table.rows[0];
   var cell = row.appendChild(document.createElement("td"));
@@ -214,7 +222,7 @@ function adddimension(){
 
 
   //vertical
-  dropdown = createdropdown('dropdownmenu_dim2_'+currentnumdim, onchange);
+  dropdown = createdropdown('dropdownmenu_dim2_'+currentnumdim, values, onchange);
   table = document.getElementById('scatterplotdim2');
   row = table.insertRow(0);
   cell = row.appendChild(document.createElement("td"));
@@ -260,11 +268,43 @@ function removescatterplot(){
   redrawscatterplots();
 }
 
+function changeColorScale(){
+
+  colorscale = new ColorScale(document.getElementById('colorscale'));
+
+  var color = $('#colorbrewer').val();
+  var dataclasses = $('#dataclasses').val();
+  var checked = $('#isLinear').prop('checked');
+  
+  if(colorbrewer[color][dataclasses] != null){
+    colorscale.setValues(colorbrewer[color][dataclasses], checked);
+
+    scattermatrix.setColorScale(colorscale.texdata);
+    redrawscatterplots();
+  }
+
+}
+
+function initColorScale(){
+
+  var values = new Array();
+  for(var color in colorbrewer)
+    values.push(color);
+
+
+  var dropbox = createdropdown('colorbrewer', values, changeColorScale);
+  $('#div_colorbrewer').append(dropbox);
+
+  var dropbox = createdropdown('dataclasses', [3,4,5,6,7,8,9,10,11,12], changeColorScale);
+  $('#div_dataclasses').append(dropbox);
+
+  changeColorScale();
+}
+
 function initialize(){
 
   scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
-  colorscale = new ColorScale(document.getElementById('colorscale'));
-  colorscale.setValues(['#ff0000', '#33ff00', '#0000ff', '#000000'], true);
+  initColorScale();
 
   datapath = window.location.search.substring(window.location.search.indexOf('=')+1);
   

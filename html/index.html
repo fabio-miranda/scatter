@@ -8,6 +8,7 @@
     <script type="text/javascript" src="js/libs/jquery-1.10.0.min.js"></script>
     <script type="text/javascript" src="js/libs/gl-matrix-min.js"></script>
     <script type="text/javascript" src="js/libs/d3.v3.min.js"></script>
+    <script type="text/javascript" src="js/libs/colorbrewer.js"></script>
     <script type="text/javascript" src="js/libs/crossfilter.min.js"></script>
 
     <script type="text/javascript" src="js/colorscale.js"></script>
@@ -55,7 +56,12 @@
           <table id='scatterplotdim1' class='scatterplotmatrix scatterplotdim1'>
             <tr></tr>
           </table>
-          <input id='bandwidth' onchange=changeBandwidth()></input>
+          <center><input id='bandwidth' onchange=changeBandwidth()></input></center>
+        </td>
+        <td>
+          <input id='isLinear' type="checkbox" checked='true' onchange=changeColorScale()>Linear</input></br>
+          <div id='div_colorbrewer'></div>
+          <div id='div_dataclasses'></div>
         </td>
       </tr>
     </table>

@@ -11,6 +11,7 @@ function ColorScale(canvas){
 
   this.texsize = 256;
   this.texture = null;
+  this.texdata = null;
 
   this.initGL();
   this.initShaders();
@@ -38,21 +39,21 @@ ColorScale.prototype.setValues = function(values, isLinear){
   scale.range(values);
 
   //create texture
-  var texData = new Uint8Array(3*this.texsize);
+  this.texdata = new Uint8Array(3*this.texsize);
   for(var i=0; i<this.texsize; i++){
     var hex = scale(i);
     var r = hexToR(hex);
     var g = hexToG(hex);
     var b = hexToB(hex);
-    texData[3*i] = r;
-    texData[3*i+1] = g;
-    texData[3*i+2] = b;
+    this.texdata[3*i] = r;
+    this.texdata[3*i+1] = g;
+    this.texdata[3*i+2] = b;
   }
 
   //console.log(texData);
 
   this.texture = this.gl.createTexture();
-  createTextureFromArray(this.gl, this.texsize, 1, this.gl.RGB, this.gl.RGB, this.gl.UNSIGNED_BYTE, texData, this.texture);
+  createTextureFromArray(this.gl, this.texsize, 1, this.gl.RGB, this.gl.RGB, this.gl.UNSIGNED_BYTE, this.texdata, this.texture);
 
   this.draw();
 

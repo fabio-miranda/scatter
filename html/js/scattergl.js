@@ -54,6 +54,7 @@ function ScatterGL(canvas){
   this.numbin = null;
   this.datatiles = {};
   this.histogram = null;
+  this.colorscaletex = null;
 
   this.initGL();
   this.initShaders();
@@ -91,6 +92,14 @@ ScatterGL.prototype.addscatter = function(i, j, dim1, dim2){
 ScatterGL.prototype.setHistogram = function(histogram){
 
   this.histogram = histogram;
+
+}
+
+ScatterGL.prototype.setColorScale = function(colorscalevalues){
+
+  //No shared resource. I create the texture two times, one for each canvas
+  this.colorscaletex = this.gl.createTexture();
+  createTextureFromArray(this.gl, colorscalevalues.length/3, 1, this.gl.RGB, this.gl.RGB, this.gl.UNSIGNED_BYTE, colorscalevalues, this.colorscaletex);
 
 }
 
@@ -260,7 +269,8 @@ ScatterGL.prototype.draw = function(){
           this.kdeShader,
           this.mvMatrix,
           this.pMatrix,
-          this.fbotex
+          this.fbotex,
+          this.colorscaletex
         );
         
       }
