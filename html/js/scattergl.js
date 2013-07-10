@@ -26,7 +26,7 @@ function Datatile(gl, numrelations, image, imgsize, numdim, index, numbin, minva
   this.maxvalue = maxvalue;
 
   this.texture = gl.createTexture();
-  createTexture(gl, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image, this.texture);
+  createTextureFromImage(gl, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image, this.texture);
 }
 
 SelectionQuad.prototype.updateBB = function(){

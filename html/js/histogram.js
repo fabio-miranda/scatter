@@ -36,7 +36,7 @@ Histogram.prototype.update = function(image, width, height, numdim, numbinscatte
   this.initShaders();
 
   this.texture = this.gl.createTexture();
-  createTexture(this.gl, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.image, this.texture);
+  createTextureFromImage(this.gl, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.image, this.texture);
 
   this.histogramquad = new quad(this.gl, true);
 }

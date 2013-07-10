@@ -6,6 +6,7 @@ var currentnumdim=0;
 var dim=16;
 var datapath;
 var info;
+var colorscale;
 var useKDE = true;
 
 
@@ -262,6 +263,8 @@ function removescatterplot(){
 function initialize(){
 
   scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
+  colorscale = new ColorScale(document.getElementById('colorscale'));
+  colorscale.setValues(['#ff0000', '#33ff00', '#0000ff', '#000000'], true);
 
   datapath = window.location.search.substring(window.location.search.indexOf('=')+1);
   

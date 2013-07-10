@@ -41,6 +41,12 @@ body {
   text-align: center;
 }
 
+.colorscale {
+  width: 80px;
+  height: 800px;
+  text-align: center;
+}
+
 .scatterplotmatrix.scatterplotdim1 {
   height: 1px;
   text-align: center;
