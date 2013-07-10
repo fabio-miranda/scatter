@@ -58,7 +58,22 @@
           <table id='scatterplotdim1' class='scatterplotmatrix scatterplotdim1'>
             <tr></tr>
           </table>
-          <center><input id='bandwidth' onchange=changeBandwidth(this.value)></input></center>
+          <center><input id='bandwidth' onchange=changeBandwidth(this.value)></input>
+            <select id='windowsize' onchange=changeWindowSize()>
+              <option>2</option>
+              <option>4</option>
+              <option>8</option>
+              <option>16</option>
+              <option>32</option>
+              <option>64</option>
+              <option>128</option>
+              <option>256</option>
+              <option>512</option>
+              <option>1024</option>
+              <option>2048</option>
+              <option>4096</option>
+            </select>
+          </center>
           <center><div id='div_bandwidthslider'></div></center>
         </td>
         <td>

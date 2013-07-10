@@ -109,6 +109,12 @@ ScatterGL.prototype.changeBandwidth = function(bandwidth){
 
 }
 
+ScatterGL.prototype.changeWindowSize = function(windowSize){
+
+  this.windowSize = windowSize;
+
+}
+
 ScatterGL.prototype.hasDataTile = function(numrelations, i, j, k, l){
 
   var index = i;
@@ -242,6 +248,7 @@ ScatterGL.prototype.draw = function(){
         this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
         this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
         this.gl.uniform1f(this.kdeShader.bandwidth, this.bandwidth);
+        this.gl.uniform1f(this.kdeShader.windowSize, this.windowSize);
         this.gl.uniform1f(this.kdeShader.isFirstPass, 1.0);
         this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -262,6 +269,7 @@ ScatterGL.prototype.draw = function(){
         this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
         this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
         this.gl.uniform1f(this.kdeShader.bandwidth, this.bandwidth);
+        this.gl.uniform1f(this.kdeShader.windowSize, this.windowSize);
         this.gl.uniform1f(this.kdeShader.isFirstPass, 0.0);
         
         scatter.quad.draw(
@@ -357,6 +365,7 @@ ScatterGL.prototype.initShaders = function(){
   this.kdeShader.numBins = this.gl.getUniformLocation(this.kdeShader, 'uNumBins');
   this.kdeShader.isFirstPass = this.gl.getUniformLocation(this.kdeShader, 'uIsFirstPass');
   this.kdeShader.bandwidth = this.gl.getUniformLocation(this.kdeShader, 'uBandwidth');
+  this.kdeShader.windowSize = this.gl.getUniformLocation(this.kdeShader, 'uWindowSize');
 
 
   this.kdeShader.pMatrixUniform = this.gl.getUniformLocation(this.kdeShader, "uPMatrix");

@@ -6,6 +6,7 @@ uniform sampler2D uSampler1;
 uniform float uMinValue;
 uniform float uMaxValue;
 uniform float uNumBins;
+uniform float uWindowSize;
 uniform float uNumPoints;
 uniform float uIsFirstPass;
 uniform float uBandwidth;
@@ -43,9 +44,9 @@ void main(void) {
   float sum = 0.0;
   float sumCount = 1.0;
   for(int i=0;i<maxloop; i++){
-    if(i >= 512) break;
+    if(i >= int(uWindowSize)) break;
 
-    int index = i - 512/2;
+    int index = i - int(uWindowSize)/2;
     coord2D = vec2(vTexCoord.x + uIsFirstPass * (float(index) / aux), vTexCoord.y + (1.0 - uIsFirstPass) * (float(index) / aux)); //make sure to access not the next texel, but the next bin
 
 

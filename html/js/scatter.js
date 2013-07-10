@@ -281,14 +281,17 @@ function changeColorScale(){
 }
 
 function changeBandwidth(value){
-  //scattermatrix.changeBandwidth($('#bandwidth').val());
-  console.log(value);
   scattermatrix.changeBandwidth(value);
   scattermatrix.draw();
 
   //update slider and input
   $('#bandwidth').attr('value', value);
   $('#bandwidthslider').attr('value', value);
+}
+
+function changeWindowSize(){
+  scattermatrix.changeWindowSize($('#windowsize').prop('value'));
+  scattermatrix.draw();
 }
 
 function initColorScale(){
@@ -312,8 +315,7 @@ function initialize(){
   $( "#div_bandwidthslider" ).slider({
     id: 'bandwidthslider',
     min: 0,
-    max: 0.3,
-    value: 0.01,
+    max: 0.2,
     step: 0.001,
     slide: function( event, ui ) {
       changeBandwidth(ui.value);
@@ -322,6 +324,7 @@ function initialize(){
 
   scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
   initColorScale();
+  changeWindowSize();
 
   datapath = window.location.search.substring(window.location.search.indexOf('=')+1);
   
