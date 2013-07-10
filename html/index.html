@@ -5,11 +5,13 @@
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     <link type="text/css" rel="stylesheet" href="css/style.css" media="all">
-    <script type="text/javascript" src="js/libs/jquery-1.10.0.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/jquery-ui.css" media="all">
     <script type="text/javascript" src="js/libs/gl-matrix-min.js"></script>
     <script type="text/javascript" src="js/libs/d3.v3.min.js"></script>
     <script type="text/javascript" src="js/libs/colorbrewer.js"></script>
     <script type="text/javascript" src="js/libs/crossfilter.min.js"></script>
+    <script type="text/javascript" src="js/libs/jquery-1.10.0.min.js"></script>
+    <script type="text/javascript" src="js/libs/jquery-ui.js"></script>
 
     <script type="text/javascript" src="js/colorscale.js"></script>
     <script type="text/javascript" src="js/barchart.js"></script>
@@ -56,7 +58,8 @@
           <table id='scatterplotdim1' class='scatterplotmatrix scatterplotdim1'>
             <tr></tr>
           </table>
-          <center><input id='bandwidth' onchange=changeBandwidth()></input></center>
+          <center><input id='bandwidth' onchange=changeBandwidth(this.value)></input></center>
+          <center><div id='div_bandwidthslider'></div></center>
         </td>
         <td>
           <input id='isLinear' type="checkbox" checked='true' onchange=changeColorScale()>Linear</input></br>

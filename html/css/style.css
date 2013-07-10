@@ -40,6 +40,15 @@ select {
   font-size: 12px;
 }
 
+#div_bandwidthslider {
+  width : 200px;
+  background: #ffffff;
+}
+
+.ui-slider-handle.ui-state-default.ui-corner-all {
+  background: #ffffff;
+}
+
 .button {
   font-size: 15pt;
   padding: 5px;

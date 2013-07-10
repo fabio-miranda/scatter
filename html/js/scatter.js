@@ -191,11 +191,6 @@ function changeNumBin(){
   requestDataTiles();
 }
 
-function changeBandwidth(){
-  scattermatrix.changeBandwidth($('#bandwidth').val());
-  scattermatrix.draw();
-}
-
 function adddimension(){
 
   //TODO: replace with jquery
@@ -285,6 +280,17 @@ function changeColorScale(){
 
 }
 
+function changeBandwidth(value){
+  //scattermatrix.changeBandwidth($('#bandwidth').val());
+  console.log(value);
+  scattermatrix.changeBandwidth(value);
+  scattermatrix.draw();
+
+  //update slider and input
+  $('#bandwidth').attr('value', value);
+  $('#bandwidthslider').attr('value', value);
+}
+
 function initColorScale(){
 
   var values = new Array();
@@ -303,6 +309,17 @@ function initColorScale(){
 
 function initialize(){
 
+  $( "#div_bandwidthslider" ).slider({
+    id: 'bandwidthslider',
+    min: 0,
+    max: 0.3,
+    value: 0.01,
+    step: 0.001,
+    slide: function( event, ui ) {
+      changeBandwidth(ui.value);
+    }
+  });
+
   scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
   initColorScale();
 
@@ -320,6 +337,8 @@ function initialize(){
       },
     cb_receiveDataTile
   );
+
+  changeBandwidth(0.01);
 
   /*
   $.post(
