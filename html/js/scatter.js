@@ -282,7 +282,9 @@ function changeColorScale(){
 
 function changeBandwidth(value){
   scattermatrix.changeBandwidth(value);
+
   scattermatrix.draw();
+
 
   //update slider and input
   $('#bandwidth').attr('value', value);

@@ -178,11 +178,12 @@ ScatterGL.prototype.getSelection = function(){
 
 ScatterGL.prototype.draw = function(){
 
+  
+
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
 
   //plots
-
   var width = this.gl.viewportWidth / (this.maxdim + 1);
   var height = this.gl.viewportHeight / (this.maxdim + 1);
   mat4.identity(this.mvMatrix);
@@ -299,6 +300,11 @@ ScatterGL.prototype.draw = function(){
   */
   this.gl.useProgram(null);
 
+
+  //time
+  //this.gl.finish();
+  
+
 }
 
 
@@ -333,6 +339,8 @@ ScatterGL.prototype.initShaders = function(){
   this.scatterShader.numDim = this.gl.getUniformLocation(this.scatterShader, 'uNumDim');
   this.scatterShader.selectionDim = this.gl.getUniformLocation(this.scatterShader, 'uSelectionDim');
   this.scatterShader.selectionBinRange = this.gl.getUniformLocation(this.scatterShader, 'uSelectionBinRange');
+  this.scatterShader.sampler0 = this.gl.getUniformLocation(this.scatterShader, "uSampler0");
+  this.scatterShader.sampler0 = this.gl.getUniformLocation(this.scatterShader, "uSampler1");
 
   this.scatterShader.pMatrixUniform = this.gl.getUniformLocation(this.scatterShader, "uPMatrix");
   this.scatterShader.mvMatrixUniform = this.gl.getUniformLocation(this.scatterShader, "uMVMatrix");
@@ -366,6 +374,8 @@ ScatterGL.prototype.initShaders = function(){
   this.kdeShader.isFirstPass = this.gl.getUniformLocation(this.kdeShader, 'uIsFirstPass');
   this.kdeShader.bandwidth = this.gl.getUniformLocation(this.kdeShader, 'uBandwidth');
   this.kdeShader.windowSize = this.gl.getUniformLocation(this.kdeShader, 'uWindowSize');
+  this.kdeShader.sampler0 = this.gl.getUniformLocation(this.kdeShader, "uSampler0");
+  this.kdeShader.sampler1 = this.gl.getUniformLocation(this.kdeShader, "uSampler1");
 
 
   this.kdeShader.pMatrixUniform = this.gl.getUniformLocation(this.kdeShader, "uPMatrix");
@@ -373,7 +383,7 @@ ScatterGL.prototype.initShaders = function(){
 
   this.gl.useProgram(null);
 
-
+  /*
   //selection
   var fragmentShader = getShader(this.gl, "./js/glsl/selection.frag", true);
   var vertexShader = getShader(this.gl, "./js/glsl/selection.vert", false);
@@ -394,9 +404,9 @@ ScatterGL.prototype.initShaders = function(){
 
   this.selectionShader.pMatrixUniform = this.gl.getUniformLocation(this.selectionShader, "uPMatrix");
   this.selectionShader.mvMatrixUniform = this.gl.getUniformLocation(this.selectionShader, "uMVMatrix");
-
+  
   this.gl.useProgram(null);
-
+  */
 }
 
 function getxy(that, evt){

@@ -141,13 +141,13 @@ quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, texture0, t
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture0);
-    gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler0"), 0);
+    gl.uniform1i(shaderProgram.sampler0, 0);
   }
 
   if(texture1 != null){
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texture1);
-    gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler1"), 1);
+    gl.uniform1i(shaderProgram.sampler1, 1);
   }
 
   gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
