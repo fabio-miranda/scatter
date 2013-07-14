@@ -178,6 +178,9 @@ ScatterGL.prototype.getSelection = function(){
 
 ScatterGL.prototype.draw = function(){
 
+  //time
+  var now1 = window.performance.now();
+
   
 
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
@@ -216,72 +219,74 @@ ScatterGL.prototype.draw = function(){
 
       //Check if textures have been loaded
       if(this.datatiles['2'][index2] != null){// && this.datatiles['4'][index4] != null){
-        
-        this.gl.viewport(i*width, j*height, width, height);
 
-        /*
-        this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
-        this.gl.uniform1f(this.scatterShader.numDim, this.numdim);
-        this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
-        this.gl.uniform1f(this.scatterShader.minValue, this.datatiles['2'][index2].minvalue);
-        this.gl.uniform1f(this.scatterShader.maxValue, this.datatiles['2'][index2].maxvalue);
-        this.gl.uniform1f(this.scatterShader.numBins, this.numbin);
-        this.gl.uniform2f(this.scatterShader.selectionDim, selection.datatilei, selection.datatilej);
-        this.gl.uniform4f(this.scatterShader.selectionBinRange,
-          selection.rangei0, selection.rangei1, selection.rangej0, selection.rangej1
-        );
-        //var index2 = '0 4'
-        //var index4 = '0 4';
-        scatter.quad.draw(
-          this.gl,
-          this.scatterShader,
-          this.mvMatrix,
-          this.pMatrix,
-          this.datatiles['2'][index2].texture
-          //this.datatiles['4'][index4].texture
-        );
-        return;
-        */
-        //first pass
-        this.gl.viewport(0, 0, this.numbin, this.numbin);
-        this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo );
-        this.gl.uniform1f(this.kdeShader.minValue, this.datatiles['2'][index2].minvalue);
-        this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
-        this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
-        this.gl.uniform1f(this.kdeShader.bandwidth, this.bandwidth);
-        this.gl.uniform1f(this.kdeShader.windowSize, this.windowSize);
-        this.gl.uniform1f(this.kdeShader.isFirstPass, 1.0);
-        this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        for(var pass=0; pass<1; pass++){
+          
+          this.gl.viewport(i*width, j*height, width, height);
 
-        scatter.quad.draw(
-          this.gl,
-          this.kdeShader,
-          this.mvMatrix,
-          this.pMatrix,
-          this.datatiles['2'][index2].texture
-        );
-        this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
-        //return;
+          /*
+          this.gl.uniform2f(this.scatterShader.dim, scatter.dim1, scatter.dim2);
+          this.gl.uniform1f(this.scatterShader.numDim, this.numdim);
+          this.gl.uniform1f(this.scatterShader.maxDim, this.maxdim);
+          this.gl.uniform1f(this.scatterShader.minValue, this.datatiles['2'][index2].minvalue);
+          this.gl.uniform1f(this.scatterShader.maxValue, this.datatiles['2'][index2].maxvalue);
+          this.gl.uniform1f(this.scatterShader.numBins, this.numbin);
+          this.gl.uniform2f(this.scatterShader.selectionDim, selection.datatilei, selection.datatilej);
+          this.gl.uniform4f(this.scatterShader.selectionBinRange,
+            selection.rangei0, selection.rangei1, selection.rangej0, selection.rangej1
+          );
+          //var index2 = '0 4'
+          //var index4 = '0 4';
+          scatter.quad.draw(
+            this.gl,
+            this.scatterShader,
+            this.mvMatrix,
+            this.pMatrix,
+            this.datatiles['2'][index2].texture
+            //this.datatiles['4'][index4].texture
+          );
+          return;
+          */
+          //first pass
+          this.gl.viewport(0, 0, this.numbin, this.numbin);
+          this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo );
+          this.gl.uniform1f(this.kdeShader.minValue, this.datatiles['2'][index2].minvalue);
+          this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
+          this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
+          this.gl.uniform1f(this.kdeShader.bandwidth, this.bandwidth);
+          this.gl.uniform1f(this.kdeShader.windowSize, this.windowSize);
+          this.gl.uniform1f(this.kdeShader.isFirstPass, 1.0);
+          this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+          this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
-        //second pass 
-        this.gl.viewport(i*width, j*height, width, height);
-        this.gl.uniform1f(this.kdeShader.minValue, this.datatiles['2'][index2].minvalue);
-        this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
-        this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
-        this.gl.uniform1f(this.kdeShader.bandwidth, this.bandwidth);
-        this.gl.uniform1f(this.kdeShader.windowSize, this.windowSize);
-        this.gl.uniform1f(this.kdeShader.isFirstPass, 0.0);
-        
-        scatter.quad.draw(
-          this.gl,
-          this.kdeShader,
-          this.mvMatrix,
-          this.pMatrix,
-          this.fbotex,
-          this.colorscaletex
-        );
-        
+          scatter.quad.draw(
+            this.gl,
+            this.kdeShader,
+            this.mvMatrix,
+            this.pMatrix,
+            this.datatiles['2'][index2].texture
+          );
+          this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+          //return;
+
+          //second pass 
+          this.gl.viewport(i*width, j*height, width, height);
+          this.gl.uniform1f(this.kdeShader.minValue, this.datatiles['2'][index2].minvalue);
+          this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
+          this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
+          this.gl.uniform1f(this.kdeShader.bandwidth, this.bandwidth);
+          this.gl.uniform1f(this.kdeShader.windowSize, this.windowSize);
+          this.gl.uniform1f(this.kdeShader.isFirstPass, 0.0);
+          
+          scatter.quad.draw(
+            this.gl,
+            this.kdeShader,
+            this.mvMatrix,
+            this.pMatrix,
+            this.fbotex,
+            this.colorscaletex
+          );
+        }
       }
     }
   }
@@ -303,7 +308,13 @@ ScatterGL.prototype.draw = function(){
 
   //time
   //this.gl.finish();
+  //glfinish does not work (equal to glflush)
+  //to make sure everything is done by the time we measure the time, just do a readPixels, instead of glfinish
+  var pixelValues = new Uint8Array(4 * 1);
+  this.gl.readPixels(0, 0, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixelValues);
   
+  var now2 = window.performance.now();
+  console.log(now2 - now1);
 
 }
 

@@ -285,7 +285,6 @@ function changeBandwidth(value){
 
   scattermatrix.draw();
 
-
   //update slider and input
   $('#bandwidth').attr('value', value);
   $('#bandwidthslider').attr('value', value);
