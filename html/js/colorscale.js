@@ -53,7 +53,7 @@ ColorScale.prototype.setValues = function(values, isLinear){
   //console.log(texData);
 
   this.texture = this.gl.createTexture();
-  createTextureFromArray(this.gl, this.texsize, 1, this.gl.RGB, this.gl.RGB, this.gl.UNSIGNED_BYTE, this.texdata, this.texture);
+  createTextureFromArray(this.gl, this.gl.NEAREST, this.texsize, 1, this.gl.RGB, this.gl.RGB, this.gl.UNSIGNED_BYTE, this.texdata, this.texture);
 
   this.draw();
 

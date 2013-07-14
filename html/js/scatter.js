@@ -280,6 +280,11 @@ function changeColorScale(){
 
 }
 
+function changeKDEType(){
+  scattermatrix.changeKDEType($('#kdetype').prop('value'));
+  scattermatrix.draw();
+}
+
 function changeBandwidth(value){
   scattermatrix.changeBandwidth(value);
 
@@ -343,6 +348,7 @@ function initialize(){
   );
 
   changeBandwidth(0.01);
+  changeKDEType('KDE');
 
   /*
   $.post(

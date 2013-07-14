@@ -25,14 +25,14 @@ function getShader(gl, filename, isFragShader) {
   return shader;
 }
 
-function createFBO(gl, width, height, iformat, format, type, tex, fbo){
+function createFBO(gl, interpolation, width, height, iformat, format, type, tex, fbo){
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture( gl.TEXTURE_2D, tex );
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); 
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, interpolation);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, interpolation); 
 
   //gl.texImage2D( gl.TEXTURE_2D, 0, gl.ALPHA, w,h, 0, gl.ALPHA, gl.FLOAT, null );    
   gl.texImage2D(gl.TEXTURE_2D, 0, iformat, width, height, 0, format, type, null);
@@ -47,14 +47,14 @@ function createFBO(gl, width, height, iformat, format, type, tex, fbo){
 
 }
 
-function createTextureFromArray(gl, width, height, iformat, format, type, data, tex){
+function createTextureFromArray(gl, interpolation, width, height, iformat, format, type, data, tex){
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); 
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, interpolation);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, interpolation); 
 
   gl.texImage2D(gl.TEXTURE_2D, 0, iformat, width, height, 0, format, type, data);
 
@@ -65,14 +65,14 @@ function createTextureFromArray(gl, width, height, iformat, format, type, data, 
 
 }
 
-function createTextureFromImage(gl, iformat, format, type, image, tex){
+function createTextureFromImage(gl, interpolation, iformat, format, type, image, tex){
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); 
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, interpolation);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, interpolation); 
 
   gl.texImage2D(gl.TEXTURE_2D, 0, iformat, format, type, image);
 
