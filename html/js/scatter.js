@@ -320,7 +320,7 @@ function initialize(){
 
   $( "#div_bandwidthslider" ).slider({
     id: 'bandwidthslider',
-    min: 0,
+    min: 0.001,
     max: 0.2,
     step: 0.001,
     slide: function( event, ui ) {
@@ -346,7 +346,7 @@ function initialize(){
     cb_receiveDataTile
   );
 
-  changeBandwidth(0.01);
+  changeBandwidth(0.173);
   changeNumBin();
   changeWindowSize();
   changeKDEType();

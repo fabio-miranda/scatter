@@ -30,15 +30,16 @@ void main(void) {
     coord2D = vec2(vTexCoord.x + uIsFirstPass * (float(index) / uNumBins), vTexCoord.y + (1.0 - uIsFirstPass) * (float(index) / uNumBins)); //make sure to access not the next texel, but the next bin
 
 
-    if(coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
-      float value;
+    vec4 valuesi = texture2D(uSampler0, coord2D);
+    if(valuesi.r > 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
+      
       if(uIsFirstPass > 0.0)
-        value = texture2D(uSampler0, coord2D).g;
+        mean *= valuesi.g;
       else
-        value = texture2D(uSampler0, coord2D).b;
+        mean *= valuesi.b;
 
-      mean *= value;
       n++;
+      
     }
   }
 
@@ -49,7 +50,5 @@ void main(void) {
     gl_FragColor = vec4(values.r, lambda, values.b, 1); //count, lambdahoriz, fvert
   else
     gl_FragColor = vec4(values.r, values.g, lambda, 1.0); //count, lambdahoriz, lambdavert
-
-
 
 }

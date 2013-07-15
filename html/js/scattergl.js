@@ -82,9 +82,9 @@ ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimp
   this.datatiles[numrelations]['dimperimage'] = dimperimage;
   this.datatiles[numrelations][index] = new Datatile(this.gl, numrelations, image, imgsize, numdim, index, numbin, minvalue, maxvalue);
 
-  
-  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
-  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
+  //For float textures, only NEAREST is supported (http://www.khronos.org/registry/gles/extensions/OES/OES_texture_float.txt)
+  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
+  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
 }
 
 ScatterGL.prototype.addscatter = function(i, j, dim1, dim2){
