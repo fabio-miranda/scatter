@@ -21,10 +21,10 @@ float gauss(float r){
 void main(void) {
 
   vec2 coord2D = vTexCoord;
-  vec4 values = texture2D(uSampler0, coord2D); //count, lambdahoriz, lambdavert
+  vec4 values = texture2D(uSampler0, coord2D); //count, f, lambda
 
-  float sum = 0.0;
-  float sumCount = 1.0;
+  float f = 0.0;
+  float W = 1.0;
   for(int i=0;i<maxloop; i++){
     if(i >= int(uWindowSize)) break;
 
@@ -35,30 +35,36 @@ void main(void) {
     vec4 valuesi  = texture2D(uSampler0, coord2D);
     if(valuesi.r > 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
 
+      //sum += (valuesi.r * (gauss(abs(float(index) / uNumBins) * oneoverh) * oneoverh));
+      //sumCount += valuesi.r;
+
       float lamba;
       if(uIsFirstPass > 0.0){
-        lamba = valuesi.g;
+        lamba = valuesi.b;
       }
       else{
-        lamba = valuesi.b;
+        lamba = valuesi.a;
       }
 
       float h = uBandwidth * lamba;
       float oneoverh = 1.0 / h;
 
-      sum += (valuesi.r * (gauss(abs(float(index) / uNumBins) * oneoverh) * oneoverh));
-      sumCount += valuesi.r;
+      float k = gauss((float(index) / uNumBins) * oneoverh);
+      //k = valuesi.r * oneoverh * k;
+      f += k;
+      W += valuesi.r;
 
     }
   }
 
-  sum = sum / sumCount;  
+  if(uIsFirstPass <= 0.0)
+    f = (1.0 / (uBandwidth * values.b * uBandwidth * values.a * W)) * f;
 
   if(uIsFirstPass > 0.0){
-    gl_FragColor = vec4(sum, values.g, values.b, 1.0); //sum, lambdahoriz, lambdavert
+    gl_FragColor = vec4(f, values.g, values.b, values.a); //sum, f, lambdahoriz, lambdavert
   }
   else{
-    vec3 color = texture2D(uSampler1, vec2(sum  / (uMaxValue - uMinValue), 0)).xyz;
+    vec3 color = texture2D(uSampler1, vec2(f  / (uMaxValue - uMinValue), 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);
   }
 

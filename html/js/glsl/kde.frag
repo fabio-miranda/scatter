@@ -28,8 +28,8 @@ void main(void) {
   float h = uBandwidth;
   float oneoverh = 1.0 / h;
   //float x = coord2D.x;
-  float sum = 0.0;
-  float sumCount = 1.0;
+  float f = 0.0;
+  float W = 1.0;
   for(int i=0;i<maxloop; i++){
     if(i >= int(uWindowSize)) break;
 
@@ -43,18 +43,20 @@ void main(void) {
       if(uIsFirstPass > 0.0)
         counti = counti * (uMaxValue - uMinValue);
 
-      sum += (counti * (gauss(abs(float(index) / uNumBins) * oneoverh) * oneoverh));
-      sumCount += counti;
+      float k = counti * gauss((float(index) / uNumBins) * oneoverh);
+      //k = valuesi.g * oneoverh * k;
+      f += k;
+      W += counti;
     }
   }
 
-  sum = sum / sumCount;  
-
   if(uIsFirstPass > 0.0){
-    gl_FragColor = vec4(sum, sum, sum, 1);
+    f = (1.0 / (h * h * W)) * f;
+    gl_FragColor = vec4(f, f, f, 1);
   }
   else{
-    vec3 color = texture2D(uSampler1, vec2(sum  / (uMaxValue - uMinValue), 0)).xyz;
+    
+    vec3 color = texture2D(uSampler1, vec2(f * (uMaxValue - uMinValue), 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);
   }
 

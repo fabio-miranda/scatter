@@ -238,6 +238,7 @@ ScatterGL.prototype.drawAKDE = function(scatter, i, j, index2, width, height){
 
     //horizontal pass
     this.gl.viewport(0, 0, this.numbin, this.numbin);
+    //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
     this.gl.uniform1f(this.akdeShader[0].minValue, this.datatiles['2'][index2].minvalue);
     this.gl.uniform1f(this.akdeShader[0].maxValue, this.datatiles['2'][index2].maxvalue);
@@ -257,11 +258,12 @@ ScatterGL.prototype.drawAKDE = function(scatter, i, j, index2, width, height){
       null
     );
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+    //return;
 
     //vertical pass
-    this.gl.viewport(0, 0, this.numbin, this.numbin);
-    //this.gl.viewport(i*width, j*height, width, height);
-    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
+    //this.gl.viewport(0, 0, this.numbin, this.numbin);
+    this.gl.viewport(i*width, j*height, width, height);
+    //this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
     this.gl.uniform1f(this.akdeShader[0].isFirstPass, 0.0);
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -274,8 +276,8 @@ ScatterGL.prototype.drawAKDE = function(scatter, i, j, index2, width, height){
       this.fbotex1,
       null
     );
-    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
-    //return;
+    //this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+    return;
   }
 
 
@@ -306,7 +308,7 @@ ScatterGL.prototype.drawAKDE = function(scatter, i, j, index2, width, height){
     );
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
-
+    
     //vertical pass
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
@@ -325,6 +327,7 @@ ScatterGL.prototype.drawAKDE = function(scatter, i, j, index2, width, height){
     );
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
     //return;
+    
   }
 
 
