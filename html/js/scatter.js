@@ -330,7 +330,6 @@ function initialize(){
 
   scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
   initColorScale();
-  changeWindowSize();
 
   datapath = window.location.search.substring(window.location.search.indexOf('=')+1);
   
@@ -348,7 +347,9 @@ function initialize(){
   );
 
   changeBandwidth(0.01);
-  changeKDEType('KDE');
+  changeNumBin();
+  changeWindowSize();
+  changeKDEType();
 
   /*
   $.post(

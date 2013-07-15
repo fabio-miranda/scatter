@@ -61,8 +61,10 @@ function ScatterGL(canvas){
   this.initGL();
   this.initShaders();
 
-  this.fbo  = this.gl.createFramebuffer();
-  this.fbotex = this.gl.createTexture();
+  this.fbo1 = this.gl.createFramebuffer();
+  this.fbotex1 = this.gl.createTexture();
+  this.fbo2 = this.gl.createFramebuffer();
+  this.fbotex2 = this.gl.createTexture();
   //createFBO(this.gl, this.canvas.width, this.canvas.height, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.fbotex, this.fbo);
 
   this.selection = new SelectionQuad(this.gl);
@@ -81,7 +83,8 @@ ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimp
   this.datatiles[numrelations][index] = new Datatile(this.gl, numrelations, image, imgsize, numdim, index, numbin, minvalue, maxvalue);
 
   
-  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.fbotex, this.fbo);
+  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
+  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
 }
 
 ScatterGL.prototype.addscatter = function(i, j, dim1, dim2){
@@ -188,9 +191,9 @@ ScatterGL.prototype.drawKDE = function(scatter, i, j, index2, width, height){
 
   this.gl.useProgram(this.kdeShader);
 
-  //first pass
+  //horizontal pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo );
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
   this.gl.uniform1f(this.kdeShader.minValue, this.datatiles['2'][index2].minvalue);
   this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
   this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
@@ -211,13 +214,8 @@ ScatterGL.prototype.drawKDE = function(scatter, i, j, index2, width, height){
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
   //return;
 
-  //second pass 
+  //vertical pass
   this.gl.viewport(i*width, j*height, width, height);
-  this.gl.uniform1f(this.kdeShader.minValue, this.datatiles['2'][index2].minvalue);
-  this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
-  this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
-  this.gl.uniform1f(this.kdeShader.bandwidth, this.bandwidth);
-  this.gl.uniform1f(this.kdeShader.windowSize, this.windowSize);
   this.gl.uniform1f(this.kdeShader.isFirstPass, 0.0);
   
   scatter.quad.draw(
@@ -225,7 +223,7 @@ ScatterGL.prototype.drawKDE = function(scatter, i, j, index2, width, height){
     this.kdeShader,
     this.mvMatrix,
     this.pMatrix,
-    this.fbotex,
+    this.fbotex1,
     this.colorscaletex
   );
 
@@ -235,11 +233,142 @@ ScatterGL.prototype.drawKDE = function(scatter, i, j, index2, width, height){
 ScatterGL.prototype.drawAKDE = function(scatter, i, j, index2, width, height){
 
   //first pass (f)
+  {
+    this.gl.useProgram(this.akdeShader[0]);
+
+    //horizontal pass
+    this.gl.viewport(0, 0, this.numbin, this.numbin);
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+    this.gl.uniform1f(this.akdeShader[0].minValue, this.datatiles['2'][index2].minvalue);
+    this.gl.uniform1f(this.akdeShader[0].maxValue, this.datatiles['2'][index2].maxvalue);
+    this.gl.uniform1f(this.akdeShader[0].numBins, this.numbin);
+    this.gl.uniform1f(this.akdeShader[0].bandwidth, this.bandwidth);
+    this.gl.uniform1f(this.akdeShader[0].windowSize, this.windowSize);
+    this.gl.uniform1f(this.akdeShader[0].isFirstPass, 1.0);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    scatter.quad.draw(
+      this.gl,
+      this.akdeShader[0],
+      this.mvMatrix,
+      this.pMatrix,
+      this.datatiles['2'][index2].texture,
+      null
+    );
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+
+    //vertical pass
+    this.gl.viewport(0, 0, this.numbin, this.numbin);
+    //this.gl.viewport(i*width, j*height, width, height);
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
+    this.gl.uniform1f(this.akdeShader[0].isFirstPass, 0.0);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    
+    scatter.quad.draw(
+      this.gl,
+      this.akdeShader[0],
+      this.mvMatrix,
+      this.pMatrix,
+      this.fbotex1,
+      null
+    );
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+    //return;
+  }
 
 
-  //second pass (G)
+  //second pass (g)
+  {
+    this.gl.useProgram(this.akdeShader[1]);
 
-  //third pass (ˆf)
+    //horizontal pass
+    this.gl.viewport(0, 0, this.numbin, this.numbin);
+    //this.gl.viewport(i*width, j*height, width, height);
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+    this.gl.uniform1f(this.akdeShader[1].minValue, this.datatiles['2'][index2].minvalue);
+    this.gl.uniform1f(this.akdeShader[1].maxValue, this.datatiles['2'][index2].maxvalue);
+    this.gl.uniform1f(this.akdeShader[1].numBins, this.numbin);
+    this.gl.uniform1f(this.akdeShader[1].bandwidth, this.bandwidth);
+    this.gl.uniform1f(this.akdeShader[1].windowSize, this.windowSize);
+    this.gl.uniform1f(this.akdeShader[1].isFirstPass, 1.0);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    scatter.quad.draw(
+      this.gl,
+      this.akdeShader[1],
+      this.mvMatrix,
+      this.pMatrix,
+      this.fbotex2,
+      null
+    );
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+    //return;
+
+    //vertical pass
+    this.gl.viewport(0, 0, this.numbin, this.numbin);
+    //this.gl.viewport(i*width, j*height, width, height);
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
+    this.gl.uniform1f(this.akdeShader[1].isFirstPass, 0.0);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    
+    scatter.quad.draw(
+      this.gl,
+      this.akdeShader[1],
+      this.mvMatrix,
+      this.pMatrix,
+      this.fbotex1,
+      null
+    );
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
+    //return;
+  }
+
+
+  //third pass (^f)
+  {
+    this.gl.useProgram(this.akdeShader[2]);
+
+    //horizontal pass
+    this.gl.viewport(0, 0, this.numbin, this.numbin);
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+    this.gl.uniform1f(this.akdeShader[2].minValue, this.datatiles['2'][index2].minvalue);
+    this.gl.uniform1f(this.akdeShader[2].maxValue, this.datatiles['2'][index2].maxvalue);
+    this.gl.uniform1f(this.akdeShader[2].numBins, this.numbin);
+    this.gl.uniform1f(this.akdeShader[2].bandwidth, this.bandwidth);
+    this.gl.uniform1f(this.akdeShader[2].windowSize, this.windowSize);
+    this.gl.uniform1f(this.akdeShader[2].isFirstPass, 1.0);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    scatter.quad.draw(
+      this.gl,
+      this.akdeShader[2],
+      this.mvMatrix,
+      this.pMatrix,
+      this.fbotex2,
+      null
+    );
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+
+    //vertical pass
+    this.gl.viewport(i*width, j*height, width, height);
+    this.gl.uniform1f(this.akdeShader[2].isFirstPass, 0.0);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    
+    scatter.quad.draw(
+      this.gl,
+      this.akdeShader[2],
+      this.mvMatrix,
+      this.pMatrix,
+      this.fbotex1,
+      this.colorscaletex
+    );
+  }
 
 }
 
@@ -412,7 +541,7 @@ ScatterGL.prototype.initShaders = function(){
 
   //akde
   this.akdeShader = [];
-  for(var i=1; i<=3; i++){
+  for(var i=0; i<3; i++){
 
     var fragmentShader = getShader(this.gl, "./js/glsl/akde"+i+".frag", true);
     var vertexShader = getShader(this.gl, "./js/glsl/simple.vert", false);
@@ -583,7 +712,12 @@ ScatterGL.prototype.initGL = function(){
   this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
   //this.gl.clearColor(1, 0, 0, 1);
 
+  var float_texture_ext = this.gl.getExtension('OES_texture_float');
+
   if (!this.gl){
     alert("Could not initialise Webgl.");
+  }
+  if(!float_texture_ext){
+    alert("OES_texture_float not supported.");
   }
 }
