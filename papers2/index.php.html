@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" dir="ltr" lang="en"><head>
+
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7"> 
+
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="keywords" content="Tree representation of images,Cell decomposition of images,Center of mass,Color images,Connected components,Connectedness,Continuous functions,Counting,Cycles,Graph representation of color images,Gray scale function">
+<link rel="shortcut icon" href="http://inperc.com/wiki/favicon.ico">
+<link rel="copyright" href="http://inperc.com/wiki/index.php?title=Copyright">
+		<title>Tree representation of images - Intelligent Perception</title>
+		<style type="text/css" media="screen,projection">/*<![CDATA[*/ @import "/wiki/skins/monobook/main.css?7"; /*]]>*/</style>
+		<link rel="stylesheet" type="text/css" media="print" href="index.php_files/commonPrint.css">
+		<!--[if lt IE 5.5000]><style type="text/css">@import "/wiki/skins/monobook/IE50Fixes.css";</style><![endif]-->
+		<!--[if IE 5.5000]><style type="text/css">@import "/wiki/skins/monobook/IE55Fixes.css";</style><![endif]-->
+		<!--[if IE 6]><style type="text/css">@import "/wiki/skins/monobook/IE60Fixes.css";</style><![endif]-->
+		<!--[if IE 7]><style type="text/css">@import "/wiki/skins/monobook/IE70Fixes.css?1";</style><![endif]-->
+		<!--[if lt IE 7]><script type="text/javascript" src="/wiki/skins/common/IEFixes.js"></script>
+		<meta http-equiv="imagetoolbar" content="no" /><![endif]-->
+		<script type="text/javascript">var skin = 'monobook';var stylepath = '/wiki/skins';</script>
+		<script type="text/javascript" src="index.php_files/wikibits.js"><!-- wikibits js --></script>
+		<script type="text/javascript" src="index.php_files/index.js"><!-- site js --></script>
+		<style type="text/css">/*<![CDATA[*/
+@import "/wiki/index.php?title=MediaWiki:Common.css&action=raw&ctype=text/css&smaxage=18000";
+@import "/wiki/index.php?title=MediaWiki:Monobook.css&action=raw&ctype=text/css&smaxage=18000";
+@import "/wiki/index.php?title=-&action=raw&gen=css&maxage=18000";
+/*]]>*/</style>
+		<!-- Head Scripts -->
+		
+
+
+<script type="text/javascript" src="index.php_files/MathJax.js"></script>
+
+
+	<style type="text/css">#MathJax_Message {position: fixed; left: 1px; bottom: 2px; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style></head>
+<body class="ns-0 ltr"><div style="display: none;" id="MathJax_Message"></div>
+	<div id="globalWrapper">
+		<div id="column-content">
+	<div id="content">
+		<a name="top" id="top"></a>
+		<div id="siteNotice"><p>This site contains: <a href="http://inperc.com/wiki/index.php?title=Category:Courses" title="Category:Courses">mathematics courses</a> and <a href="http://inperc.com/wiki/index.php?title=Applied_Topology_and_Geometry" title="Applied Topology and Geometry">book</a>; covers: <a href="http://inperc.com/wiki/index.php?title=Category:Image_analysis" title="Category:Image analysis">image analysis</a>, <a href="http://inperc.com/wiki/index.php?title=Category:Data_analysis" title="Category:Data analysis">data analysis</a>, and <a href="http://inperc.com/wiki/index.php?title=Computational_science_training:_2012" title="Computational science training: 2012">discrete modelling</a>; provides: <a href="http://inperc.com/wiki/index.php?title=Category:Applications" title="Category:Applications">image analysis software</a>. Created and run by <a href="http://inperc.com/wiki/index.php?title=Peter_Saveliev" title="Peter Saveliev">Peter Saveliev</a>.
+</p></div>		<h1 class="firstHeading">Tree representation of images</h1>
+		<div id="bodyContent">
+			<h3 id="siteSub">From Intelligent Perception</h3>
+			<div id="contentSub">(Redirected from <a href="http://inperc.com/wiki/index.php?title=Graph_representation_of_images&amp;redirect=no" title="Graph representation of images">Graph representation of images</a>)</div>
+									<div id="jump-to-nav">Jump to: <a href="#column-one">navigation</a>, <a href="#searchInput">search</a></div>			<!-- start content -->
+			<p>More precisely, it's about tree representation of the <i><a href="http://inperc.com/wiki/index.php?title=Topology" title="Topology">topology</a></i> of images...
+</p><p>We address here the issue of image segmentation of binary and 
+gray scale images. The scientific foundation of the proposed method is <a href="http://inperc.com/wiki/index.php?title=Topology" title="Topology">topology</a>, the science of <a href="http://inperc.com/wiki/index.php?title=Continuous_functions" title="Continuous functions">continuity</a> and <a href="http://inperc.com/wiki/index.php?title=Connectedness" title="Connectedness">connectedness</a>. 
+</p>
+<table id="toc" class="toc" summary="Contents"><tbody><tr><td><div id="toctitle"><h2>Contents</h2> <span class="toctoggle">[<a href="javascript:toggleToc()" class="internal" id="togglelink">hide</a>]</span></div>
+<ul>
+<li class="toclevel-1"><a href="#Introduction"><span class="tocnumber">1</span> <span class="toctext">Introduction</span></a></li>
+<li class="toclevel-1"><a href="#Inclusion_tree"><span class="tocnumber">2</span> <span class="toctext">Inclusion tree</span></a></li>
+<li class="toclevel-1"><a href="#Combined_inclusion_tree"><span class="tocnumber">3</span> <span class="toctext">Combined inclusion tree</span></a></li>
+<li class="toclevel-1"><a href="#The_topology_graph_of_the_image"><span class="tocnumber">4</span> <span class="toctext">The topology graph of the image</span></a></li>
+<li class="toclevel-1"><a href="#Other_methods"><span class="tocnumber">5</span> <span class="toctext">Other methods</span></a></li>
+</ul>
+</td></tr></tbody></table><script type="text/javascript"> if (window.showTocToggle) { var tocShowText = "show"; var tocHideText = "hide"; showTocToggle(); } </script>
+<div class="editsection" style="float:right;margin-left:5px;">[<a href="http://inperc.com/wiki/index.php?title=Tree_representation_of_images&amp;action=edit&amp;section=1" title="Edit section: Introduction">edit</a>]</div><a name="Introduction"></a><h2>1 Introduction</h2>
+<p>The <a href="http://inperc.com/wiki/index.php?title=Topological_features_of_images" title="Topological features of images">topological analysis</a> is intended to reveal the most basic things about the image: how many <a href="http://inperc.com/wiki/index.php?title=Connected_components" title="Connected components">connected components</a> are present, which ones have <a href="http://inperc.com/wiki/index.php?title=Holes" title="Holes">holes</a> and how many, i.e., <a href="http://inperc.com/wiki/index.php?title=Counting" title="Counting">counting</a>. It is also a part of the analysis to capture these topological features. The next stage is geometric: <a href="http://inperc.com/wiki/index.php?title=Measuring" title="Measuring">measuring</a> them and finding their <a href="http://inperc.com/wiki/index.php?title=Center_of_mass" title="Center of mass">locations</a>. With this data, it may be possible to understand the content of the image.
+</p><p>We use the tools that are standard in the discipline. The first tool is <a href="http://inperc.com/wiki/index.php?title=Cell_decomposition_of_images" title="Cell decomposition of images">cell decomposition of images</a>: the image is represented as a combination of pixels as well as their edges and vertices. The second tool is <a href="http://inperc.com/wiki/index.php?title=Cycles" title="Cycles">cycles</a>: both the connected components and the holes are captured by circular sequences of edges.
+</p><p>The challenge is that these topological tools have not been commonly applied in the analysis of <a href="http://inperc.com/wiki/index.php?title=Gray_scale_images" title="Gray scale images">gray scale images</a>.
+ For example, while in binary images the meaning of connected components
+ is clear, for gray scale images, a “connected component” should be a 
+dark region surrounded by a lighter area. In other words, it is a <a href="http://inperc.com/wiki/index.php?title=Upper_and_lower_level_sets" title="Upper and lower level sets">lower level set</a> of the <a href="http://inperc.com/wiki/index.php?title=Gray_scale_function" title="Gray scale function">gray scale function</a>. To deal with the multitude of lower level sets we record them in a <a href="http://inperc.com/wiki/index.php?title=Tree" title="Tree">tree</a>.  This graph captures the inclusion hierarchy among the lower level sets. It may be called the <a href="http://inperc.com/wiki/index.php?title=Inclusion_tree" title="Inclusion tree">inclusion tree</a>.
+ A similar data structure is created for the holes (with the upper level
+ sets). Combined these two graphs represent the topology of the image, 
+the <a href="http://inperc.com/wiki/index.php?title=Topology_graph" title="Topology graph">topology graph</a>. It is the foundation of the image analysis algorithm of <a href="http://inperc.com/wiki/index.php?title=Pixcavator" title="Pixcavator">Pixcavator</a>. 
+</p><p>The <a href="http://inperc.com/wiki/index.php?title=Connected_components" title="Connected components">connected components</a> of <a href="http://inperc.com/wiki/index.php?title=Upper_and_lower_level_sets" title="Upper and lower level sets">upper and lower level sets</a> of the <a href="http://inperc.com/wiki/index.php?title=Gray_scale_function" title="Gray scale function">gray scale function</a> are building blocks of <a href="http://inperc.com/wiki/index.php?title=Image_segmentation" title="Image segmentation">segmentation</a>.
+</p><p>The idea is that it is unlikely that a boundary of a real object 
+depicted in the image cutting through upper or lower level sets. 
+However, one can imagine a picture with bald spot merging with the sky 
+behind.
+</p>
+<div class="editsection" style="float:right;margin-left:5px;">[<a href="http://inperc.com/wiki/index.php?title=Tree_representation_of_images&amp;action=edit&amp;section=2" title="Edit section: Inclusion tree">edit</a>]</div><a name="Inclusion_tree"></a><h2>2 Inclusion tree</h2>
+<p>The connected components of the lower level sets have a clear 
+hierarchy based on inclusion. This hierarchy provides a graph 
+representation of the topology of the image. 
+</p>
+<div class="thumb tleft"><div style="width:152px;"><a href="http://inperc.com/wiki/index.php?title=Image:Blurred_circle.jpg" class="internal" title="First the original image – just a blurred black circle. "><img src="index.php_files/150px-Blurred_circle.jpg" alt="First the original image – just a blurred black circle. " longdesc="/wiki/index.php?title=Image:Blurred_circle.jpg" height="150" width="150"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Blurred_circle.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>First the original image – just a blurred black circle. </div></div></div> <div class="thumb tleft"><div style="width:152px;"><a href="http://inperc.com/wiki/index.php?title=Image:Blurred_circle_contours.jpg" class="internal" title="Second, its level curves, with the lower level sets inside. "><img src="index.php_files/150px-Blurred_circle_contours.jpg" alt="Second, its level curves, with the lower level sets inside. " longdesc="/wiki/index.php?title=Image:Blurred_circle_contours.jpg" height="150" width="150"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Blurred_circle_contours.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>Second, its level curves, with the lower level sets inside. </div></div></div> <div class="thumb tleft"><div style="width:302px;"><a href="http://inperc.com/wiki/index.php?title=Image:Blurred_circle_inclusion_tree.jpg" class="internal" title="Third, they are ordered by inclusion and this fact is reflected in the structure of the tree."><img src="index.php_files/300px-Blurred_circle_inclusion_tree.jpg" alt="Third, they are ordered by inclusion and this fact is reflected in the structure of the tree." longdesc="/wiki/index.php?title=Image:Blurred_circle_inclusion_tree.jpg" height="216" width="300"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Blurred_circle_inclusion_tree.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>Third, they are ordered by inclusion and this fact is reflected in the structure of the tree.</div></div></div>
+<p><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+</p><p>Such an arrangement of sets is represented by an <a href="http://inperc.com/wiki/index.php?title=Inclusion_tree" title="Inclusion tree">inclusion tree</a>. In general the inclusion tree of an image may be complex.
+</p>
+<div class="center"><div class="thumb tnone"><div style="width:452px;"><a href="http://inperc.com/wiki/index.php?title=Image:Inclusion_tree.jpg" class="internal" title="Possible inclusion trees for the lower (left) and upper (right) level sets. "><img src="index.php_files/450px-Inclusion_tree.jpg" alt="Possible inclusion trees for the lower (left) and upper (right) level sets. " longdesc="/wiki/index.php?title=Image:Inclusion_tree.jpg" height="186" width="450"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Inclusion_tree.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>Possible inclusion trees for the lower (left) and upper (right) level sets. </div></div></div></div>
+<p>Similar analysis applies to upper level sets – light holes in dark components. See also <strong>Tree representation of images</strong>.
+</p>
+<div class="thumb tleft"><div style="width:152px;"><a href="http://inperc.com/wiki/index.php?title=Image:Blurred_circle_lower.jpg" class="internal" title="An example of an lower level set. "><img src="index.php_files/150px-Blurred_circle_lower.jpg" alt="An example of an lower level set. " longdesc="/wiki/index.php?title=Image:Blurred_circle_lower.jpg" height="150" width="150"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Blurred_circle_lower.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>An example of an lower level set. </div></div></div>
+<div class="thumb tleft"><div style="width:152px;"><a href="http://inperc.com/wiki/index.php?title=Image:Blurred_circle_upper.jpg" class="internal" title="An example of an lower level set. "><img src="index.php_files/150px-Blurred_circle_upper.jpg" alt="An example of an lower level set. " longdesc="/wiki/index.php?title=Image:Blurred_circle_upper.jpg" height="150" width="150"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Blurred_circle_upper.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>An example of an lower level set. </div></div></div>
+<div class="floatright"><span><a href="http://inperc.com/wiki/index.php?title=Image:Lower_and_upper_level_inclusion_trees.png" class="image" title=""><img src="index.php_files/300px-Lower_and_upper_level_inclusion_trees.png" alt="" longdesc="/wiki/index.php?title=Image:Lower_and_upper_level_inclusion_trees.png" height="225" width="300"></a></span></div>
+<p>The problem with inclusion trees: The inclusion trees for upper and 
+lower level sets, if considered separately, do not help in finding out 
+which object has which hole. Therefore, in order to capture the topology
+ of the image (with holes), the two trees have to be combined in some 
+way.
+</p><p><br><br><br><br>
+</p>
+<div class="editsection" style="float:right;margin-left:5px;">[<a href="http://inperc.com/wiki/index.php?title=Tree_representation_of_images&amp;action=edit&amp;section=3" title="Edit section: Combined inclusion tree">edit</a>]</div><a name="Combined_inclusion_tree"></a><h2>3 Combined inclusion tree</h2>
+<div class="thumb tleft"><div style="width:152px;"><a href="http://inperc.com/wiki/index.php?title=Image:Ring_blurred.jpg" class="internal" title="An image of a blurred ring. "><img src="index.php_files/150px-Ring_blurred.jpg" alt="An image of a blurred ring. " longdesc="/wiki/index.php?title=Image:Ring_blurred.jpg" height="131" width="150"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Ring_blurred.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>An image of a blurred ring. </div></div></div> 
+<div class="thumb tleft"><div style="width:152px;"><a href="http://inperc.com/wiki/index.php?title=Image:Ring_blurred_contours.jpg" class="internal" title="Blurred ring with contours. "><img src="index.php_files/150px-Ring_blurred_contours.jpg" alt="Blurred ring with contours. " longdesc="/wiki/index.php?title=Image:Ring_blurred_contours.jpg" height="131" width="150"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Ring_blurred_contours.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>Blurred ring with contours. </div></div></div>
+<div class="thumb tright"><div style="width:102px;"><a href="http://inperc.com/wiki/index.php?title=Image:Ring_blurred_combined_tree.jpg" class="internal" title="The combined inclusion tree for the blurred ring. "><img src="index.php_files/100px-Ring_blurred_combined_tree.jpg" alt="The combined inclusion tree for the blurred ring. " longdesc="/wiki/index.php?title=Image:Ring_blurred_combined_tree.jpg" height="307" width="100"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Ring_blurred_combined_tree.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>The combined inclusion tree for the blurred ring. </div></div></div>
+<p><a href="http://inperc.com/wiki/index.php?title=Level_set" title="Level set">Level set</a> are the boundaries of the upper and lower level sets. The <a href="http://inperc.com/wiki/index.php?title=Jordan_Theorem" title="Jordan Theorem">Jordan Theorem</a> implies that a component of a <a href="http://inperc.com/wiki/index.php?title=Level_set" title="Level set">level set</a>
+ encircles or is encircled by components of other level sets. Then the 
+outer borders of the lower and upper level sets are still ordered and 
+the result is a tree.
+</p><p>For example: P. Monasse and F. Guichard, Fast computation of a 
+contrast invariant image representation. IEEE Transactions on Image 
+Processing, 9(5), pp. 860–872, 2000.  
+</p><p><br>
+</p><p><br>
+</p><p><br>
+</p><p><br>
+</p><p><br>
+</p><p><br>
+</p><p><br>
+</p>
+<div class="center"><div class="thumb tnone"><div style="width:452px;"><a href="http://inperc.com/wiki/index.php?title=Image:Combined_inclusion_tree.jpg" class="internal" title="How the combined inclusion tree is built from the two inclusion trees. "><img src="index.php_files/450px-Combined_inclusion_tree.jpg" alt="How the combined inclusion tree is built from the two inclusion trees. " longdesc="/wiki/index.php?title=Image:Combined_inclusion_tree.jpg" height="126" width="450"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Combined_inclusion_tree.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>How the combined inclusion tree is built from the two inclusion trees. </div></div></div></div>  
+<p>This is how the lower and upper level trees are normally merged. There are drawbacks for this approach.
+</p>
+<ul><li>The lower level sets are mixed with the upper level sets. 
+</li><li>The gray levels are also mixed.
+</li></ul>
+<div class="editsection" style="float:right;margin-left:5px;">[<a href="http://inperc.com/wiki/index.php?title=Tree_representation_of_images&amp;action=edit&amp;section=4" title="Edit section: The topology graph of the image">edit</a>]</div><a name="The_topology_graph_of_the_image"></a><h2>4 The topology graph of the image</h2>
+<p>There is an alternative way to combine the inclusion trees.
+</p>
+<div class="center"><div class="thumb tnone"><div style="width:552px;"><a href="http://inperc.com/wiki/index.php?title=Image:Inclusion_trees_combined_into_topology_graph.jpg" class="internal" title="How the topology graph is built from the two inclusion trees: turn the latter upside down and attach along the levels. "><img src="index.php_files/550px-Inclusion_trees_combined_into_topology_graph.jpg" alt="How the topology graph is built from the two inclusion trees: turn the latter upside down and attach along the levels. " longdesc="/wiki/index.php?title=Image:Inclusion_trees_combined_into_topology_graph.jpg" height="177" width="550"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Inclusion_trees_combined_into_topology_graph.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>How the topology graph is built from the two inclusion trees: turn the latter upside down and attach along the levels. </div></div></div></div> 
+<p>The upper level tree is turned upside down and attached to the lower 
+level tree – along the aligned layers corresponding to the gray levels. 
+(Reminds slightly of the structure of the DNA.)
+</p><p>Differences:
+</p>
+<ul><li>The lower and upper inclusion trees remain intact within the graph.
+</li><li>The graph breaks into layers that coincide with the topology graphs of the binary images obtained via <a href="http://inperc.com/wiki/index.php?title=Thresholding" title="Thresholding">thresholding</a>.
+</li><li>The topology graph is not a <a href="http://inperc.com/wiki/index.php?title=Tree" title="Tree">tree</a> in general.
+</li></ul>
+<p>For more details see <a href="http://inperc.com/wiki/index.php?title=Topology_graph" title="Topology graph">Topology graph</a>. See also <a href="http://inperc.com/wiki/index.php?title=Graph_representation_of_color_images" title="Graph representation of color images">Graph representation of color images</a>.
+</p><p><br>
+</p>
+<div class="editsection" style="float:right;margin-left:5px;">[<a href="http://inperc.com/wiki/index.php?title=Tree_representation_of_images&amp;action=edit&amp;section=5" title="Edit section: Other methods">edit</a>]</div><a name="Other_methods"></a><h2>5 Other methods</h2>
+<div class="thumb tright"><div style="width:214px;"><a href="http://inperc.com/wiki/index.php?title=Image:Bangham-graph.jpg" class="internal" title="An image and its scale tree."><img src="index.php_files/Bangham-graph.jpg" alt="An image and its scale tree." longdesc="/wiki/index.php?title=Image:Bangham-graph.jpg" height="197" width="212"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Bangham-graph.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>An image and its scale tree.</div></div></div>
+<div class="thumb tright"><div style="width:215px;"><a href="http://inperc.com/wiki/index.php?title=Image:Bangham-frgr.jpg" class="internal" title="The topology graph for the image. The objects are: mouth E (black), head B (gray), eyes C and D, entire image A (white)."><img src="index.php_files/Bangham-frgr.jpg" alt="The topology graph for the image. The objects are: mouth E (black), head B (gray), eyes C and D, entire image A (white)." longdesc="/wiki/index.php?title=Image:Bangham-frgr.jpg" height="91" width="213"></a>  <div class="thumbcaption"><div class="magnify" style="float:right"><a href="http://inperc.com/wiki/index.php?title=Image:Bangham-frgr.jpg" class="internal" title="Enlarge"><img src="index.php_files/magnify-clip.png" alt="Enlarge" height="11" width="15"></a></div>The topology graph for the image. The objects are: mouth E (black), head B (gray), eyes C and D, entire image A (white).</div></div></div>
+<p>There are a few papers on this subject. One of them has an especially simple example:</p>
+<p>J. Andrew Bangham, J. R. Hidalgo, Richard Harvey, Gavin C. Cawley, <i>The Segmentation of Images via Scale-Space Trees</i>, British Machine Vision Conference, 1998.</p>
+<p>Their algorithm (called "sieve") produces a tree decomposition of 
+gray scale images as follows. It cuts (simultaneously!) minima and 
+maxima of the gray scale function - slice by slice. The result is a 
+hierarchy of objects (called "granulas") that is recorded as a tree. 
+Their example is below.</p>
+<p>This tree may resemble the <a href="http://inperc.com/wiki/index.php?title=Topology_graph" title="Topology graph">topology graph</a> – until you build one. This is what it looks like. Here the gray scale levels run from 0 (E) to 255 (A).</p>
+<p>Generally, the topology graph isn't a tree (try the negative of this 
+image). This comes as a consequence of treating light and dark objects 
+(maxima and minima) separately and independently. Indeed, dark objects 
+may merge or light objects may split etc as you go up the gray levels.</p>
+<p>There are other issues. First, the central (in my view) question of what is <a href="http://inperc.com/wiki/index.php?title=Objects_in_gray_scale_images" title="Objects in gray scale images">object in a gray scale  image</a>
+ and how to count them isn’t addressed in this and related papers. 
+Second, the approach is only partially applicable to 3D images as there 
+is no way of capturing tunnels without <a href="http://inperc.com/wiki/index.php?title=Homology" title="Homology">homology</a>. Third, it is unclear how this approach can be applied to <a href="http://inperc.com/wiki/index.php?title=Color_images" title="Color images">color images</a>. As for <a href="http://inperc.com/wiki/index.php?title=Image_simplification" title="Image simplification">Image simplification</a>, since it is carried out via the sieve, the granule removal is based on size only.</p>
+<p>In spite of the differences the testing presented in this paper validates our approach.
+</p>
+<!-- Saved in parser cache with key wikidb:pcache:idhash:2675-0!1!0!0!1!en!2 and timestamp 20130702011354 -->
+<div class="printfooter">
+Retrieved from "<a href="http://inperc.com/wiki/index.php?title=Tree_representation_of_images">http://inperc.com/wiki/index.php?title=Tree_representation_of_images</a>"</div>
+			<div id="catlinks"><p class="catlinks"><a href="http://inperc.com/wiki/index.php?title=Special:Categories&amp;article=Tree_representation_of_images" title="Special:Categories">Categories</a>: <span dir="ltr"><a href="http://inperc.com/wiki/index.php?title=Category:Image_analysis" title="Category:Image analysis">Image analysis</a></span> | <span dir="ltr"><a href="http://inperc.com/wiki/index.php?title=Category:Topology" title="Category:Topology">Topology</a></span> | <span dir="ltr"><a href="http://inperc.com/wiki/index.php?title=Category:Algorithms" title="Category:Algorithms">Algorithms</a></span> | <span dir="ltr"><a href="http://inperc.com/wiki/index.php?title=Category:Discussion" title="Category:Discussion">Discussion</a></span></p></div>			<!-- end content -->
+			<div class="visualClear"></div>
+		</div>
+	</div>
+		</div>
+		<div id="column-one">
+	<div id="p-cactions" class="portlet">
+		<h5>Views</h5>
+		<ul>
+				 <li id="ca-nstab-main" class="selected"><a title="View the content page [alt-c]" accesskey="c" href="http://inperc.com/wiki/index.php?title=Tree_representation_of_images">Article</a></li>
+				 <li id="ca-talk" class="new"><a title="Discussion about the content page [alt-t]" accesskey="t" href="http://inperc.com/wiki/index.php?title=Talk:Tree_representation_of_images&amp;action=edit">Discussion</a></li>
+				 <li id="ca-viewsource"><a title="This page is protected. You can view its source. [alt-e]" accesskey="e" href="http://inperc.com/wiki/index.php?title=Tree_representation_of_images&amp;action=edit">View source</a></li>
+		</ul>
+	</div>
+	<div class="portlet" id="p-personal">
+		<h5>Personal tools</h5>
+		<div class="pBody">
+			<ul>
+				<li id="pt-login"><a title="You are encouraged to log in, it is not mandatory however. [alt-o]" accesskey="o" href="http://inperc.com/wiki/index.php?title=Special:Userlogin&amp;returnto=Tree_representation_of_images">Log in to your account. To create a new account, contact me by email.</a></li>
+			</ul>
+		</div>
+	</div>
+	<div title="Main Page" class="portlet" id="p-logo">
+		<a title="Intelligent Perception" style="background-image: url(/wiki/skins/common/images/wiki.png);" href="http://inperc.com/"> 
+			 </a>
+	</div>
+	<script type="text/javascript"> if (window.isMSIE55) fixalpha(); </script>
+		<div class="portlet" id="p-navigation">
+		<h5>Navigation</h5>
+		<div class="pBody">
+			<ul>
+				<li id="n-Home"><a href="http://inperc.com/wiki/index.php?title=Math._Images._Software.">Home</a></li>
+				<li id="n-Courses"><a href="http://inperc.com/wiki/index.php?title=Home_of_Math">Courses</a></li>
+				<li id="n-Applied-topology"><a href="http://inperc.com/wiki/index.php?title=Applied_Topology_and_Geometry">Applied topology</a></li>
+				<li id="n-Discrete-calculus"><a href="http://inperc.com/wiki/index.php?title=Discrete_Calculus._An_Introduction">Discrete calculus</a></li>
+				<li id="n-Software"><a href="http://inperc.com/wiki/index.php?title=Image_analysis">Software</a></li>
+				<li id="n-Image-analysis"><a href="http://inperc.com/wiki/index.php?title=Examples_of_image_analysis">Image analysis</a></li>
+				<li id="n-About"><a href="http://inperc.com/wiki/index.php?title=Peter_Saveliev">About</a></li>
+			</ul>
+		</div>
+	</div>
+		<div id="p-search" class="portlet">
+		<h5><label for="searchInput">Search</label></h5>
+		<div id="searchBody" class="pBody">
+			<form action="/wiki/index.php?title=Special:Search" id="searchform"><div>
+				<input id="searchInput" name="search" accesskey="f" type="text">
+				<input name="go" class="searchButton" id="searchGoButton" value="Go" type="submit">&nbsp;
+				<input name="fulltext" class="searchButton" value="Search" type="submit">
+			</div></form>
+		</div>
+	</div>
+	<div class="portlet" id="p-tb">
+		<h5>Toolbox</h5>
+		<div class="pBody">
+			<ul>
+				<li id="t-whatlinkshere"><a title="List of all wiki pages that link here [alt-j]" accesskey="j" href="http://inperc.com/wiki/index.php?title=Special:Whatlinkshere/Tree_representation_of_images">What links here</a></li>
+				<li id="t-recentchangeslinked"><a title="Recent changes in pages linked from this page [alt-k]" accesskey="k" href="http://inperc.com/wiki/index.php?title=Special:Recentchangeslinked/Tree_representation_of_images">Related changes</a></li>
+<li id="t-upload"><a title="Upload images or media files [alt-u]" accesskey="u" href="http://inperc.com/wiki/index.php?title=Special:Upload">Upload file</a></li>
+<li id="t-specialpages"><a title="List of all special pages [alt-q]" accesskey="q" href="http://inperc.com/wiki/index.php?title=Special:Specialpages">Special pages</a></li>
+				<li id="t-print"><a href="http://inperc.com/wiki/index.php?title=Tree_representation_of_images&amp;printable=yes">Printable version</a></li>				<li id="t-permalink"><a href="http://inperc.com/wiki/index.php?title=Tree_representation_of_images&amp;oldid=10051">Permanent link</a></li>			</ul>
+		</div>
+	</div>
+		</div><!-- end of the left (by default at least) column -->
+			<div class="visualClear"></div>
+			<div id="footer">
+				<div id="f-poweredbyico"><a href="http://www.mediawiki.org/"><img src="index.php_files/poweredby_mediawiki_88x31.png" alt="MediaWiki"></a></div>
+			<ul id="f-list">
+				<li id="lastmod"> This page was last modified 18:45, 9 February 2011.</li>
+				<li id="viewcount">This page has been accessed 1,795 times.</li>
+				<li id="copyright"><p>© Copyright 2007-2010 Peter Saveliev and 
+Intelligent Perception. No part of this website may be reproduced, 
+distributed, performed, publicly displayed, or made into a derivative 
+work without the explicit permission of Peter Saveliev.</p></li>
+				<li id="privacy"><a href="http://inperc.com/wiki/index.php?title=Intelligent_Perception:Privacy_policy" title="Intelligent Perception:Privacy policy">Privacy policy</a></li>
+				<li id="about"><a href="http://inperc.com/wiki/index.php?title=Intelligent_Perception:About" title="Intelligent Perception:About">About Intelligent Perception</a></li>
+				<li id="disclaimer"><a href="http://inperc.com/wiki/index.php?title=Intelligent_Perception:General_disclaimer" title="Intelligent Perception:General disclaimer">Disclaimers</a></li>
+			</ul>
+		</div>
+	<script type="text/javascript"> if (window.runOnloadHook) runOnloadHook();</script>
+</div>
+<!-- Served by inperc.com in 0.49 secs. -->
+
+</body></html>
