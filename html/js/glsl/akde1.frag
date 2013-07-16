@@ -6,6 +6,7 @@ uniform float uMinValue;
 uniform float uMaxValue;
 uniform float uNumBins;
 uniform float uWindowSize;
+uniform float uNumPoints;
 uniform float uIsFirstPass;
 
 const int maxloop = 50000;
@@ -13,12 +14,11 @@ const int maxloop = 50000;
 void main(void) {
 
   vec2 coord2D = vTexCoord;
-  vec4 values  = texture2D(uSampler0, coord2D); //count, f
+  vec4 values  = texture2D(uSampler0, coord2D); //f
 
-  float f = values.g;
-
-  float mean = 1.0;
+  float f = values.r;
   float n = 0.0;
+  float mean = 1.0;
   for(int i=0;i<maxloop; i++){
     if(i >= int(uWindowSize)) break;
 

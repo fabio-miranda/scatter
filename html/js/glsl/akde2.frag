@@ -7,6 +7,7 @@ uniform float uMinValue;
 uniform float uMaxValue;
 uniform float uNumBins;
 uniform float uWindowSize;
+uniform float uNumPoints;
 uniform float uIsFirstPass;
 uniform float uBandwidth;
 
