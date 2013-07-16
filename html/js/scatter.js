@@ -346,7 +346,7 @@ function initialize(){
     cb_receiveDataTile
   );
 
-  changeBandwidth(0.173);
+  changeBandwidth(0.052);
   changeNumBin();
   changeWindowSize();
   changeKDEType();

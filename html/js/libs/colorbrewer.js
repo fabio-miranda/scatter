@@ -1,5 +1,8 @@
 // This product includes color specifications and designs developed by Cynthia Brewer (http://colorbrewer.org/).
-var colorbrewer = {YlGn: {
+var colorbrewer = {
+BlackToWhite: {
+3: ["#000000", "#7F7F7F", "#ffffff"]
+},YlGn: {
 3: ["#f7fcb9","#addd8e","#31a354"],
 4: ["#ffffcc","#c2e699","#78c679","#238443"],
 5: ["#ffffcc","#c2e699","#78c679","#31a354","#006837"],

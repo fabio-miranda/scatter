@@ -24,6 +24,11 @@ void main(void) {
 
   vec2 coord2D = vTexCoord;
 
+  float count;
+  count = texture2D(uSampler0, coord2D).g;
+  if(uIsFirstPass > 0.0)
+    count = count * (uMaxValue - uMinValue);
+
 
   float h = uBandwidth;
   float oneoverh = 1.0 / h;
@@ -43,21 +48,48 @@ void main(void) {
       if(uIsFirstPass > 0.0)
         counti = counti * (uMaxValue - uMinValue);
 
-      float k = counti * gauss((float(index) / uNumBins) * oneoverh);
+      float gaus = gauss((float(index) / uNumBins) * oneoverh);
+      //float k = counti * gaus;
       //k = valuesi.g * oneoverh * k;
-      f += k;
-      W += counti;
+      //f += k;
+      //W += counti * gaus;
+      f+=gaus;
     }
   }
 
+  //f = (1.0 / (W)) * f;
   if(uIsFirstPass > 0.0){
-    f = (1.0 / (h * h * W)) * f;
+    //if(W > 0.0)
+      //f = (1.0 / (W)) * f;
+    //else
+      //f = texture2D(uSampler0, coord2D).r;
+    //f = (1.0 / (75.0)) * f;
+    //f = (1.0 / (12.0 * h)) * f;
+    //f = (1.0 / (150.0)) * f;
+    //f = f * (uMaxValue - uMinValue);
     gl_FragColor = vec4(f, f, f, 1);
   }
   else{
     
-    vec3 color = texture2D(uSampler1, vec2(f * (uMaxValue - uMinValue), 0)).xyz;
+    //if(W > 0.0)
+      //f = (1.0 / (W)) * f;
+    //else
+      //f = texture2D(uSampler0, coord2D).r;
+    //f = (1.0 / (150.0)) * f;
+    //f = f / 2.0;
+    //f = f / (uMaxValue - uMinValue);
+    vec3 color = texture2D(uSampler1, vec2(f, 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);
+    //f = (1.0 / (150.0)) * f;
+    //f = f * 2.0;
+    //return;
+    if(f > 1.0)
+      gl_FragColor = vec4(1.0, 0, 0, 1.0);
+    else{
+      //f = f * 2.0;
+      gl_FragColor = vec4(f, f, f, 1.0);
+    }
+    
   }
 
 
