@@ -39,6 +39,7 @@ class ScatterPage:
     data['firsttime'] = firsttime
 
     f = open(datapath+'/info.txt', 'r')
+    numentries = int(f.readline())
     numdim = int(f.readline())
     dimperimage = int(f.readline())
     f.close()
@@ -67,6 +68,7 @@ class ScatterPage:
     data['width'] = width
     data['height'] = height
 
+    data['numentries'] = int(numentries)
     data['numdim'] = int(fnumdim)
     data['numbin'] = int(numbinscatter)
     data['dimperimage'] = int(dimperimage)

@@ -559,6 +559,7 @@ int main(int argc, char* argv[]){
     char filenametxt[100];
     snprintf(filenametxt, 100, "%s/info.txt", outputdir);
     file = fopen(filenametxt,"w+");
+    fprintf(file,"%d\n",numentries); //numentries
     fprintf(file,"%d\n",numdim); //numdim
     fprintf(file,"%d\n",dimperimage); //dimperimage (2)
     fprintf(file,"%d\n",dimperimage); //dimperimage (4)

@@ -17,9 +17,10 @@ function SelectionQuad(gl){
   this.topright = [0, 0];//[gl.viewportWidth, gl.viewportHeight];
 }
 
-function Datatile(gl, numrelations, image, imgsize, numdim, index, numbin, minvalue, maxvalue){
+function Datatile(gl, numrelations, image, imgsize, numpoints, numdim, index, numbin, minvalue, maxvalue){
   this.image = image;
   this.imgsize = imgsize;
+  this.numpoints = numpoints;
   this.numdim = numdim;
   this.index = index;
   this.numbin = numbin;
@@ -71,7 +72,7 @@ function ScatterGL(canvas){
 }
 
 
-ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimperimage, index, numbin, minvalue, maxvalue){
+ScatterGL.prototype.update = function(numrelations, image, imgsize, numpoints, numdim, dimperimage, index, numbin, minvalue, maxvalue){
 
 
   if(this.datatiles[numrelations] == null)
@@ -80,7 +81,7 @@ ScatterGL.prototype.update = function(numrelations, image, imgsize, numdim, dimp
   this.numbin = numbin;
   this.numdim = numdim;
   this.datatiles[numrelations]['dimperimage'] = dimperimage;
-  this.datatiles[numrelations][index] = new Datatile(this.gl, numrelations, image, imgsize, numdim, index, numbin, minvalue, maxvalue);
+  this.datatiles[numrelations][index] = new Datatile(this.gl, numrelations, image, imgsize, numpoints, numdim, index, numbin, minvalue, maxvalue);
 
   //For float textures, only NEAREST is supported (http://www.khronos.org/registry/gles/extensions/OES/OES_texture_float.txt)
   createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
@@ -188,15 +189,17 @@ ScatterGL.prototype.getSelection = function(){
 }
 
 ScatterGL.prototype.drawKDE = function(scatter, i, j, index2, width, height){
-
+  console.log(this.datatiles['2'][index2].numpoints);
   this.gl.useProgram(this.kdeShader);
 
   //horizontal pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
+  //this.gl.viewport(i*width, j*height, width, height);
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
   this.gl.uniform1f(this.kdeShader.minValue, this.datatiles['2'][index2].minvalue);
   this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
   this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
+  this.gl.uniform1f(this.kdeShader.numPoints, this.datatiles['2'][index2].numpoints);
   this.gl.uniform1f(this.kdeShader.bandwidth, this.bandwidth);
   this.gl.uniform1f(this.kdeShader.windowSize, this.windowSize);
   this.gl.uniform1f(this.kdeShader.isFirstPass, 1.0);
@@ -532,6 +535,7 @@ ScatterGL.prototype.initShaders = function(){
   this.kdeShader.isFirstPass = this.gl.getUniformLocation(this.kdeShader, 'uIsFirstPass');
   this.kdeShader.bandwidth = this.gl.getUniformLocation(this.kdeShader, 'uBandwidth');
   this.kdeShader.windowSize = this.gl.getUniformLocation(this.kdeShader, 'uWindowSize');
+  this.kdeShader.numPoints = this.gl.getUniformLocation(this.kdeShader, 'uNumPoints');
   this.kdeShader.sampler0 = this.gl.getUniformLocation(this.kdeShader, "uSampler0");
   this.kdeShader.sampler1 = this.gl.getUniformLocation(this.kdeShader, "uSampler1");
 

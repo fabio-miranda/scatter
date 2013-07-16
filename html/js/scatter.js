@@ -34,6 +34,7 @@ function cb_receiveDataTile(datatile){
       datatile['numrelations'],
       image,
       datatile['width'],
+      datatile['numentries'],
       datatile['numdim'],
       datatile['dimperimage'],
       this.index,
