@@ -2,8 +2,4 @@
 *.o
 *.DS_Store
 *.pyc
-data/
-data2/
-data3/
-data4/
 
