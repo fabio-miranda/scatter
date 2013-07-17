@@ -17,7 +17,7 @@ void main(void) {
   vec4 values  = texture2D(uSampler0, coord2D); //count, f
   float mean=1.0;
   float n=0.0;
-  float window = 16.0;
+  float window = 64.0;
   for(int i=0; i<maxloop; i++){
     if(i >= int(window)) break;
 
@@ -30,14 +30,31 @@ void main(void) {
 
       vec2 coord2D = vTexCoord + vec2((float(index0) / uNumBins), (float(index1) / uNumBins));
       vec4 valuesij = texture2D(uSampler0, coord2D); //count, f
-      if( coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
+      if(valuesij.r > 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
         mean *= valuesij.g;
         n++;
       }
 
     }
   }
-  gl_FragColor = vec4(values.r,values.g,mean, mean);
+  float g = 0.0;
+  float lambda = 0.0;
+
+  if(values.r > 0.0){
+    g = pow(mean, 1.0/n);
+    lambda = sqrt(g / values.g);
+  }
+
+  //gl_FragColor = values; //count, f, mean, lambda
+  gl_FragColor = vec4(values.r, values.g, mean, lambda);
+  return;
+  if(lambda <= 0.0)
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  else if(lambda < 1.0)
+    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+  else
+    gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+
 
   /*
   float f = values.r;

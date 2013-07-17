@@ -68,7 +68,7 @@ void main(void) {
 
     vec3 color = texture2D(uSampler1, vec2(f, 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);
-    //gl_FragColor = vec4(count, count, count, 1.0);    
+    //gl_FragColor = vec4(h, h, h, 1.0);
   }
 
 

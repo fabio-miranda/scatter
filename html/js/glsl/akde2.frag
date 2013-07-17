@@ -24,7 +24,7 @@ void main(void) {
 
   vec2 coord2D = vTexCoord;
 
-  vec4 values = texture2D(uSampler0, coord2D); //count, f, mean
+  vec4 values = texture2D(uSampler0, coord2D); //count, f, mean, lambda
 
   //float x = coord2D.x;
   
@@ -35,16 +35,14 @@ void main(void) {
 
     int index = i - int(uWindowSize)/2;
     coord2D = vec2(vTexCoord.x + uIsFirstPass * (float(index) / uNumBins), vTexCoord.y + (1.0 - uIsFirstPass) * (float(index) / uNumBins)); //make sure to access not the next texel, but the next bin
+    vec4 valuesi  = texture2D(uSampler0, coord2D); //count, f, mean
 
-
-    if(coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
-      vec4 valuesi  = texture2D(uSampler0, coord2D); //count, f, mean
+    if(valuesi.g > 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
+      
       float counti = valuesi.r;
       float fi = valuesi.g;
-      float meani = valuesi.b;
+      float lambdai = valuesi.a;
 
-      float gi = pow(meani, 1.0/counti);
-      float lambdai = sqrt(gi / fi);
       float hi = uBandwidth * lambdai;
       float oneoverhi = 1.0 / hi;
 
@@ -58,7 +56,7 @@ void main(void) {
   
 
   if(uIsFirstPass > 0.0){
-    gl_FragColor = vec4(values.r, f, values.b, 1.0);
+    gl_FragColor = vec4(values.r, f, values.b, values.a);
     //gl_FragColor = vec4(values.r, values.g, values.b, 1.0);
   }
   else{
@@ -69,7 +67,7 @@ void main(void) {
     vec3 color = texture2D(uSampler1, vec2(f, 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);
 
-    //gl_FragColor = vec4(values.r, values.g, values.b, 1.0);
+    //gl_FragColor = vec4(values.b, values.b, values.b, 1.0);
     
   }
 
