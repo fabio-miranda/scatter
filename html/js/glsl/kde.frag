@@ -25,7 +25,7 @@ void main(void) {
   vec2 coord2D = vTexCoord;
 
   float count;
-  count = texture2D(uSampler0, coord2D).g;
+  count = texture2D(uSampler0, coord2D).r;
   if(uIsFirstPass > 0.0)
     count = count * (uMaxValue - uMinValue);
 
@@ -58,7 +58,8 @@ void main(void) {
   
 
   if(uIsFirstPass > 0.0){
-    gl_FragColor = vec4(f, f, f, 1.0);
+    gl_FragColor = vec4(count, f, f, 1.0);
+    //gl_FragColor = vec4(count, count, count, 1.0); 
   }
   else{
 
@@ -67,7 +68,7 @@ void main(void) {
 
     vec3 color = texture2D(uSampler1, vec2(f, 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);
-    
+    //gl_FragColor = vec4(count, count, count, 1.0);    
   }
 
 

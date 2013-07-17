@@ -14,8 +14,32 @@ const int maxloop = 50000;
 void main(void) {
 
   vec2 coord2D = vTexCoord;
-  vec4 values  = texture2D(uSampler0, coord2D); //f
+  vec4 values  = texture2D(uSampler0, coord2D); //count, f
+  float mean=1.0;
+  float n=0.0;
+  float window = 16.0;
+  for(int i=0; i<maxloop; i++){
+    if(i >= int(window)) break;
 
+    int index0 = i - int(window)/2;
+
+    for(int j=0; j<maxloop; j++){
+      if(j >= int(window)) break;
+
+      int index1 = j - int(window)/2;
+
+      vec2 coord2D = vTexCoord + vec2((float(index0) / uNumBins), (float(index1) / uNumBins));
+      vec4 valuesij = texture2D(uSampler0, coord2D); //count, f
+      if( coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
+        mean *= valuesij.g;
+        n++;
+      }
+
+    }
+  }
+  gl_FragColor = vec4(values.r,values.g,mean, mean);
+
+  /*
   float f = values.r;
   float n = 0.0;
   float mean = 1.0;
@@ -42,6 +66,6 @@ void main(void) {
     gl_FragColor = vec4(values.r, values.g, lambda, 1.0); //count, f, lambdahoriz, lambdavert
   else
     gl_FragColor = vec4(values.r, values.g, values.b, lambda); //count, f, lambdahoriz, lambdavert
-
+  */
 
 }
