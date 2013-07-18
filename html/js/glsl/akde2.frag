@@ -27,6 +27,9 @@ void main(void) {
   vec4 values = texture2D(uSampler0, coord2D); //count, f, lambda
   float count = values.r;
 
+  //gl_FragColor = vec4(values.r, values.g, values.b, 1.0);
+  //return;
+
   //float x = coord2D.x;
   
   float f = 0.0;
@@ -67,13 +70,13 @@ void main(void) {
   }
   else{
 
-    //f = (1.0 / (uNumPoints)) * f;
-    //f = f/0.3989422804;
+    //f = (1.0 / (uNumPoints*h)) * f;
+    f = f/0.3989422804;
 
     vec3 color = texture2D(uSampler1, vec2(f, 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);
 
-    //gl_FragColor = vec4(values.b, values.b, values.b, 1.0);
+    //gl_FragColor = vec4(values.g, values.g, values.g, 1.0);
     
   }
 

@@ -553,6 +553,8 @@ int main(int argc, char* argv[]){
       printf("Done\n");
     }
     
+    //maxvalues[0] = 1.0;
+    //minvalues[0] = 0.0;
     
     
     FILE *file;
