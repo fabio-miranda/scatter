@@ -24,7 +24,8 @@ void main(void) {
 
   vec2 coord2D = vTexCoord;
 
-  vec4 values = texture2D(uSampler0, coord2D); //count, f, mean, lambda
+  vec4 values = texture2D(uSampler0, coord2D); //count, f, lambda
+  float count = values.r;
 
   //float x = coord2D.x;
   
@@ -35,34 +36,39 @@ void main(void) {
 
     int index = i - int(uWindowSize)/2;
     coord2D = vec2(vTexCoord.x + uIsFirstPass * (float(index) / uNumBins), vTexCoord.y + (1.0 - uIsFirstPass) * (float(index) / uNumBins)); //make sure to access not the next texel, but the next bin
-    vec4 valuesi  = texture2D(uSampler0, coord2D); //count, f, mean
+    vec4 valuesi  = texture2D(uSampler0, coord2D); //count, f, lambda
 
     if(valuesi.g > 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
       
-      float counti = valuesi.r;
-      float fi = valuesi.g;
-      float lambdai = valuesi.a;
+      //if((uIsFirstPass <= 0.0 && valuesi.g > 0.0) || uIsFirstPass > 0.0){
 
-      float hi = uBandwidth * lambdai;
-      float oneoverhi = 1.0 / hi;
+        float counti = valuesi.r;
+        //float fi = valuesi.g;
+        float lambdai = valuesi.b;
 
-      float gaus = gauss((float(index) / uNumBins) * oneoverhi);
-      float k = fi * gaus;
+        float hi = uBandwidth * lambdai;
 
-      f += k;
-      //W += counti ;
+        float oneoverhi = 1.0 / hi;
+
+        float gaus = gauss((float(index) / uNumBins) * oneoverhi);
+        float k = counti * gaus;
+
+        f += k;
+        //W += counti ;
+      //}
     }
   }
   
 
   if(uIsFirstPass > 0.0){
-    gl_FragColor = vec4(values.r, f, values.b, values.a);
+    gl_FragColor = vec4(f, f, values.b, 1.0);
+    //gl_FragColor = vec4(values.g, values.g, values.g, 1.0);
     //gl_FragColor = vec4(values.r, values.g, values.b, 1.0);
   }
   else{
 
-    //f = (1.0 / (uNumPoints*h)) * f;
-    f = f/0.3989422804;
+    //f = (1.0 / (uNumPoints)) * f;
+    //f = f/0.3989422804;
 
     vec3 color = texture2D(uSampler1, vec2(f, 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);

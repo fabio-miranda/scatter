@@ -40,17 +40,17 @@ void main(void) {
   float g = 0.0;
   float lambda = 0.0;
 
-  if(values.r > 0.0){
-    g = pow(mean, 1.0/n);
+  if(values.g > 0.0){
+    g = pow(mean, 1.0/(window*window));
     lambda = sqrt(g / values.g);
   }
 
-  //gl_FragColor = values; //count, f, mean, lambda
-  gl_FragColor = vec4(values.r, values.g, mean, lambda);
+  //gl_FragColor = values; //count, f, lambda
+  gl_FragColor = vec4(values.r, values.g, lambda, 1.0);
   return;
-  if(lambda <= 0.0)
+  if(values.g <= 0.0)
     gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-  else if(lambda < 1.0)
+  else if(values.g <= 1.0)
     gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
   else
     gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
