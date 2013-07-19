@@ -647,6 +647,8 @@ ScatterGL.prototype.initShaders = function(){
   this.simpleShader.textureCoordAttribute = this.gl.getAttribLocation(this.simpleShader, "aTexCoord");
   this.gl.enableVertexAttribArray(this.simpleShader.textureCoordAttribute);
 
+  this.simpleShader.translation = this.gl.getUniformLocation(this.simpleShader, "uTranslation");
+  this.simpleShader.scale = this.gl.getUniformLocation(this.simpleShader, "uScale");
   this.simpleShader.sampler0 = this.gl.getUniformLocation(this.simpleShader, "uSampler0");
 
   this.simpleShader.pMatrixUniform = this.gl.getUniformLocation(this.simpleShader, "uPMatrix");
