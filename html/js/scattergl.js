@@ -36,9 +36,6 @@ SelectionQuad.prototype.updateBB = function(){
   this.bottomleft[1] = Math.min(this.p0[1], this.p1[1]);
   this.topright[0] = Math.max(this.p0[0], this.p1[0]);
   this.topright[1] = Math.max(this.p0[1], this.p1[1]);
-
-  console.log(this.bottomleft);
-  console.log(this.topright);
 }
 
 
@@ -57,6 +54,8 @@ function ScatterGL(canvas){
   this.bandwidth = 0.01;
   this.kdetype = 'KDE';
   this.drawReady = false;
+  this.zoomLevel = 0.0;
+  this.translation = [0.0,0.0];
 
   this.numbin = null;
   this.datatiles = {};
@@ -126,6 +125,12 @@ ScatterGL.prototype.changeBandwidth = function(bandwidth){
   this.bandwidth = bandwidth;
 
   this.updateTexture();
+
+}
+
+ScatterGL.prototype.changeZoom = function(zoomLevel){
+
+  this.zoomLevel = zoomLevel;
 
 }
 
@@ -454,6 +459,9 @@ ScatterGL.prototype.draw = function(){
   this.gl.viewport(0, 0, width, height);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
+  this.gl.uniform2f(this.simpleShader.scale, 1.0-this.zoomLevel, 1.0-this.zoomLevel);
+  this.gl.uniform2f(this.simpleShader.translation, this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight);
+
   this.finalquad.draw(
     this.gl,
     this.simpleShader,
@@ -465,6 +473,7 @@ ScatterGL.prototype.draw = function(){
   this.gl.useProgram(null);
 
   //selection
+  /*
   this.gl.useProgram(this.selectionShader);
   var width, height;
   
@@ -474,7 +483,7 @@ ScatterGL.prototype.draw = function(){
     this.gl.viewport(this.selection.bottomleft[0], this.selection.bottomleft[1], width, height);
     this.selection.quad.draw(this.gl, this.selectionShader, this.mvMatrix, this.pMatrix);
   }
-
+  */
 }
 
 
@@ -626,8 +635,8 @@ ScatterGL.prototype.initShaders = function(){
 
   this.gl.useProgram(null);
 
-  //simple
-  var fragmentShader = getShader(this.gl, "./js/glsl/simple.frag", true);
+  //zoom
+  var fragmentShader = getShader(this.gl, "./js/glsl/zoom.frag", true);
   var vertexShader = getShader(this.gl, "./js/glsl/simple.vert", false);
 
   this.simpleShader = this.gl.createProgram();
@@ -725,6 +734,8 @@ ScatterGL.prototype.mousemove = function(evt){
     return;
 
   var xy = getxy(this, evt);
+
+  this.translation = [this.translation[0]+xy[0]-this.selection.p1[0], this.translation[1]+xy[1]-this.selection.p1[1]];
 
   this.selection.p1 = xy;
   this.selection.updateBB();

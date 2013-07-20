@@ -81,7 +81,7 @@ ColorScale.prototype.draw = function(){
 ColorScale.prototype.initShaders = function(){
 
 
-  var fragmentShader = getShader(this.gl, "./js/glsl/simple.frag", true);
+  var fragmentShader = getShader(this.gl, "./js/glsl/colorscale.frag", true);
   var vertexShader = getShader(this.gl, "./js/glsl/simple.vert", false);
 
   this.simpleShader = this.gl.createProgram();

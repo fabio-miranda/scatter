@@ -296,6 +296,12 @@ function changeBandwidth(value){
   $('#bandwidthslider').attr('value', value);
 }
 
+function changeZoom(value){
+  scattermatrix.changeZoom(value);
+
+  scattermatrix.draw();
+}
+
 function changeWindowSize(){
   scattermatrix.changeWindowSize($('#windowsize').prop('value'));
   scattermatrix.draw();
@@ -329,6 +335,17 @@ function initialize(){
     }
   });
 
+  $( "#div_zoomslider" ).slider({
+    id: 'zoomslider',
+    min: 0.0,
+    max: 1.0,
+    step: 0.1,
+    orientation: "vertical",
+    slide: function( event, ui ) {
+      changeZoom(ui.value);
+    }
+  });
+
   scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
   initColorScale();
 
@@ -346,6 +363,7 @@ function initialize(){
       },
     cb_receiveDataTile
   );
+
 
   changeBandwidth(0.052);
   changeNumBin();
