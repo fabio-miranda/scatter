@@ -1,0 +1,6 @@
+minCountValue: 0.000000
+maxCountValue: -inf
+minIndexValue: inf
+maxIndexValue: -inf
+minEntriesValue: inf
+maxEntriesValue: -inf
