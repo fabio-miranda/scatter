@@ -344,6 +344,102 @@ int generate4DTiles(int numentries, int numdim,
 }
 */
 
+int generateTiles(char* outputdir, int numentries, int numdim,
+                  int dimperimage, int dimi, int dimj, int dimk
+                  int numbin, float* mindatavalues, float* maxdatavalues){
+
+  int imgsize = numbin * dimperimage;
+
+  if(imgsize > 4096)
+    return 0;
+
+  float minvalue = INFINITY;
+  float maxvalue = -INFINITY;
+  float maxcount = 0.0f;
+  int datatilesize = imgsize / dimperimage;
+  int binsize = datatilesize / numbin;
+
+  float* buff2DTile = malloc(4*imgsize*imgsize*sizeof(float));
+  int i,j;
+  for(i=0; i<imgsize*imgsize; i++)
+    buff2DTile[i] = 0.0f;
+
+  float* buffIndex = malloc(4096*4096*sizeof(float));
+  for(i=0; i<4*4096*4096; i++)
+    buffIndex[i] = 0.0f;
+
+  for(i=0; i<numbin; i++){
+    for(j=0; j<numbin; j++){
+      int entry;
+      int entrycount=0;
+      for(entry=0; entry<numentries; entry++){
+
+        //check if entry falls in bin ij
+        float vali = (data[i*numentries+entry] - mindatavalues[i]) / maxdatavalues[i];
+        float valj = (data[j*numentries+entry] - mindatavalues[j]) / maxdatavalues[j];
+
+        int binj = round(valj * (float)(numbin-1));
+        int bini = round(vali * (float)(numbin-1));
+
+        if(i == bini && j == binj){
+
+          //2d data tile
+          int x = datatilesize*(i-dimi) + binsize*bini;
+          int y = datatilesize*(j-dimj) + binsize*binj;
+          int index2DTile = x * imgsize + y;
+          buff2DTile[index2DTile]++;
+
+          //index data tile
+          float valk = (data[dimk*numentries+entry] - mindatavalues[dimk]) / maxdatavalues[dimk];
+          buffIndex[entrycount] = valk;
+          entrycount++;
+
+          if(buff[index] > maxcount)
+            maxcount = buff[index];
+
+          if(buff[index] > maxvalue)
+            maxvalue = buff[index];
+
+          if(buff[index] < minvalue)
+            minvalue = buff[index];
+        }
+
+
+      }
+    }
+  }
+
+  //save 2d data tile to image
+  char filenamepng[100];
+  snprintf(filenamepng, 100, "%s/2_%d_%d_%d_%d.png", outputdir, numbin, dimperimage, dimi, dimj);
+  //writeImage(filenamepng, imgsize, imgsize, minvalue, maxvalue, buff);
+  writeImage(filenamepng, imgsize, imgsize, 0.0f, maxcount, buff);
+
+  //save index data tile to image
+
+  //save info
+  char filenametxt[100];
+  snprintf(filenametxt, 100, "%s/2_%d_%d_%d_%d.txt", outputdir, numbin, dimperimage, dimi, dimj);
+  
+  FILE* file = fopen(filenametxt,"w+");
+  fprintf(file,"%d\n",numdim);
+  fprintf(file,"%d\n",dimperimage);
+  fprintf(file,"%d\n",dimi);
+  fprintf(file,"%d\n",dimj);
+  //fprintf(file,"%f\n",minvalue);
+  fprintf(file,"%f\n",0.0f);
+  //fprintf(file,"%f",maxvalue);
+  fprintf(file,"%f\n",maxcount);
+  fclose(file);
+
+
+  //free
+  free(buff);
+
+  return 1;
+
+}
+
 int generate2DTiles(char* outputdir, int numentries, int numdim,
                     int dimperimage, int dimi, int dimj,
                      int numbin, float* mindatavalues, float* maxdatavalues){
