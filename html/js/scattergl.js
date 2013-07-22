@@ -1,11 +1,12 @@
 
 measureTime = true;
 
-function ScatterQuad(gl, i, j, dim1, dim2){
+function ScatterQuad(gl, i, j, dim1, dim2, dim3){
   this.i = i;
   this.j = j;
   this.dim1 = dim1;
   this.dim2 = dim2;
+  this.dim3 = dim3;
   this.quad = new quad(gl, true);
 }
 
@@ -17,7 +18,7 @@ function SelectionQuad(gl){
   this.topright = [0, 0];//[gl.viewportWidth, gl.viewportHeight];
 }
 
-function Datatile(gl, numrelations, image, imgsize, numpoints, numdim, index, numbin, minvalue, maxvalue){
+function Datatile(gl, image, imgsize, numpoints, numdim, index, numbin, minvalue, maxvalue){
   this.image = image;
   this.imgsize = imgsize;
   this.numpoints = numpoints;
@@ -77,27 +78,28 @@ function ScatterGL(canvas){
 }
 
 
-ScatterGL.prototype.update = function(numrelations, image, imgsize, numpoints, numdim, dimperimage, index, numbin, minvalue, maxvalue){
+ScatterGL.prototype.update = function(type, image, imgsize, numpoints, numdim, index, numbin, minvalue, maxvalue){
 
 
-  if(this.datatiles[numrelations] == null)
-    this.datatiles[numrelations] = {};
+  if(this.datatiles[type] == null)
+    this.datatiles[type] = {};
 
   this.numbin = numbin;
   this.numdim = numdim;
-  this.datatiles[numrelations]['dimperimage'] = dimperimage;
-  this.datatiles[numrelations][index] = new Datatile(this.gl, numrelations, image, imgsize, numpoints, numdim, index, numbin, minvalue, maxvalue);
+  this.datatiles[type][index] = new Datatile(this.gl, image, imgsize, numpoints, numdim, index, numbin, minvalue, maxvalue);
 
   //For float textures, only NEAREST is supported? (http://www.khronos.org/registry/gles/extensions/OES/OES_texture_float.txt)
-  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
-  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
+  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
+  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
 
   this.updateTexture();
 }
 
-ScatterGL.prototype.addscatter = function(i, j, dim1, dim2){
+ScatterGL.prototype.addscatter = function(i, j, dim1, dim2, dim3){
 
-  this.scatterplots[i+' '+j] = new ScatterQuad(this.gl, i, j, dim1, dim2);
+  if(this.scatterplots[i+' '+j] != null) return;
+
+  this.scatterplots[i+' '+j] = new ScatterQuad(this.gl, i, j, dim1, dim2, dim3);
   this.maxdim = Math.max(i, j, this.maxdim);
 
   this.updateTexture();
@@ -150,19 +152,20 @@ ScatterGL.prototype.changeWindowSize = function(windowSize){
 
 }
 
-ScatterGL.prototype.hasDataTile = function(numrelations, i, j, k, l){
+ScatterGL.prototype.hasDataTile = function(type, i, j, k){
 
-  var index = i;
-  if(j != null) index = index + ' '+j;
-  if(k != null) index = index + ' '+k;
-  if(l != null) index = index + ' '+l;
+  var index = i+' '+j;
 
-  
-  if(this.datatiles[numrelations] == null || this.datatiles[numrelations][index] == null)
+  if(k != null)
+    index = index+' '+k;
+
+  if(this.datatiles[type] == null)
     return false;
-  else
-    return true;
 
+  if(this.datatiles[type][index] == null)
+    return false
+
+  return true;
 }
 
 
@@ -211,7 +214,7 @@ ScatterGL.prototype.getSelection = function(){
 
 }
 
-ScatterGL.prototype.updateKDE = function(scatter, i, j, index2, width, height){
+ScatterGL.prototype.updateKDE = function(scatter, indexij, indexijk, width, height){
 
   this.gl.useProgram(this.kdeShader);
 
@@ -219,10 +222,10 @@ ScatterGL.prototype.updateKDE = function(scatter, i, j, index2, width, height){
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   //this.gl.viewport(i*width, j*height, width, height);
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
-  this.gl.uniform1f(this.kdeShader.minValue, this.datatiles['2'][index2].minvalue);
-  this.gl.uniform1f(this.kdeShader.maxValue, this.datatiles['2'][index2].maxvalue);
+  this.gl.uniform1f(this.kdeShader.minCountValue, this.datatiles['count'][indexij].minvalue);
+  this.gl.uniform1f(this.kdeShader.maxCountValue, this.datatiles['count'][indexij].maxvalue);
   this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
-  this.gl.uniform1f(this.kdeShader.numPoints, this.datatiles['2'][index2].numpoints);
+  this.gl.uniform1f(this.kdeShader.numPoints, this.datatiles['count'][indexij].numpoints);
   this.gl.uniform1f(this.kdeShader.bandwidth, this.bandwidth);
   this.gl.uniform1f(this.kdeShader.windowSize, this.windowSize);
   this.gl.uniform1f(this.kdeShader.isFirstPass, 1.0);
@@ -233,8 +236,10 @@ ScatterGL.prototype.updateKDE = function(scatter, i, j, index2, width, height){
     this.kdeShader,
     this.mvMatrix,
     this.pMatrix,
-    this.datatiles['2'][index2].texture,
-    this.colorscaletex
+    this.datatiles['count'][indexij].texture,
+    this.colorscaletex,
+    this.datatiles['index'][indexij].texture,
+    this.datatiles['entry'][indexijk].texture
   );
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
   //return;
@@ -252,19 +257,21 @@ ScatterGL.prototype.updateKDE = function(scatter, i, j, index2, width, height){
     this.mvMatrix,
     this.pMatrix,
     this.fbotex2,
-    this.colorscaletex
+    this.colorscaletex,
+    this.datatiles['index'][indexij].texture,
+    this.datatiles['entry'][indexijk].texture
   );
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
 
   this.gl.useProgram(null);
 }
 
-ScatterGL.prototype.updateSingleAKDEPass = function(pass, isHorizontal, scatter, index2, tex1, tex2){
+ScatterGL.prototype.updateSingleAKDEPass = function(pass, isHorizontal, scatter, index01, index012, tex1, tex2){
 
-  this.gl.uniform1f(this.akdeShader[pass].minValue, this.datatiles['2'][index2].minvalue);
-  this.gl.uniform1f(this.akdeShader[pass].maxValue, this.datatiles['2'][index2].maxvalue);
+  this.gl.uniform1f(this.akdeShader[pass].minValue, this.datatiles['count'][index01].minvalue);
+  this.gl.uniform1f(this.akdeShader[pass].maxValue, this.datatiles['count'][index01].maxvalue);
   this.gl.uniform1f(this.akdeShader[pass].numBins, this.numbin);
-  this.gl.uniform1f(this.akdeShader[pass].numPoints, this.datatiles['2'][index2].numpoints);
+  this.gl.uniform1f(this.akdeShader[pass].numPoints, this.datatiles['count'][index01].numpoints);
   this.gl.uniform1f(this.akdeShader[pass].bandwidth, this.bandwidth);
   this.gl.uniform1f(this.akdeShader[pass].windowSize, this.windowSize);
   this.gl.uniform1f(this.akdeShader[pass].isFirstPass, isHorizontal);
@@ -281,7 +288,7 @@ ScatterGL.prototype.updateSingleAKDEPass = function(pass, isHorizontal, scatter,
 
 }
 
-ScatterGL.prototype.updateAKDE = function(scatter, i, j, index2, width, height){
+ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, width, height){
 
   //first pass (f)
   {
@@ -291,7 +298,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, i, j, index2, width, height){
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
-    this.updateSingleAKDEPass(0, 1, scatter, index2, this.datatiles['2'][index2].texture);
+    this.updateSingleAKDEPass(0, 1, scatter, index01, index012, this.datatiles['count'][index01].texture);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
 
@@ -299,7 +306,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, i, j, index2, width, height){
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
-    this.updateSingleAKDEPass(0, 0, scatter, index2, this.fbotex1);
+    this.updateSingleAKDEPass(0, 0, scatter, index01, index012, this.fbotex1);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
   }
@@ -313,7 +320,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, i, j, index2, width, height){
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
-    this.updateSingleAKDEPass(1, 1, scatter, index2, this.fbotex2);
+    this.updateSingleAKDEPass(1, 1, scatter, index01, index012, this.fbotex2);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
 
@@ -348,7 +355,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, i, j, index2, width, height){
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
-    this.updateSingleAKDEPass(2, 1, scatter, index2, this.fbotex1);
+    this.updateSingleAKDEPass(2, 1, scatter, index01, index012, this.fbotex1);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
 
@@ -356,13 +363,13 @@ ScatterGL.prototype.updateAKDE = function(scatter, i, j, index2, width, height){
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
-    this.updateSingleAKDEPass(2, 0, scatter, index2, this.fbotex2, this.colorscaletex);
+    this.updateSingleAKDEPass(2, 0, scatter, index01, index012, this.fbotex2, this.colorscaletex);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
   }
 
 }
 
-ScatterGL.prototype.updateDiscrete = function(scatter, i, j, index2, width, height){
+ScatterGL.prototype.updateDiscrete = function(scatter, index01, index012, width, height){
 
   this.gl.useProgram(this.discreteShader);
 
@@ -375,8 +382,10 @@ ScatterGL.prototype.updateDiscrete = function(scatter, i, j, index2, width, heig
     this.discreteShader,
     this.mvMatrix,
     this.pMatrix,
-    this.datatiles['2'][index2].texture,
-    this.colorscaletex
+    this.datatiles['count'][index01].texture,
+    this.colorscaletex,
+    this.datatiles['index'][index01].texture,
+    this.datatiles['entry'][index012].texture
   );
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
   this.gl.useProgram(null);
@@ -385,6 +394,9 @@ ScatterGL.prototype.updateDiscrete = function(scatter, i, j, index2, width, heig
 
 
 ScatterGL.prototype.updateTexture = function(){
+
+  if(this.scatterplots['0 0'] == null)
+    return;
   
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
@@ -394,53 +406,39 @@ ScatterGL.prototype.updateTexture = function(){
   mat4.identity(this.mvMatrix);
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
+  var scatter = this.scatterplots['0 0'];
+  var dim0 = scatter.dim1;
+  var dim1 = scatter.dim2;
+  var dim2 = scatter.dim3;
 
-  if(this.datatiles['2'] != null){// && this.datatiles['4'] != null){
+  if(this.hasDataTile('count', dim0, dim1) && this.hasDataTile('index', dim0, dim1) && this.hasDataTile('entry', dim0, dim1, dim2)){
+    var now1, now1;
+    if(measureTime)
+      now1 = window.performance.now();
 
-    for(var ij in this.scatterplots) {
+    this.drawReady = true;
+    var index01 = dim0+' '+dim1;
+    var index012 = dim0+' '+dim1+' '+dim2;
+    
+    //render
+    if(this.kdetype == 'KDE')
+      this.updateKDE(scatter, index01, index012, width, height);
+    else if(this.kdetype == 'AKDE')
+      this.updateAKDE(scatter, index01, index012, width, height);
+    else if(this.kdetype == 'Discrete')
+      this.updateDiscrete(scatter, index01, index012, width, height);
 
-      //var selection = this.getSelection();
+    if(measureTime){
+      //glfinish does not work (equal to glflush)
+      //to make sure everything is done by the time we measure the time, just do a readPixels, instead of glfinish
+      var pixelValues = new Uint8Array(4 * 1);
+      this.gl.readPixels(0, 0, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixelValues);
+      
+      var now2 = window.performance.now();
+      console.log(now2 - now1);
 
-      var scatter = this.scatterplots[ij];
-      var i = scatter.i;
-      var j = scatter.j;
-
-      var dim0 = Math.floor(scatter.dim1 / this.datatiles['2']['dimperimage']);
-      var dim1 = Math.floor(scatter.dim2 / this.datatiles['2']['dimperimage']);
-
-      var index2 = dim0+' '+dim1;
-
-      //Check if textures have been loaded
-      if(this.datatiles['2'][index2] != null){
-
-        var now1, now1;
-        if(measureTime)
-          now1 = window.performance.now();
-
-        this.drawReady = true;
-        
-        //render
-        if(this.kdetype == 'KDE')
-          this.updateKDE(scatter, i, j, index2, width, height);
-        else if(this.kdetype == 'AKDE')
-          this.updateAKDE(scatter, i, j, index2, width, height);
-        else if(this.kdetype == 'Discrete')
-          this.updateDiscrete(scatter, i, j, index2, width, height);
-
-        if(measureTime){
-          //glfinish does not work (equal to glflush)
-          //to make sure everything is done by the time we measure the time, just do a readPixels, instead of glfinish
-          var pixelValues = new Uint8Array(4 * 1);
-          this.gl.readPixels(0, 0, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixelValues);
-          
-          var now2 = window.performance.now();
-          console.log(now2 - now1);
-
-        }
-
-      }
     }
-  }  
+  }
 }
 
 ScatterGL.prototype.draw = function(){
@@ -547,15 +545,21 @@ ScatterGL.prototype.initShaders = function(){
   this.kdeShader.textureCoordAttribute = this.gl.getAttribLocation(this.kdeShader, "aTexCoord");
   this.gl.enableVertexAttribArray(this.kdeShader.textureCoordAttribute);
 
-  this.kdeShader.minValue = this.gl.getUniformLocation(this.kdeShader, 'uMinValue');
-  this.kdeShader.maxValue = this.gl.getUniformLocation(this.kdeShader, 'uMaxValue');
+  this.kdeShader.minCountValue = this.gl.getUniformLocation(this.kdeShader, 'uMinCountValue');
+  this.kdeShader.maxCountValue = this.gl.getUniformLocation(this.kdeShader, 'uMaxCountValue');
+  this.kdeShader.minIndexValue = this.gl.getUniformLocation(this.kdeShader, 'uMinIndexValue');
+  this.kdeShader.maxIndexValue = this.gl.getUniformLocation(this.kdeShader, 'uMaxIndexValue');
+  this.kdeShader.minEntryValue = this.gl.getUniformLocation(this.kdeShader, 'uMinEntryValue');
+  this.kdeShader.maxEntryValue = this.gl.getUniformLocation(this.kdeShader, 'uMaxEntryValue');
   this.kdeShader.numBins = this.gl.getUniformLocation(this.kdeShader, 'uNumBins');
   this.kdeShader.isFirstPass = this.gl.getUniformLocation(this.kdeShader, 'uIsFirstPass');
   this.kdeShader.bandwidth = this.gl.getUniformLocation(this.kdeShader, 'uBandwidth');
   this.kdeShader.windowSize = this.gl.getUniformLocation(this.kdeShader, 'uWindowSize');
   this.kdeShader.numPoints = this.gl.getUniformLocation(this.kdeShader, 'uNumPoints');
-  this.kdeShader.sampler0 = this.gl.getUniformLocation(this.kdeShader, "uSampler0");
-  this.kdeShader.sampler1 = this.gl.getUniformLocation(this.kdeShader, "uSampler1");
+  this.kdeShader.sampler0 = this.gl.getUniformLocation(this.kdeShader, "uSamplerCount");
+  this.kdeShader.sampler1 = this.gl.getUniformLocation(this.kdeShader, "uSamplerColorScale");
+  this.kdeShader.sampler2 = this.gl.getUniformLocation(this.kdeShader, "uSamplerIndex");
+  this.kdeShader.sampler3 = this.gl.getUniformLocation(this.kdeShader, "uSamplerEntry");
 
 
   this.kdeShader.pMatrixUniform = this.gl.getUniformLocation(this.kdeShader, "uPMatrix");
@@ -627,8 +631,21 @@ ScatterGL.prototype.initShaders = function(){
   this.discreteShader.textureCoordAttribute = this.gl.getAttribLocation(this.discreteShader, "aTexCoord");
   this.gl.enableVertexAttribArray(this.discreteShader.textureCoordAttribute);
 
-  this.discreteShader.sampler0 = this.gl.getUniformLocation(this.discreteShader, "uSampler0");
-  this.discreteShader.sampler1 = this.gl.getUniformLocation(this.discreteShader, "uSampler1");
+  this.discreteShader.minCountValue = this.gl.getUniformLocation(this.discreteShader, 'uMinCountValue');
+  this.discreteShader.maxCountValue = this.gl.getUniformLocation(this.discreteShader, 'uMaxCountValue');
+  this.discreteShader.minIndexValue = this.gl.getUniformLocation(this.discreteShader, 'uMinIndexValue');
+  this.discreteShader.maxIndexValue = this.gl.getUniformLocation(this.discreteShader, 'uMaxIndexValue');
+  this.discreteShader.minEntryValue = this.gl.getUniformLocation(this.discreteShader, 'uMinEntryValue');
+  this.discreteShader.maxEntryValue = this.gl.getUniformLocation(this.discreteShader, 'uMaxEntryValue');
+  this.discreteShader.numBins = this.gl.getUniformLocation(this.discreteShader, 'uNumBins');
+  this.discreteShader.isFirstPass = this.gl.getUniformLocation(this.discreteShader, 'uIsFirstPass');
+  this.discreteShader.bandwidth = this.gl.getUniformLocation(this.discreteShader, 'uBandwidth');
+  this.discreteShader.windowSize = this.gl.getUniformLocation(this.discreteShader, 'uWindowSize');
+  this.discreteShader.numPoints = this.gl.getUniformLocation(this.discreteShader, 'uNumPoints');
+  this.discreteShader.sampler0 = this.gl.getUniformLocation(this.discreteShader, "uSamplerCount");
+  this.discreteShader.sampler1 = this.gl.getUniformLocation(this.discreteShader, "uSamplerColorScale");
+  this.discreteShader.sampler2 = this.gl.getUniformLocation(this.discreteShader, "uSamplerIndex");
+  this.discreteShader.sampler3 = this.gl.getUniformLocation(this.discreteShader, "uSamplerEntry");
 
   this.discreteShader.pMatrixUniform = this.gl.getUniformLocation(this.discreteShader, "uPMatrix");
   this.discreteShader.mvMatrixUniform = this.gl.getUniformLocation(this.discreteShader, "uMVMatrix");

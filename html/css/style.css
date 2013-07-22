@@ -49,6 +49,10 @@ select {
   background: #ffffff;
 }
 
+#div_zoomslider {
+  background: #ffffff;
+}
+
 .ui-slider-handle.ui-state-default.ui-corner-all {
   background: #ffffff;
 }
@@ -79,6 +83,12 @@ select {
 
 .scatterplotmatrix.scatterplotdim2 {
   height: 700px;
+  width: 1px;
+  text-align: center;
+}
+
+.scatterplotmatrix.scatterplotdim3 {
+  height: 1px;
   width: 1px;
   text-align: center;
 }

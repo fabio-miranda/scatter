@@ -1,10 +1,16 @@
 precision mediump float;
 
 varying highp vec2 vTexCoord;
-uniform sampler2D uSampler0;
-uniform sampler2D uSampler1;
-uniform float uMinValue;
-uniform float uMaxValue;
+uniform sampler2D uSamplerColorScale;
+uniform sampler2D uSamplerCount;
+uniform sampler2D uSamplerIndex;
+uniform sampler2D uSamplerEntry;
+uniform float uMinCountValue;
+uniform float uMaxCountValue;
+uniform float uMinIndexValue;
+uniform float uMaxIndexValue;
+uniform float uMinEntryValue;
+uniform float uMaxEntryValue;
 uniform float uNumBins;
 uniform float uWindowSize;
 uniform float uNumPoints;
@@ -25,9 +31,9 @@ void main(void) {
   vec2 coord2D = vTexCoord;
 
   float count;
-  count = texture2D(uSampler0, coord2D).r;
+  count = texture2D(uSamplerCount, coord2D).r;
   if(uIsFirstPass > 0.0)
-    count = count * (uMaxValue - uMinValue);
+    count = count * (uMaxCountValue - uMinCountValue);
 
 
   float h = uBandwidth;
@@ -43,10 +49,10 @@ void main(void) {
 
 
     if(coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
-      float counti  = texture2D(uSampler0, coord2D).g;
+      float counti  = texture2D(uSamplerCount, coord2D).g;
 
       if(uIsFirstPass > 0.0)
-        counti = counti * (uMaxValue - uMinValue);
+        counti = counti * (uMaxCountValue - uMinCountValue);
 
       float gaus = gauss((float(index) / uNumBins) * oneoverh);
       float k = counti * gaus;
@@ -66,7 +72,7 @@ void main(void) {
     f = (1.0 / (uNumPoints*h)) * f;
     f = f/0.3989422804;
 
-    vec3 color = texture2D(uSampler1, vec2(f, 0)).xyz;
+    vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);
     //gl_FragColor = vec4(h, h, h, 1.0);
   }

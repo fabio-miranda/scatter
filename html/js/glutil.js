@@ -130,7 +130,7 @@ quad.prototype.initBuffers = function(gl){
 
 }
 
-quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, texture0, texture1){
+quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, texture0, texture1, texture2, texture3){
 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.quadBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -149,6 +149,19 @@ quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, texture0, t
     gl.bindTexture(gl.TEXTURE_2D, texture1);
     gl.uniform1i(shaderProgram.sampler1, 1);
   }
+
+  if(texture2 != null){
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, texture2);
+    gl.uniform1i(shaderProgram.sampler2, 1);
+  }
+
+  if(texture3 != null){
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, texture3);
+    gl.uniform1i(shaderProgram.sampler3, 1);
+  }
+
 
   gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
   gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);

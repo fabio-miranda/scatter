@@ -8,6 +8,8 @@
 #include <limits.h>
 
 #define PI 3.141592654
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 
 //http://c-faq.com/lib/gaussian.html
@@ -48,7 +50,7 @@ inline void setRGB(png_byte *ptr, float val)
   }
 }
 
-int writeImage(char* filename, int width, int height, float minvalue, float maxvalue, float *buffer)
+int writeImage(char* filename, int width, int height, float minvalue, float maxvalue, float *buffer, int bytesperpixel)
 {
   int code = 0;
   FILE *fp;
@@ -90,9 +92,14 @@ int writeImage(char* filename, int width, int height, float minvalue, float maxv
   png_init_io(png_ptr, fp);
 
   // Write header (8 bit colour depth) //me: TYPE_GRAY
-  png_set_IHDR(png_ptr, info_ptr, width, height,
-      8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
-      PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+  if(bytesperpixel == 1)
+    png_set_IHDR(png_ptr, info_ptr, width, height,
+        8, PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+        PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+  else if(bytesperpixel == 3)
+    png_set_IHDR(png_ptr, info_ptr, width, height,
+        8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+        PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
   // Set title
   /*
@@ -108,15 +115,17 @@ int writeImage(char* filename, int width, int height, float minvalue, float maxv
   png_write_info(png_ptr, info_ptr);
 
   // Allocate memory for one row (3 bytes per pixel - RGB) //me
-  //row = (png_bytep) malloc(3 * width * sizeof(png_byte));
-  row = (png_bytep) malloc(width * sizeof(png_byte));
+  row = (png_bytep) malloc(bytesperpixel * width * sizeof(png_byte));
+  //row = (png_bytep) malloc(width * sizeof(png_byte));
 
   // Write image data
-  int x, y;
+  int x, y, z;
   for (y=0 ; y<height ; y++) {
     for (x=0 ; x<width ; x++) {
-      row[x] = 255.0f*((buffer[y*width + x] - minvalue) / (maxvalue - minvalue));
-      //setRGB(&(row[x*3]), buffer[y*width + x]);
+      for(z=0; z<bytesperpixel; z++){
+        row[bytesperpixel*x+z] = 255.0f*((buffer[y*width*bytesperpixel + x*bytesperpixel+z] - minvalue) / (maxvalue - minvalue));
+        //setRGB(&(row[x*3]), buffer[y*width + x]);
+      }
     }
     png_write_row(png_ptr, row);
   }
@@ -345,101 +354,156 @@ int generate4DTiles(int numentries, int numdim,
 */
 
 int generateTiles(char* outputdir, int numentries, int numdim,
-                  int dimperimage, int dimi, int dimj, int dimk
+                  int dimi, int dimj, int dimk,
                   int numbin, float* mindatavalues, float* maxdatavalues){
 
-  int imgsize = numbin * dimperimage;
+
+  //printf("%d %d\n", dimperimage, numbin);
+
+
+  int imgsize = numbin;
 
   if(imgsize > 4096)
     return 0;
 
-  float minvalue = INFINITY;
-  float maxvalue = -INFINITY;
-  float maxcount = 0.0f;
-  int datatilesize = imgsize / dimperimage;
+  float minCountValue = 0;
+  float maxCountValue = -INFINITY;
+  float minIndexValue = INFINITY;
+  float maxIndexValue = -INFINITY;
+  float minEntriesValue = INFINITY;
+  float maxEntriesValue = -INFINITY;
+  int datatilesize = imgsize;
   int binsize = datatilesize / numbin;
 
-  float* buff2DTile = malloc(4*imgsize*imgsize*sizeof(float));
+  //printf("-2\n");
+
+  float* buffCount = malloc(imgsize*imgsize*sizeof(float));
   int i,j;
   for(i=0; i<imgsize*imgsize; i++)
-    buff2DTile[i] = 0.0f;
+    buffCount[i] = 0.0f;
 
-  float* buffIndex = malloc(4096*4096*sizeof(float));
-  for(i=0; i<4*4096*4096; i++)
+  //printf("-1\n");
+
+  float* buffIndex = malloc(imgsize*imgsize*sizeof(float));
+  for(i=0; i<imgsize*imgsize; i++)
     buffIndex[i] = 0.0f;
 
+  //printf("0\n");
+
+  float* buffEntries = malloc(4096*4096*sizeof(float));
+  for(i=0; i<4096*4096; i++)
+    buffEntries[i] = 0.0f;
+
+  //printf("1\n");
+
+  int entrycount=0;
   for(i=0; i<numbin; i++){
     for(j=0; j<numbin; j++){
       int entry;
-      int entrycount=0;
       for(entry=0; entry<numentries; entry++){
 
         //check if entry falls in bin ij
-        float vali = (data[i*numentries+entry] - mindatavalues[i]) / maxdatavalues[i];
-        float valj = (data[j*numentries+entry] - mindatavalues[j]) / maxdatavalues[j];
+        float vali = (data[dimi*numentries+entry] - mindatavalues[dimi]) / maxdatavalues[dimi];
+        float valj = (data[dimj*numentries+entry] - mindatavalues[dimj]) / maxdatavalues[dimj];
 
         int binj = round(valj * (float)(numbin-1));
         int bini = round(vali * (float)(numbin-1));
 
         if(i == bini && j == binj){
 
-          //2d data tile
-          int x = datatilesize*(i-dimi) + binsize*bini;
-          int y = datatilesize*(j-dimj) + binsize*binj;
-          int index2DTile = x * imgsize + y;
-          buff2DTile[index2DTile]++;
+          //printf("2\n");
+
+          //count data tile
+          int x = binsize*bini;
+          int y = binsize*binj;
+          int index2D = x * imgsize + y;
+
+          //printf("%d\n", index2D);
+
+          buffCount[index2D]++;
+
+          minCountValue = MIN(minCountValue, buffCount[index2D]);
+          maxCountValue = MAX(maxCountValue, buffCount[index2D]);
+
+          //printf("3\n");
 
           //index data tile
+          //TODO: use 3 channels to store the index value
+          if(buffIndex[index2D] == 0){
+            buffIndex[index2D] = (entrycount);
+            //buffIndex[3*index2D] = (entrycount) % 256;
+            //buffIndex[3*index2D+1] = ((entrycount % 256) % 256);
+            //buffIndex[3*index2D+2] = ((entrycount % 256) % 256) % 256;
+          }
+
+          minIndexValue = MIN(minIndexValue, buffIndex[index2D]);
+          maxIndexValue = MAX(maxIndexValue, buffIndex[index2D]);
+
+          //printf("4\n");
+
+          //entry data tile
           float valk = (data[dimk*numentries+entry] - mindatavalues[dimk]) / maxdatavalues[dimk];
-          buffIndex[entrycount] = valk;
+          buffEntries[entrycount] = valk;
+
+          minEntriesValue = MIN(minEntriesValue, buffEntries[entrycount]);
+          maxEntriesValue = MAX(maxEntriesValue, buffEntries[entrycount]);
+
+          //printf("%f %f\n", minIndexValue, maxIndexValue);
+
           entrycount++;
 
-          if(buff[index] > maxcount)
-            maxcount = buff[index];
-
-          if(buff[index] > maxvalue)
-            maxvalue = buff[index];
-
-          if(buff[index] < minvalue)
-            minvalue = buff[index];
+          //printf("5\n");
         }
-
-
       }
     }
   }
 
-  //save 2d data tile to image
-  char filenamepng[100];
-  snprintf(filenamepng, 100, "%s/2_%d_%d_%d_%d.png", outputdir, numbin, dimperimage, dimi, dimj);
-  //writeImage(filenamepng, imgsize, imgsize, minvalue, maxvalue, buff);
-  writeImage(filenamepng, imgsize, imgsize, 0.0f, maxcount, buff);
+  //printf("a\n");
 
-  //save index data tile to image
+  if(dimk == 0){
+    //save count data tile to image
+    char filenamepng1[100];
+    snprintf(filenamepng1, 100, "%s/b%d_i%d_j%d.count.png", outputdir, numbin, dimi, dimj);
+    writeImage(filenamepng1, imgsize, imgsize, minCountValue, maxCountValue, buffCount, 1);
+
+    //save index data tile to image
+    char filenamepng2[100];
+    snprintf(filenamepng2, 100, "%s/b%d_i%d_j%d.index.png", outputdir, numbin, dimi, dimj);
+    writeImage(filenamepng2, imgsize, imgsize, minIndexValue, maxIndexValue, buffIndex, 1); //3
+  }
+
+  //save entry data tile to image
+  char filenamepng3[100];
+  snprintf(filenamepng3, 100, "%s/b%d_i%d_j%d_k%d.entry.png", outputdir, numbin, dimi, dimj, dimk);
+  writeImage(filenamepng3, 4096, 4096, minEntriesValue, maxEntriesValue, buffEntries, 1);
 
   //save info
   char filenametxt[100];
-  snprintf(filenametxt, 100, "%s/2_%d_%d_%d_%d.txt", outputdir, numbin, dimperimage, dimi, dimj);
+  snprintf(filenametxt, 100, "%s/b%d_i%d_j%d_k%d.info.txt", outputdir, numbin, dimi, dimj, dimk);
   
   FILE* file = fopen(filenametxt,"w+");
-  fprintf(file,"%d\n",numdim);
-  fprintf(file,"%d\n",dimperimage);
-  fprintf(file,"%d\n",dimi);
-  fprintf(file,"%d\n",dimj);
-  //fprintf(file,"%f\n",minvalue);
-  fprintf(file,"%f\n",0.0f);
-  //fprintf(file,"%f",maxvalue);
-  fprintf(file,"%f\n",maxcount);
+  //fprintf(file,"numdim: %d\n",numdim);
+  //fprintf(file,"dimperimage: %d\n",dimperimage);
+  //fprintf(file,"dimi: %d\n",dimi);
+  //fprintf(file,"dimj: %d\n",dimj);
+  //fprintf(file,"dimk: %d\n",dimk);
+  fprintf(file,"minCountValue: %f\n",minCountValue);
+  fprintf(file,"maxCountValue: %f\n",maxCountValue);
+  fprintf(file,"minIndexValue: %f\n",minIndexValue);
+  fprintf(file,"maxIndexValue: %f\n",maxIndexValue);
+  fprintf(file,"minEntriesValue: %f\n",minEntriesValue);
+  fprintf(file,"maxEntriesValue: %f",maxEntriesValue);
   fclose(file);
 
 
-  //free
-  free(buff);
+  free(buffCount);
+  free(buffIndex);
+  free(buffEntries);
 
   return 1;
 
 }
-
+/*
 int generate2DTiles(char* outputdir, int numentries, int numdim,
                     int dimperimage, int dimi, int dimj,
                      int numbin, float* mindatavalues, float* maxdatavalues){
@@ -529,7 +593,7 @@ int generate2DTiles(char* outputdir, int numentries, int numdim,
   return 1;
 
 }
-/*
+
 int generateHistogramTile(int numentries, int numdim,
                           int dimperimage, int dimi, int dimj, int numbinscatter,
                            int numbinhistogram, float maxdatavalue){
@@ -632,7 +696,7 @@ int main(int argc, char* argv[]){
     //int numbin = atoi(argv[1]);
     int numentries = atoi(argv[1]);
     int numdim = atoi(argv[2]);
-    int dimperimage = atoi(argv[3]);
+    //int dimperimage = atoi(argv[3]);
     char* outputdir = argv[4];
     float* maxvalues = malloc(numdim * sizeof(float));
     float* minvalues = malloc(numdim * sizeof(float));
@@ -657,28 +721,37 @@ int main(int argc, char* argv[]){
     char filenametxt[100];
     snprintf(filenametxt, 100, "%s/info.txt", outputdir);
     file = fopen(filenametxt,"w+");
-    fprintf(file,"%d\n",numentries); //numentries
-    fprintf(file,"%d\n",numdim); //numdim
-    fprintf(file,"%d\n",dimperimage); //dimperimage (2)
-    fprintf(file,"%d\n",dimperimage); //dimperimage (4)
-    fprintf(file,"%d\n",dimperimage); //dimperimage (histogram)
-    fprintf(file,"%f\n",0.0f);
-    fprintf(file,"%f",1.0f);
+    fprintf(file,"numentries: %d\n",numentries); //numentries
+    fprintf(file,"numdim: %d\n",numdim); //numdim
+    //fprintf(file,"dimperimage: %d\n",dimperimage); //dimperimage (2)
+    //fprintf(file,"%d\n",dimperimage); //dimperimage (4)
+    //fprintf(file,"%d\n",dimperimage); //dimperimage (histogram)
+    fprintf(file,"min: %f\n",0.0f);
+    fprintf(file,"max: %f",1.0f);
     fclose(file);
 
-    int numbinscatter[12] = {2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096};
+    int numbinscatter[1] = {2};//, 128, 256, 512};//, 1024};//, 2048, 4096};
     //int numbinhistogram[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
-    int i,j,k;//,l,m;
-    for(i=0; i<numdim/dimperimage; i++){
+    int i,j,k,l;//,l,m;
+    for(i=0; i<numdim; i++){
+      for(j=0; j<numdim; j++){
+        for(k=0; k<numdim; k++){
+          for(l=0; l<sizeof(numbinscatter)/sizeof(int); l++){
+            printf("Generating data tiles with numbin=%d, dim=[%d,%d,%d]\n", numbinscatter[l], i, j, k);
+            if(!generateTiles(outputdir, numentries, numdim, i, j, k, numbinscatter[l], minvalues, maxvalues))
+              break;
+            printf("Done\n");
+          }
+        }
 
-      for(j=0; j<numdim/dimperimage; j++){
 
+        /*
         for(k=0; k<sizeof(numbinscatter)/sizeof(int); k++){
           printf("Generating 2d data tile with numbin=%d, dim=[%d,%d]\n", numbinscatter[k], i, j);
           if(!generate2DTiles(outputdir, numentries, numdim, dimperimage, i, j, numbinscatter[k], minvalues, maxvalues))
             break;
           printf("Done\n");
-
+        */
           /*
           for(l=0; l<numdim/dimperimage; l++){
             for(m=0; m<numdim/dimperimage; m++){
@@ -699,8 +772,9 @@ int main(int argc, char* argv[]){
               break;
             printf("Done\n");
           }
+
+          }
           */
-        }
       }
     }
 

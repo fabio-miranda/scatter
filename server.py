@@ -19,66 +19,197 @@ class ScatterPage:
   def index(self, datapath):
     return open(os.path.join(HTML_DIR, u'index.html'))
 
-  @cherrypy.expose
-  def info(self):
+  # @cherrypy.expose
+  # def info(self):
 
+  #   cherrypy.response.headers['Content-Type'] = "application/json;"
+
+  #   data = {}
+  #   data['dim1'] = 16
+  #   data['dim2'] = 16
+
+  #   return json.dumps(data)
+
+  @cherrypy.expose
+  def getCountDataTile(self, datapath, numbinscatter, i, j):
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
     data = {}
-    data['dim1'] = 16
-    data['dim2'] = 16
-
-    return json.dumps(data)
-
-  @cherrypy.expose
-  def getDataTile2D(self, datapath, firsttime, numbinscatter, i, j):
-    cherrypy.response.headers['Content-Type'] = "application/json;"
-
-    numbinscatter = int(numbinscatter)
-    data = {}
-    data['firsttime'] = firsttime
 
     f = open(datapath+'/info.txt', 'r')
-    numentries = int(f.readline())
-    numdim = int(f.readline())
-    dimperimage = int(f.readline())
-    f.close()
+    numentries = int(f.readline().split(':')[1])
+    numdim = int(f.readline().split(':')[1])
 
-    #2D
-    index = str(i)+' '+str(j)
-    f = open(datapath+'/2_'+str(numbinscatter)+'_'+str(dimperimage)+'_'+str(i)+'_'+str(j)+'.txt', 'r')
-    fnumdim = f.readline()
-    fdimperimage = f.readline()
-    fdim0 = f.readline()
-    fdim1 = f.readline()
-    fminvalue = f.readline()
-    fmaxvalue = f.readline()
-    f.close()
+    f = open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k0.info.txt', 'r')
+    minCountValue = float(f.readline().split(':')[1])
+    maxCountValue = float(f.readline().split(':')[1])
+    minIndexValue = float(f.readline().split(':')[1])
+    maxIndexValue = float(f.readline().split(':')[1])
+    minEntriesValue = float(f.readline().split(':')[1])
+    maxEntriesValue = float(f.readline().split(':')[1])
 
     buffer = StringIO.StringIO()
-    img = Image.open(datapath+'/2_'+str(numbinscatter)+'_'+str(dimperimage)+'_'+str(i)+'_'+str(j)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+    img = Image.open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'.count.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
     width = int(img.size[0])
     height = int(img.size[1])
     img.save(buffer, format='PNG')
     buffer.seek(0)
 
+    index = str(i)+' '+str(j)
+    data['type'] = 'count'
     data['index'] = index
     data['data'] = base64.b64encode(buffer.getvalue())
-    data['numrelations'] = 2
     data['width'] = width
     data['height'] = height
 
-    data['numentries'] = int(numentries)
-    data['numdim'] = int(fnumdim)
-    data['numbin'] = int(numbinscatter)
-    data['dimperimage'] = int(dimperimage)
+    data['numentries'] = numentries
+    data['numdim'] = numdim
+    data['numbin'] = numbinscatter
     data['dim0'] = i
     data['dim1'] = j
-    data['minvalue'] = float(fminvalue)
-    data['maxvalue'] = float(fmaxvalue)
+    data['minvalue'] = minCountValue
+    data['maxvalue'] = maxCountValue
 
 
     return json.dumps(data)
+
+
+  @cherrypy.expose
+  def getIndexDataTile(self, datapath, numbinscatter, i, j):
+    cherrypy.response.headers['Content-Type'] = "application/json;"
+
+    data = {}
+
+    f = open(datapath+'/info.txt', 'r')
+    numentries = int(f.readline().split(':')[1])
+    numdim = int(f.readline().split(':')[1])
+
+    f = open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k0.info.txt', 'r')
+    minCountValue = float(f.readline().split(':')[1])
+    maxCountValue = float(f.readline().split(':')[1])
+    minIndexValue = float(f.readline().split(':')[1])
+    maxIndexValue = float(f.readline().split(':')[1])
+    minEntriesValue = float(f.readline().split(':')[1])
+    maxEntriesValue = float(f.readline().split(':')[1])
+
+    buffer = StringIO.StringIO()
+    img = Image.open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'.index.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+    width = int(img.size[0])
+    height = int(img.size[1])
+    img.save(buffer, format='PNG')
+    buffer.seek(0)
+
+    index = str(i)+' '+str(j)
+    data['type'] = 'index'
+    data['index'] = index
+    data['data'] = base64.b64encode(buffer.getvalue())
+    data['width'] = width
+    data['height'] = height
+
+    data['numentries'] = numentries
+    data['numdim'] = numdim
+    data['numbin'] = numbinscatter
+    data['dim0'] = i
+    data['dim1'] = j
+    data['minvalue'] = minIndexValue
+    data['maxvalue'] = maxIndexValue
+
+
+    return json.dumps(data)
+
+  @cherrypy.expose
+  def getEntryDataTile(self, datapath, numbinscatter, i, j, k):
+    cherrypy.response.headers['Content-Type'] = "application/json;"
+
+    data = {}
+
+    f = open(datapath+'/info.txt', 'r')
+    numentries = int(f.readline().split(':')[1])
+    numdim = int(f.readline().split(':')[1])
+
+    f = open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k'+str(k)+'.info.txt', 'r')
+    minCountValue = float(f.readline().split(':')[1])
+    maxCountValue = float(f.readline().split(':')[1])
+    minIndexValue = float(f.readline().split(':')[1])
+    maxIndexValue = float(f.readline().split(':')[1])
+    minEntriesValue = float(f.readline().split(':')[1])
+    maxEntriesValue = float(f.readline().split(':')[1])
+
+    buffer = StringIO.StringIO()
+    img = Image.open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k'+str(k)+'.entry.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+    width = int(img.size[0])
+    height = int(img.size[1])
+    img.save(buffer, format='PNG')
+    buffer.seek(0)
+
+    index = str(i)+' '+str(j)+' '+str(k)
+    data['type'] = 'entry'
+    data['index'] = index
+    data['data'] = base64.b64encode(buffer.getvalue())
+    data['width'] = width
+    data['height'] = height
+
+    data['numentries'] = numentries
+    data['numdim'] = numdim
+    data['numbin'] = numbinscatter
+    data['dim0'] = i
+    data['dim1'] = j
+    data['minvalue'] = minEntriesValue
+    data['maxvalue'] = maxEntriesValue
+
+
+    return json.dumps(data)
+
+
+  # @cherrypy.expose
+  # def getDataTile2D(self, datapath, firsttime, numbinscatter, i, j):
+  #   cherrypy.response.headers['Content-Type'] = "application/json;"
+
+  #   numbinscatter = int(numbinscatter)
+  #   data = {}
+  #   data['firsttime'] = firsttime
+
+  #   f = open(datapath+'/info.txt', 'r')
+  #   numentries = int(f.readline())
+  #   numdim = int(f.readline())
+  #   dimperimage = int(f.readline())
+  #   f.close()
+
+  #   #2D
+  #   index = str(i)+' '+str(j)
+  #   f = open(datapath+'/2_'+str(numbinscatter)+'_'+str(dimperimage)+'_'+str(i)+'_'+str(j)+'.txt', 'r')
+  #   fnumdim = f.readline()
+  #   fdimperimage = f.readline()
+  #   fdim0 = f.readline()
+  #   fdim1 = f.readline()
+  #   fminvalue = f.readline()
+  #   fmaxvalue = f.readline()
+  #   f.close()
+
+  #   buffer = StringIO.StringIO()
+  #   img = Image.open(datapath+'/2_'+str(numbinscatter)+'_'+str(dimperimage)+'_'+str(i)+'_'+str(j)+'.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+  #   width = int(img.size[0])
+  #   height = int(img.size[1])
+  #   img.save(buffer, format='PNG')
+  #   buffer.seek(0)
+
+  #   data['index'] = index
+  #   data['data'] = base64.b64encode(buffer.getvalue())
+  #   data['numrelations'] = 2
+  #   data['width'] = width
+  #   data['height'] = height
+
+  #   data['numentries'] = int(numentries)
+  #   data['numdim'] = int(fnumdim)
+  #   data['numbin'] = int(numbinscatter)
+  #   data['dimperimage'] = int(dimperimage)
+  #   data['dim0'] = i
+  #   data['dim1'] = j
+  #   data['minvalue'] = float(fminvalue)
+  #   data['maxvalue'] = float(fmaxvalue)
+
+
+  #   return json.dumps(data)
 
   # @cherrypy.expose
   # def getDataTile4D(self, firsttime, numbinscatter, dimperimage, i, j, k, l):

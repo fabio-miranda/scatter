@@ -17,7 +17,7 @@ void main(void) {
   vec4 values  = texture2D(uSampler0, coord2D); //count, f
   float mean=0.0;
   float n=0.0;
-  float window = 64.0;
+  float window = 32.0;
   for(int i=0; i<maxloop; i++){
     if(i >= int(window)) break;
 

@@ -20,7 +20,7 @@ function cb_receiveDataTile(datatile){
 
   redrawscatterplots();
 
-  var firsttime = eval(datatile['firsttime']);
+  //var firsttime = eval(datatile['firsttime']);
   var numdim = datatile['numdim'];
   var dimperimage = datatile['dimperimage'];
   var numrelations = datatile['numrelations'];
@@ -31,12 +31,11 @@ function cb_receiveDataTile(datatile){
   image.onload = function(){
 
     scattermatrix.update(
-      datatile['numrelations'],
+      datatile['type'],
       image,
       datatile['width'],
       datatile['numentries'],
       datatile['numdim'],
-      datatile['dimperimage'],
       this.index,
       datatile['numbin'],
       datatile['minvalue'],
@@ -47,7 +46,7 @@ function cb_receiveDataTile(datatile){
   }
 
 }
-
+/*
 function cb_receiveDataTileHistogram(datatile){
 
   if(document.getElementById('histogramdim') == null){
@@ -87,7 +86,7 @@ function cb_receiveDataTileHistogram(datatile){
   }
 
 }
-
+*/
 
 function createdropdown(id, values, onchange, className){
 
@@ -111,7 +110,7 @@ function redrawscatterplots(){
 
   for(var i = 0; i<currentnumdim; i++){
     for(var j = 0; j<currentnumdim; j++){
-      scattermatrix.addscatter(i, j, parseInt($('#dropdownmenu_dim1_'+i).val()), parseInt($('#dropdownmenu_dim2_'+j).val()));
+      scattermatrix.addscatter(i, j, parseInt($('#dropdownmenu_dim1_'+i).val()), parseInt($('#dropdownmenu_dim2_'+j).val()), parseInt($('#dropdownmenu_dim3_'+j).val()));
       //scattermatrix.draw();
     }
   }
@@ -123,9 +122,53 @@ function requestDataTiles(){
   for(var i = 0; i<currentnumdim; i++){
     for(var j = 0; j<currentnumdim; j++){
 
-      var dim0 = parseInt($('#dropdownmenu_dim1_'+i).val());
-      var dim1 = parseInt($('#dropdownmenu_dim2_'+j).val());
+      var dim1 = parseInt($('#dropdownmenu_dim1_'+i).val());
+      var dim2 = parseInt($('#dropdownmenu_dim2_'+j).val());
+      var dim3 = parseInt($('#dropdownmenu_dim3_'+j).val());
 
+      if(scattermatrix.hasDataTile('count', dim1, dim2) == false){
+        $.post(
+          '/getCountDataTile',
+            {
+              'datapath' : datapath,
+              'numbinscatter' : $('#numbinscatter').val(),
+              'i' : dim1,
+              'j' : dim2,
+            },
+          cb_receiveDataTile
+        );
+      }
+
+      if(scattermatrix.hasDataTile('index', dim1, dim2) == false){
+        $.post(
+          '/getIndexDataTile',
+            {
+              'datapath' : datapath,
+              'numbinscatter' : $('#numbinscatter').val(),
+              'i' : dim1,
+              'j' : dim2,
+            },
+          cb_receiveDataTile
+        );
+      }
+
+      if(scattermatrix.hasDataTile('entry', dim1, dim2, dim3) == false){
+        $.post(
+          '/getEntryDataTile',
+            {
+              'datapath' : datapath,
+              'numbinscatter' : $('#numbinscatter').val(),
+              'i' : dim1,
+              'j' : dim2,
+              'k' : dim3,
+            },
+          cb_receiveDataTile
+        );
+      }
+
+
+
+      /*
       if(scattermatrix.hasDataTile('2', dim0, dim1) == false){
         $.post(
           '/getDataTile2D',
@@ -140,7 +183,7 @@ function requestDataTiles(){
           cb_receiveDataTile
         );
       }
-      /*
+      
       for(var k = 0; k<currentnumdim; k++){
         for(var l = 0; l<currentnumdim; l++){
 
@@ -225,6 +268,15 @@ function adddimension(){
   //cell.innerHTML = currentnumdim;
   cell.appendChild(dropdown);
   $('#dropdownmenu_dim2_'+currentnumdim).val(currentnumdim);
+
+  //third dimension
+  dropdown = createdropdown('dropdownmenu_dim3_'+currentnumdim, values, onchange);
+  table = document.getElementById('scatterplotdim3');
+  row = table.insertRow(0);
+  cell = row.appendChild(document.createElement("td"));
+  //cell.innerHTML = currentnumdim;
+  cell.appendChild(dropdown);
+  $('#dropdownmenu_dim3_'+currentnumdim).val(currentnumdim);
 
   currentnumdim++;
 
@@ -350,7 +402,7 @@ function initialize(){
   initColorScale();
 
   datapath = window.location.search.substring(window.location.search.indexOf('=')+1);
-  
+  /*
   $.post(
     '/getDataTile2D',
       {
@@ -363,7 +415,40 @@ function initialize(){
       },
     cb_receiveDataTile
   );
+  */
+  $.post(
+    '/getCountDataTile',
+      {
+        'datapath' : datapath,
+        'numbinscatter' : $('#numbinscatter').val(),
+        'i' : 0,
+        'j' : 0,
+      },
+    cb_receiveDataTile
+  );
 
+  $.post(
+    '/getIndexDataTile',
+      {
+        'datapath' : datapath,
+        'numbinscatter' : $('#numbinscatter').val(),
+        'i' : 0,
+        'j' : 0,
+      },
+    cb_receiveDataTile
+  );
+
+  $.post(
+    '/getEntryDataTile',
+      {
+        'datapath' : datapath,
+        'numbinscatter' : $('#numbinscatter').val(),
+        'i' : 0,
+        'j' : 0,
+        'k' : 0,
+      },
+    cb_receiveDataTile
+  );
 
   changeBandwidth(0.052);
   changeNumBin();
