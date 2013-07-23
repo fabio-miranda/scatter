@@ -1,6 +1,6 @@
 minCountValue: 0.000000
 maxCountValue: 6.000000
 minIndexValue: 0.000000
-maxIndexValue: 19.000000
-minEntriesValue: 0.000000
-maxEntriesValue: 19.000000
+maxIndexValue: 149.000000
+minEntriesValue: 4.300000
+maxEntriesValue: 7.900000
