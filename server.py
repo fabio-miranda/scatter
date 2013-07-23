@@ -119,6 +119,10 @@ class ScatterPage:
 
   @cherrypy.expose
   def getEntryDataTile(self, datapath, numbinscatter, i, j, k):
+
+    if(k == 'density'):
+      k = 0
+
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
     data = {}

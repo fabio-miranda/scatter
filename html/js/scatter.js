@@ -88,29 +88,17 @@ function cb_receiveDataTileHistogram(datatile){
 }
 */
 
-function createdropdown(id, values, onchange, className){
-
-  //TODO: replace with jquery
-  var dropdown = document.createElement("select");
-  dropdown.id = id;
-  dropdown.className = className;
-  dropdown.onchange = onchange;
-
-  for(var i=0; i<values.length; i++){
-    var option=document.createElement("option");
-    option.text = values[i];
-    dropdown.add(option, null);
-  }
-
-  return dropdown;
-}
-
 
 function redrawscatterplots(){
 
   for(var i = 0; i<currentnumdim; i++){
     for(var j = 0; j<currentnumdim; j++){
-      scattermatrix.addscatter(i, j, parseInt($('#dropdownmenu_dim1_'+i).val()), parseInt($('#dropdownmenu_dim2_'+j).val()), parseInt($('#dropdownmenu_dim3_'+j).val()));
+
+      var dim1 = $('#dropdownmenu_dim1_'+i).val();
+      var dim2 = $('#dropdownmenu_dim2_'+j).val();
+      var dim3 = $('#dropdownmenu_dim3_'+j).val();
+
+      scattermatrix.addscatter(i, j, dim1, dim2, dim3);
       //scattermatrix.draw();
     }
   }
@@ -122,9 +110,9 @@ function requestDataTiles(){
   for(var i = 0; i<currentnumdim; i++){
     for(var j = 0; j<currentnumdim; j++){
 
-      var dim1 = parseInt($('#dropdownmenu_dim1_'+i).val());
-      var dim2 = parseInt($('#dropdownmenu_dim2_'+j).val());
-      var dim3 = parseInt($('#dropdownmenu_dim3_'+j).val());
+      var dim1 = $('#dropdownmenu_dim1_'+i).val();
+      var dim2 = $('#dropdownmenu_dim2_'+j).val();
+      var dim3 = $('#dropdownmenu_dim3_'+j).val();
 
       if(scattermatrix.hasDataTile('count', dim1, dim2) == false){
         $.post(
@@ -235,6 +223,23 @@ function changeNumBin(){
   requestDataTiles();
 }
 
+function createdropdown(id, values, onchange, className){
+
+  //TODO: replace with jquery
+  var dropdown = document.createElement("select");
+  dropdown.id = id;
+  dropdown.className = className;
+  dropdown.onchange = onchange;
+
+  for(var i=0; i<values.length; i++){
+    var option=document.createElement("option");
+    option.text = values[i];
+    dropdown.add(option, null);
+  }
+
+  return dropdown;
+}
+
 function adddimension(){
 
   //TODO: replace with jquery
@@ -276,7 +281,11 @@ function adddimension(){
   cell = row.appendChild(document.createElement("td"));
   //cell.innerHTML = currentnumdim;
   cell.appendChild(dropdown);
-  $('#dropdownmenu_dim3_'+currentnumdim).val(currentnumdim);
+  var option=document.createElement("option");
+  option.text = 'density';
+  dropdown.add(option, null);
+  $('#dropdownmenu_dim3_'+currentnumdim).val('density');
+  
 
   currentnumdim++;
 
@@ -371,6 +380,7 @@ function initColorScale(){
 
   var dropbox = createdropdown('dataclasses', [3,4,5,6,7,8,9,10,11,12], changeColorScale);
   $('#div_dataclasses').append(dropbox);
+  $('#dataclasses').val('9');
 
   changeColorScale();
 }
@@ -416,6 +426,7 @@ function initialize(){
     cb_receiveDataTile
   );
   */
+  
   $.post(
     '/getCountDataTile',
       {
@@ -445,11 +456,11 @@ function initialize(){
         'numbinscatter' : $('#numbinscatter').val(),
         'i' : 0,
         'j' : 0,
-        'k' : 0,
+        'k' : 'density',
       },
     cb_receiveDataTile
   );
-
+  
   changeBandwidth(0.052);
   changeNumBin();
   changeWindowSize();

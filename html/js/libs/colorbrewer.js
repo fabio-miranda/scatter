@@ -1,6 +1,15 @@
 // This product includes color specifications and designs developed by Cynthia Brewer (http://colorbrewer.org/).
 var colorbrewer = {
-BlackToWhite: {
+
+Blues: {
+3: ["#deebf7","#9ecae1","#3182bd"],
+4: ["#eff3ff","#bdd7e7","#6baed6","#2171b5"],
+5: ["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"],
+6: ["#eff3ff","#c6dbef","#9ecae1","#6baed6","#3182bd","#08519c"],
+7: ["#eff3ff","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#084594"],
+8: ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#084594"],
+9: ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"]
+},BlackToWhite: {
 3: ["#000000", "#7F7F7F", "#ffffff"]
 },YlGn: {
 3: ["#f7fcb9","#addd8e","#31a354"],
@@ -106,14 +115,6 @@ BlackToWhite: {
 7: ["#f2f0f7","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486"],
 8: ["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#4a1486"],
 9: ["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#54278f","#3f007d"]
-},Blues: {
-3: ["#deebf7","#9ecae1","#3182bd"],
-4: ["#eff3ff","#bdd7e7","#6baed6","#2171b5"],
-5: ["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"],
-6: ["#eff3ff","#c6dbef","#9ecae1","#6baed6","#3182bd","#08519c"],
-7: ["#eff3ff","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#084594"],
-8: ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#084594"],
-9: ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"]
 },Greens: {
 3: ["#e5f5e0","#a1d99b","#31a354"],
 4: ["#edf8e9","#bae4b3","#74c476","#238b45"],

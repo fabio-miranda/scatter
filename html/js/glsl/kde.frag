@@ -15,7 +15,10 @@ uniform float uNumBins;
 uniform float uWindowSize;
 uniform float uNumPoints;
 uniform float uIsFirstPass;
+uniform float uUseDensity;
 uniform float uBandwidth;
+uniform float uEntryDataTileWidth;
+
 
 const int maxloop = 50000;
 const float std = 1.0;
@@ -26,8 +29,15 @@ float gauss(float r){
   //return (1.0 / (sqrt(6.28318530718 * std * std))) * exp(- (r*r) / (2.0 * std * std) );
 }
 
+vec4 getValue(vec2 coord){
+  float index = texture2D(uSamplerIndex, coord).r * (uMaxIndexValue - uMinIndexValue) + uMinIndexValue;
+  vec2 coordValue = vec2(index/uEntryDataTileWidth, 0);
+  return texture2D(uSamplerEntry, coordValue.xy);// * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue;
+}
+
 void main(void) {
 
+  
   vec2 coord2D = vTexCoord;
 
   float count;
@@ -54,6 +64,9 @@ void main(void) {
       if(uIsFirstPass > 0.0)
         counti = counti * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
+      //if(getValue(coord2D).r * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue == 2.0)
+        //break;
+
       float gaus = gauss((float(index) / uNumBins) * oneoverh);
       float k = counti * gaus;
 
@@ -69,13 +82,13 @@ void main(void) {
   }
   else{
 
-    f = (1.0 / (uNumPoints*h)) * f;
+    //f = (1.0 / (uNumPoints*h)) * f;
     f = f/0.3989422804;
 
     vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);
     //gl_FragColor = vec4(h, h, h, 1.0);
   }
-
+  
 
 }
