@@ -390,8 +390,8 @@ int generateTiles(char* outputdir, int numentries, int numdim,
 
   //printf("0\n");
 
-  float* buffEntries = malloc(4096*4096*sizeof(float));
-  for(i=0; i<4096*4096; i++)
+  float* buffEntries = malloc(512*512*sizeof(float));
+  for(i=0; i<512*512; i++)
     buffEntries[i] = 0.0f;
 
   //printf("1\n");
@@ -403,8 +403,8 @@ int generateTiles(char* outputdir, int numentries, int numdim,
       for(entry=0; entry<numentries; entry++){
 
         //check if entry falls in bin ij
-        float vali = (data[dimi*numentries+entry] - mindatavalues[dimi]) / maxdatavalues[dimi];
-        float valj = (data[dimj*numentries+entry] - mindatavalues[dimj]) / maxdatavalues[dimj];
+        float vali = (data[dimi*numentries+entry] - mindatavalues[dimi]) / (maxdatavalues[dimi] - mindatavalues[dimi]);
+        float valj = (data[dimj*numentries+entry] - mindatavalues[dimj]) / (maxdatavalues[dimj] - mindatavalues[dimj]);
 
         int binj = round(valj * (float)(numbin-1));
         int bini = round(vali * (float)(numbin-1));
@@ -442,11 +442,13 @@ int generateTiles(char* outputdir, int numentries, int numdim,
           //printf("4\n");
 
           //entry data tile
-          float valk = (data[dimk*numentries+entry] - mindatavalues[dimk]) / maxdatavalues[dimk];
-          buffEntries[entrycount] = valk;
+          //float valk = (data[dimk*numentries+entry] - mindatavalues[dimk]) / maxdatavalues[dimk];
+          buffEntries[entrycount] = data[dimk*numentries+entry];
 
-          minEntriesValue = MIN(minEntriesValue, buffEntries[entrycount]);
-          maxEntriesValue = MAX(maxEntriesValue, buffEntries[entrycount]);
+          //printf("%f\n", data[dimk*numentries+entry]);
+
+          minEntriesValue = MIN(minEntriesValue, data[dimk*numentries+entry]);
+          maxEntriesValue = MAX(maxEntriesValue, data[dimk*numentries+entry]);
 
           //printf("%f %f\n", minIndexValue, maxIndexValue);
 
@@ -475,7 +477,7 @@ int generateTiles(char* outputdir, int numentries, int numdim,
   //save entry data tile to image
   char filenamepng3[100];
   snprintf(filenamepng3, 100, "%s/b%d_i%d_j%d_k%d.entry.png", outputdir, numbin, dimi, dimj, dimk);
-  writeImage(filenamepng3, 4096, 4096, minEntriesValue, maxEntriesValue, buffEntries, 1);
+  writeImage(filenamepng3, 512, 512, minEntriesValue, maxEntriesValue, buffEntries, 1);
 
   //save info
   char filenametxt[100];

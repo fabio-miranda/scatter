@@ -33,7 +33,7 @@ void main(void) {
   float count;
   count = texture2D(uSamplerCount, coord2D).r;
   if(uIsFirstPass > 0.0)
-    count = count * (uMaxCountValue - uMinCountValue);
+    count = count * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
 
   float h = uBandwidth;
@@ -52,7 +52,7 @@ void main(void) {
       float counti  = texture2D(uSamplerCount, coord2D).g;
 
       if(uIsFirstPass > 0.0)
-        counti = counti * (uMaxCountValue - uMinCountValue);
+        counti = counti * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
       float gaus = gauss((float(index) / uNumBins) * oneoverh);
       float k = counti * gaus;

@@ -373,6 +373,14 @@ ScatterGL.prototype.updateDiscrete = function(scatter, index01, index012, width,
 
   this.gl.useProgram(this.discreteShader);
 
+  this.gl.uniform1f(this.discreteShader.minCountValue, this.datatiles['count'][index01].minvalue);
+  this.gl.uniform1f(this.discreteShader.maxCountValue, this.datatiles['count'][index01].maxvalue);
+  this.gl.uniform1f(this.discreteShader.minIndexValue, this.datatiles['index'][index01].minvalue);
+  this.gl.uniform1f(this.discreteShader.maxIndexValue, this.datatiles['index'][index01].maxvalue);
+  this.gl.uniform1f(this.discreteShader.minEntryValue, this.datatiles['entry'][index012].minvalue);
+  this.gl.uniform1f(this.discreteShader.maxEntryValue, this.datatiles['entry'][index012].maxvalue);
+
+
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);

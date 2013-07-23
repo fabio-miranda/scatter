@@ -25,6 +25,11 @@ function getShader(gl, filename, isFragShader) {
   return shader;
 }
 
+function deleteFBO(gl, fbo){
+  if(gl.isFramebuffer(fbo))
+    gl.deleteFramebuffer(fbo);
+}
+
 function createFBO(gl, interpolation, width, height, iformat, format, type, tex, fbo){
 
   gl.activeTexture(gl.TEXTURE0);
@@ -153,13 +158,13 @@ quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, texture0, t
   if(texture2 != null){
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, texture2);
-    gl.uniform1i(shaderProgram.sampler2, 1);
+    gl.uniform1i(shaderProgram.sampler2, 2);
   }
 
   if(texture3 != null){
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, texture3);
-    gl.uniform1i(shaderProgram.sampler3, 1);
+    gl.uniform1i(shaderProgram.sampler3, 3);
   }
 
 
