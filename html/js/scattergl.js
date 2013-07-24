@@ -90,8 +90,8 @@ ScatterGL.prototype.update = function(type, image, imgsize, numpoints, numdim, i
   this.datatiles[type][index] = new Datatile(this.gl, image, imgsize, numpoints, numdim, index, numbin, minvalue, maxvalue);
 
   //For float textures, only NEAREST is supported? (http://www.khronos.org/registry/gles/extensions/OES/OES_texture_float.txt)
-  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
-  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
+  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
+  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
 
   this.updateTexture();
 }
@@ -223,7 +223,7 @@ ScatterGL.prototype.getSelection = function(){
 
 }
 
-ScatterGL.prototype.updateKDE = function(scatter, indexij, indexijk, group, width, height){
+ScatterGL.prototype.updateKDE = function(scatter, indexij, indexijk, pass, numgroups, width, height){
 
   this.gl.useProgram(this.kdeShader);
 
@@ -244,8 +244,8 @@ ScatterGL.prototype.updateKDE = function(scatter, indexij, indexijk, group, widt
   this.gl.uniform1f(this.kdeShader.isFirstPass, 1.0);
   this.gl.uniform1f(this.kdeShader.useDensity, this.useDensity);
   this.gl.uniform1f(this.kdeShader.entryDataTileWidth, this.datatiles['entry'][indexijk].imgsize);
-  this.gl.uniform1f(this.kdeShader.passValue, group);
-  this.gl.uniform1f(this.kdeShader.numPassValues, this.datatiles['entry'][indexijk].maxvalue - this.datatiles['entry'][indexijk].minvalue + 1);
+  this.gl.uniform1f(this.kdeShader.passValue, this.datatiles['entry'][indexijk].minvalue+pass);
+  this.gl.uniform1f(this.kdeShader.numPassValues, numgroups);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   scatter.quad.draw(
@@ -265,7 +265,8 @@ ScatterGL.prototype.updateKDE = function(scatter, indexij, indexijk, group, widt
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   //this.gl.viewport(i*width, j*height, width, height);
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
-  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  if(pass==0)
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   this.gl.uniform1f(this.kdeShader.isFirstPass, 0.0);
   
   scatter.quad.draw(
@@ -451,8 +452,20 @@ ScatterGL.prototype.updateTexture = function(){
 
     
     //render
-    if(this.kdetype == 'KDE')
-      this.updateKDE(scatter, index01, index012, 2.0, width, height);
+    var numgroups;
+    var startgroup;
+    if(this.useDensity)
+      numgroups = 1;
+    else
+      numgroups = this.datatiles['entry'][index012].maxvalue - this.datatiles['entry'][index012].minvalue + 1;
+
+    
+    
+    if(this.kdetype == 'KDE'){
+      for(var i=0; i<numgroups; i++){
+        this.updateKDE(scatter, index01, index012, i, numgroups, width, height);
+      }
+    }
     else if(this.kdetype == 'AKDE')
       this.updateAKDE(scatter, index01, index012, width, height);
     else if(this.kdetype == 'Discrete')
@@ -820,10 +833,12 @@ ScatterGL.prototype.initGL = function(){
 
   this.gl.disable(this.gl.DEPTH_TEST);
   this.gl.enable(this.gl.BLEND);
-  this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
-  this.gl.clearColor(0, 0, 0, 0);
+  //this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+  this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+  this.gl.clearColor(1, 1, 1, 1);
 
   var float_texture_ext = this.gl.getExtension('OES_texture_float');
+  console.log(this.gl.getExtension('NV_texture_border_clamp'));
 
   if (!this.gl){
     alert("Could not initialise Webgl.");

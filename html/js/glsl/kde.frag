@@ -66,6 +66,7 @@ void main(void) {
     else
       value = uPassValue;
 
+    //TODO: remove this if. It REALLY impacts performance
     if((uIsFirstPass > 0.0 && value >= uPassValue-0.1 && value <= uPassValue+0.1 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)
       ||
       (uIsFirstPass <= 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
@@ -102,7 +103,7 @@ void main(void) {
     //gl_FragColor = vec4(color.xyz, 1);
     vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/uNumPassValues, 0)).rgb;
     float alpha = texture2D(uSamplerColorScale, vec2(f, 0)).a;
-    gl_FragColor = vec4(color.xyz*alpha, 1.0);
+    gl_FragColor = vec4(color.xyz*alpha, alpha);
   }
   
 
