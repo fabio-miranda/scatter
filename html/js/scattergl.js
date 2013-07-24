@@ -426,8 +426,10 @@ ScatterGL.prototype.updateTexture = function(){
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
   //plots
-  var width = this.gl.viewportWidth / (this.maxdim + 1);
-  var height = this.gl.viewportHeight / (this.maxdim + 1);
+  //var width = this.gl.viewportWidth / (this.maxdim + 1);
+  //var height = this.gl.viewportHeight / (this.maxdim + 1);
+  var width = this.canvas.clientWidth / (this.maxdim + 1);
+  var height = this.canvas.clientHeight / (this.maxdim + 1);
   mat4.identity(this.mvMatrix);
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
@@ -472,8 +474,10 @@ ScatterGL.prototype.draw = function(){
 
   if(this.drawReady == false) return;
 
-  var width = this.gl.viewportWidth / (this.maxdim + 1);
-  var height = this.gl.viewportHeight / (this.maxdim + 1);
+  //var width = this.gl.viewportWidth / (this.maxdim + 1);
+  //var height = this.gl.viewportHeight / (this.maxdim + 1);
+  var width = this.canvas.clientWidth / (this.maxdim + 1);
+  var height = this.canvas.clientHeight / (this.maxdim + 1);
 
   mat4.identity(this.mvMatrix);
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
