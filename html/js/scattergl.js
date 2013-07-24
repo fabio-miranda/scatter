@@ -125,7 +125,7 @@ ScatterGL.prototype.setColorScale = function(colorscalevalues){
 
   //No shared resource. I create the texture two times, one for each canvas
   this.colorscaletex = this.gl.createTexture();
-  createTextureFromArray(this.gl, this.gl.NEAREST, colorscalevalues.length/3, 1, this.gl.RGB, this.gl.RGB, this.gl.UNSIGNED_BYTE, colorscalevalues, this.colorscaletex);
+  createTextureFromArray(this.gl, this.gl.NEAREST, colorscalevalues.length/4, 1, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, colorscalevalues, this.colorscaletex);
 
   this.updateTexture();
 
@@ -223,7 +223,7 @@ ScatterGL.prototype.getSelection = function(){
 
 }
 
-ScatterGL.prototype.updateKDE = function(scatter, indexij, indexijk, width, height){
+ScatterGL.prototype.updateKDE = function(scatter, indexij, indexijk, group, width, height){
 
   this.gl.useProgram(this.kdeShader);
 
@@ -244,6 +244,8 @@ ScatterGL.prototype.updateKDE = function(scatter, indexij, indexijk, width, heig
   this.gl.uniform1f(this.kdeShader.isFirstPass, 1.0);
   this.gl.uniform1f(this.kdeShader.useDensity, this.useDensity);
   this.gl.uniform1f(this.kdeShader.entryDataTileWidth, this.datatiles['entry'][indexijk].imgsize);
+  this.gl.uniform1f(this.kdeShader.passValue, group);
+  this.gl.uniform1f(this.kdeShader.numPassValues, this.datatiles['entry'][indexijk].maxvalue - this.datatiles['entry'][indexijk].minvalue + 1);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   scatter.quad.draw(
@@ -428,8 +430,8 @@ ScatterGL.prototype.updateTexture = function(){
   //plots
   //var width = this.gl.viewportWidth / (this.maxdim + 1);
   //var height = this.gl.viewportHeight / (this.maxdim + 1);
-  var width = this.canvas.clientWidth / (this.maxdim + 1);
-  var height = this.canvas.clientHeight / (this.maxdim + 1);
+  var width = this.canvas.width / (this.maxdim + 1);
+  var height = this.canvas.height / (this.maxdim + 1);
   mat4.identity(this.mvMatrix);
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
@@ -446,10 +448,11 @@ ScatterGL.prototype.updateTexture = function(){
     this.drawReady = true;
     var index01 = dim0+' '+dim1;
     var index012 = dim0+' '+dim1+' '+dim2;
+
     
     //render
     if(this.kdetype == 'KDE')
-      this.updateKDE(scatter, index01, index012, width, height);
+      this.updateKDE(scatter, index01, index012, 2.0, width, height);
     else if(this.kdetype == 'AKDE')
       this.updateAKDE(scatter, index01, index012, width, height);
     else if(this.kdetype == 'Discrete')
@@ -476,8 +479,8 @@ ScatterGL.prototype.draw = function(){
 
   //var width = this.gl.viewportWidth / (this.maxdim + 1);
   //var height = this.gl.viewportHeight / (this.maxdim + 1);
-  var width = this.canvas.clientWidth / (this.maxdim + 1);
-  var height = this.canvas.clientHeight / (this.maxdim + 1);
+  var width = this.canvas.width / (this.maxdim + 1);
+  var height = this.canvas.height / (this.maxdim + 1);
 
   mat4.identity(this.mvMatrix);
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
@@ -591,6 +594,8 @@ ScatterGL.prototype.initShaders = function(){
   this.kdeShader.sampler2 = this.gl.getUniformLocation(this.kdeShader, "uSamplerIndex");
   this.kdeShader.sampler3 = this.gl.getUniformLocation(this.kdeShader, "uSamplerEntry");
   this.kdeShader.entryDataTileWidth = this.gl.getUniformLocation(this.kdeShader, "uEntryDataTileWidth");
+  this.kdeShader.passValue = this.gl.getUniformLocation(this.kdeShader, "uPassValue");
+  this.kdeShader.numPassValues = this.gl.getUniformLocation(this.kdeShader, "uNumPassValues");
 
 
   this.kdeShader.pMatrixUniform = this.gl.getUniformLocation(this.kdeShader, "uPMatrix");

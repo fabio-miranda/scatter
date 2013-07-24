@@ -25,35 +25,42 @@ function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
 function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
 
 ColorScale.prototype.setValues = function(values, isLinear){
-  var scale;
+  var scaleColor;
+  var scaleAlpha;
 
   if(isLinear){
-    scale = d3.scale.linear()
+    scaleColor = d3.scale.linear()
+      .domain(d3.range(0, 255+255.0/(values.length-1), 255.0/(values.length-1)));
+    scaleAlpha = d3.scale.linear()
       .domain(d3.range(0, 255+255.0/(values.length-1), 255.0/(values.length-1)));
   }
   else{
-    scale = d3.scale.quantize() //quantize only takes two numbers as domain
+    scaleColor = d3.scale.quantize() //quantize only takes two numbers as domain
+      .domain([0,this.texsize]);
+    scaleAlpha = d3.scale.quantize() //quantize only takes two numbers as domain
       .domain([0,this.texsize]);
   }
 
-  scale.range(values);
+  scaleColor.range(values);
+  scaleAlpha.range(d3.range(0, 255+255.0/(values.length-1), 255.0/(values.length-1)));
 
   //create texture
-  this.texdata = new Uint8Array(3*this.texsize);
+  this.texdata = new Uint8Array(4*this.texsize);
   for(var i=0; i<this.texsize; i++){
-    var hex = scale(i);
+    var hex = scaleColor(i);
     var r = hexToR(hex);
     var g = hexToG(hex);
     var b = hexToB(hex);
-    this.texdata[3*i] = r;
-    this.texdata[3*i+1] = g;
-    this.texdata[3*i+2] = b;
+    this.texdata[4*i] = r;
+    this.texdata[4*i+1] = g;
+    this.texdata[4*i+2] = b;
+    this.texdata[4*i+3] = scaleAlpha(i);
   }
 
   //console.log(texData);
 
   this.texture = this.gl.createTexture();
-  createTextureFromArray(this.gl, this.gl.NEAREST, this.texsize, 1, this.gl.RGB, this.gl.RGB, this.gl.UNSIGNED_BYTE, this.texdata, this.texture);
+  createTextureFromArray(this.gl, this.gl.NEAREST, this.texsize, 1, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.texdata, this.texture);
 
   this.draw();
 

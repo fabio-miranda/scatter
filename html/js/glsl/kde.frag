@@ -18,6 +18,8 @@ uniform float uIsFirstPass;
 uniform float uUseDensity;
 uniform float uBandwidth;
 uniform float uEntryDataTileWidth;
+uniform float uPassValue;
+uniform float uNumPassValues;
 
 
 const int maxloop = 50000;
@@ -51,14 +53,23 @@ void main(void) {
   //float x = coord2D.x;
   float f = 0.0;
   //float W = 0.0;
+  float numpoints = 0.0;
   for(int i=0;i<maxloop; i++){
     if(i >= int(uWindowSize)) break;
 
     int index = i - int(uWindowSize)/2;
     coord2D = vec2(vTexCoord.x + uIsFirstPass * (float(index) / uNumBins), vTexCoord.y + (1.0 - uIsFirstPass) * (float(index) / uNumBins)); //make sure to access not the next texel, but the next bin
 
+    float value;
+    if(uUseDensity <= 0.0)
+      value = getValue(coord2D).r * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue;
+    else
+      value = uPassValue;
 
-    if(coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
+    if((uIsFirstPass > 0.0 && value >= uPassValue-0.1 && value <= uPassValue+0.1 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)
+      ||
+      (uIsFirstPass <= 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
+
       float counti  = texture2D(uSamplerCount, coord2D).g;
 
       if(uIsFirstPass > 0.0)
@@ -68,9 +79,10 @@ void main(void) {
         //break;
 
       float gaus = gauss((float(index) / uNumBins) * oneoverh);
-      float k = counti * gaus;
+      float k = counti * gaus; //TODO: consider only count of the same group
 
       f += k;
+      numpoints+=counti;
       //W += counti ;
     }
   }
@@ -82,12 +94,15 @@ void main(void) {
   }
   else{
 
-    //f = (1.0 / (uNumPoints*h)) * f;
+    f = (1.0 / (uNumPoints*h)) * f;
+    //f = (1.0 / (50.0*h)) * f;
     f = f/0.3989422804;
 
-    vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
-    gl_FragColor = vec4(color.xyz, 1);
-    //gl_FragColor = vec4(h, h, h, 1.0);
+    //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
+    //gl_FragColor = vec4(color.xyz, 1);
+    vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/uNumPassValues, 0)).rgb;
+    float alpha = texture2D(uSamplerColorScale, vec2(f, 0)).a;
+    gl_FragColor = vec4(color.xyz*alpha, 1.0);
   }
   
 
