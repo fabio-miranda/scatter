@@ -1,15 +1,25 @@
 precision mediump float;
 
 varying highp vec2 vTexCoord;
-uniform sampler2D uSampler0;
-uniform sampler2D uSampler1;
-uniform float uMinValue;
-uniform float uMaxValue;
+uniform sampler2D uSamplerColorScale;
+uniform sampler2D uSamplerCount;
+uniform sampler2D uSamplerIndex;
+uniform sampler2D uSamplerEntry;
+uniform float uMinCountValue;
+uniform float uMaxCountValue;
+uniform float uMinIndexValue;
+uniform float uMaxIndexValue;
+uniform float uMinEntryValue;
+uniform float uMaxEntryValue;
 uniform float uNumBins;
 uniform float uWindowSize;
 uniform float uNumPoints;
 uniform float uIsFirstPass;
+uniform float uUseDensity;
 uniform float uBandwidth;
+uniform float uEntryDataTileWidth;
+uniform float uPassValue;
+uniform float uNumPassValues;
 
 const int maxloop = 50000;
 const float std = 1.0;
@@ -20,11 +30,17 @@ float gauss(float r){
   //return (1.0 / (sqrt(6.28318530718 * std * std))) * exp(- (r*r) / (2.0 * std * std) );
 }
 
+vec4 getValue(vec2 coord){
+  float index = texture2D(uSamplerIndex, coord).r * (uMaxIndexValue - uMinIndexValue) + uMinIndexValue;
+  vec2 coordValue = vec2(index/uEntryDataTileWidth, 0);
+  return texture2D(uSamplerEntry, coordValue.xy);// * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue;
+}
+
 void main(void) {
 
   vec2 coord2D = vTexCoord;
 
-  vec4 values = texture2D(uSampler0, coord2D); //count, f, lambda
+  vec4 values = texture2D(uSamplerCount, coord2D); //count, f, lambda
   float count = values.r;
 
   //gl_FragColor = vec4(values.r, values.g, values.b, 1.0);
@@ -39,10 +55,11 @@ void main(void) {
 
     int index = i - int(uWindowSize)/2;
     coord2D = vec2(vTexCoord.x + uIsFirstPass * (float(index) / uNumBins), vTexCoord.y + (1.0 - uIsFirstPass) * (float(index) / uNumBins)); //make sure to access not the next texel, but the next bin
-    vec4 valuesi  = texture2D(uSampler0, coord2D); //count, f, lambda
 
-    if(valuesi.g > 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
-      
+    vec4 valuesi  = texture2D(uSamplerCount, coord2D); //count, f, lambda
+
+    if((coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
+
       //if((uIsFirstPass <= 0.0 && valuesi.g > 0.0) || uIsFirstPass > 0.0){
 
         float counti = valuesi.r;
@@ -73,10 +90,13 @@ void main(void) {
     //f = (1.0 / (uNumPoints*h)) * f;
     f = f/0.3989422804;
 
-    vec3 color = texture2D(uSampler1, vec2(f, 0)).xyz;
+    vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     gl_FragColor = vec4(color.xyz, 1);
 
     //gl_FragColor = vec4(values.g, values.g, values.g, 1.0);
+    //vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/uNumPassValues, 0)).rgb;
+    //float alpha = texture2D(uSamplerColorScale, vec2(f, 0)).a;
+    //gl_FragColor = vec4(color.xyz*alpha, alpha);
     
   }
 

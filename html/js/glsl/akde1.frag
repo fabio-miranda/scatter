@@ -1,20 +1,32 @@
 precision mediump float;
 
 varying highp vec2 vTexCoord;
-uniform sampler2D uSampler0;
-uniform float uMinValue;
-uniform float uMaxValue;
+uniform sampler2D uSamplerColorScale;
+uniform sampler2D uSamplerCount;
+uniform sampler2D uSamplerIndex;
+uniform sampler2D uSamplerEntry;
+uniform float uMinCountValue;
+uniform float uMaxCountValue;
+uniform float uMinIndexValue;
+uniform float uMaxIndexValue;
+uniform float uMinEntryValue;
+uniform float uMaxEntryValue;
 uniform float uNumBins;
 uniform float uWindowSize;
 uniform float uNumPoints;
 uniform float uIsFirstPass;
+uniform float uUseDensity;
+uniform float uBandwidth;
+uniform float uEntryDataTileWidth;
+uniform float uPassValue;
+uniform float uNumPassValues;
 
 const int maxloop = 50000;
 
 void main(void) {
 
   vec2 coord2D = vTexCoord;
-  vec4 values  = texture2D(uSampler0, coord2D); //count, f
+  vec4 values  = texture2D(uSamplerCount, coord2D); //count, f
   float mean=0.0;
   float n=0.0;
   float window = 32.0;
@@ -29,7 +41,7 @@ void main(void) {
       int index1 = j - int(window)/2;
 
       vec2 coord2D = vTexCoord + vec2((float(index0) / uNumBins), (float(index1) / uNumBins));
-      vec4 valuesij = texture2D(uSampler0, coord2D); //count, f
+      vec4 valuesij = texture2D(uSamplerCount, coord2D); //count, f
       if(valuesij.g > 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
         //mean *= valuesij.g;
         mean += log(valuesij.g);

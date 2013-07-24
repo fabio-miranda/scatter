@@ -357,10 +357,16 @@ function changeBandwidth(value){
   $('#bandwidthslider').attr('value', value);
 }
 
-function changeZoom(value){
-  scattermatrix.changeZoom(value);
-
+function changeZoom(delta){
+  scattermatrix.changeZoom(delta);
   scattermatrix.draw();
+  $('#zoomslider').attr('value', $('#zoomslider').attr('value')+delta);
+}
+
+function setZoom(value){
+  scattermatrix.setZoom(value);
+  scattermatrix.draw();
+  $('#zoomslider').attr('value', value);
 }
 
 function changeWindowSize(){
@@ -404,7 +410,7 @@ function initialize(){
     step: 0.1,
     orientation: "vertical",
     slide: function( event, ui ) {
-      changeZoom(ui.value);
+      setZoom(ui.value);
     }
   });
 

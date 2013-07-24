@@ -11,6 +11,6 @@ void main(void) {
 	if(coord.x >= 0.0 && coord.x <= 1.0 && coord.y >= 0.0 && coord.y <= 1.0)
   	gl_FragColor = texture2D(uSampler0, coord);
   else
-  	gl_FragColor = vec4(0.8, 0.8, 0.8, 1.0);
+  	gl_FragColor = vec4(0.95, 0.95, 0.95, 1.0);
   
 }

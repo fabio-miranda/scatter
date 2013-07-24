@@ -30,6 +30,8 @@
           <center>
             <table id='scatterplotdim2' class='scatterplotmatrix scatterplotdim2'></table>
             <center><div id='div_zoomslider'></div></center>
+            <span id='zoomin' class='button' onclick=changeZoom(0.1)>+</span>
+            <span id='zoomout' class='button' onclick=changeZoom(-0.1)>-</span>
           </center>
         </td>
         <td><canvas id='scatterplotmatrix' class='scatterplotmatrix'></canvas></td>
@@ -38,8 +40,8 @@
       <tr>
         <td>
           <center>
-            <span id='add' class='button' onclick=addscatterplot()>+</span>
-            <span id='remove' class='button' onclick=removescatterplot()>-</span><br/>
+            <!--<span id='add' class='button' onclick=addscatterplot()>+</span>
+            <span id='remove' class='button' onclick=removescatterplot()>-</span><br/>-->
             <select id='numbinscatter' selected='128' onchange=changeNumBin()>
               <option>2</option>
               <option>4</option>
