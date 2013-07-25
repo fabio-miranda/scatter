@@ -331,15 +331,24 @@ function changeColorScale(){
 
   var color = $('#colorbrewer').val();
   var dataclasses = $('#dataclasses').val();
-  var checked = $('#isLinear').prop('checked');
+  var interpolationType = $('#interpolationType').val();
+
+  var isLinear = false;
+  if(interpolationType == 'Linear')
+    isLinear = true;
   
   if(colorbrewer[color][dataclasses] != null){
-    colorscale.setValues(colorbrewer[color][dataclasses], checked);
+    colorscale.setValues(colorbrewer[color][dataclasses], isLinear);
 
     scattermatrix.setColorScale(colorscale.texdata);
     redrawscatterplots();
   }
 
+}
+
+function changeRenderType(){
+  scattermatrix.changeRenderType($('#rendertype').prop('value'));
+  scattermatrix.draw();
 }
 
 function changeKDEType(){

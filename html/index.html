@@ -84,10 +84,19 @@
             </select>
           </center>
           <center><div id='div_bandwidthslider'></div></center>
-          <center><table id='scatterplotdim3' class='scatterplotmatrix scatterplotdim3'></table></center>
+          <center>
+            <table id='scatterplotdim3' class='scatterplotmatrix scatterplotdim3'></table>
+            <select id='rendertype' onchange=changeRenderType()>
+              <option selected='selected'>Single</option>
+              <option>Multi</option>
+            </select>
+          </center>
         </td>
         <td>
-          <input id='isLinear' type="checkbox" onchange=changeColorScale()>Linear</input></br>
+          <select id='interpolationType' onchange=changeColorScale()>
+            <option selected='selected'>Discrete</option>
+            <option>Linear</option>
+          </select></br>
           <div id='div_colorbrewer'></div>
           <div id='div_dataclasses'></div>
         </td>

@@ -54,6 +54,7 @@ function ScatterGL(canvas){
   this.devicePixelRatio = 1;
   this.bandwidth = 0.01;
   this.kdetype = 'KDE';
+  this.rendertype = 'Single'
   this.drawReady = false;
   this.zoomLevel = 0.0;
   this.translation = [0.0,0.0];
@@ -155,6 +156,14 @@ ScatterGL.prototype.changeKDEType = function(kdetype){
 
 }
 
+ScatterGL.prototype.changeRenderType = function(rendertype){
+
+  this.rendertype = rendertype;
+
+  this.updateTexture();
+
+}
+
 ScatterGL.prototype.changeWindowSize = function(windowSize){
 
   this.windowSize = windowSize;
@@ -227,32 +236,32 @@ ScatterGL.prototype.getSelection = function(){
 
 ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgroups, width, height){
 
-  this.gl.useProgram(this.kdeShader);
+  this.gl.useProgram(this.multipass_kdeShader);
 
   //horizontal pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   //this.gl.viewport(i*width, j*height, width, height);
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
-  this.gl.uniform1f(this.kdeShader.minCountValue, this.datatiles['count'][index01].minvalue);
-  this.gl.uniform1f(this.kdeShader.maxCountValue, this.datatiles['count'][index01].maxvalue);
-  this.gl.uniform1f(this.kdeShader.minIndexValue, this.datatiles['index'][index01].minvalue);
-  this.gl.uniform1f(this.kdeShader.maxIndexValue, this.datatiles['index'][index01].maxvalue);
-  this.gl.uniform1f(this.kdeShader.minEntryValue, this.datatiles['entry'][index012].minvalue);
-  this.gl.uniform1f(this.kdeShader.maxEntryValue, this.datatiles['entry'][index012].maxvalue);
-  this.gl.uniform1f(this.kdeShader.numBins, this.numbin);
-  this.gl.uniform1f(this.kdeShader.numPoints, this.datatiles['count'][index01].numpoints);
-  this.gl.uniform1f(this.kdeShader.bandwidth, this.bandwidth);
-  this.gl.uniform1f(this.kdeShader.windowSize, this.windowSize);
-  this.gl.uniform1f(this.kdeShader.isFirstPass, 1.0);
-  this.gl.uniform1f(this.kdeShader.useDensity, this.useDensity);
-  this.gl.uniform1f(this.kdeShader.entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
-  this.gl.uniform1f(this.kdeShader.passValue, this.datatiles['entry'][index012].minvalue+pass);
-  this.gl.uniform1f(this.kdeShader.numPassValues, numgroups);
+  this.gl.uniform1f(this.multipass_kdeShader.minCountValue, this.datatiles['count'][index01].minvalue);
+  this.gl.uniform1f(this.multipass_kdeShader.maxCountValue, this.datatiles['count'][index01].maxvalue);
+  this.gl.uniform1f(this.multipass_kdeShader.minIndexValue, this.datatiles['index'][index01].minvalue);
+  this.gl.uniform1f(this.multipass_kdeShader.maxIndexValue, this.datatiles['index'][index01].maxvalue);
+  this.gl.uniform1f(this.multipass_kdeShader.minEntryValue, this.datatiles['entry'][index012].minvalue);
+  this.gl.uniform1f(this.multipass_kdeShader.maxEntryValue, this.datatiles['entry'][index012].maxvalue);
+  this.gl.uniform1f(this.multipass_kdeShader.numBins, this.numbin);
+  this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.datatiles['count'][index01].numpoints);
+  this.gl.uniform1f(this.multipass_kdeShader.bandwidth, this.bandwidth);
+  this.gl.uniform1f(this.multipass_kdeShader.windowSize, this.windowSize);
+  this.gl.uniform1f(this.multipass_kdeShader.isFirstPass, 1.0);
+  this.gl.uniform1f(this.multipass_kdeShader.useDensity, this.useDensity);
+  this.gl.uniform1f(this.multipass_kdeShader.entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
+  this.gl.uniform1f(this.multipass_kdeShader.passValue, this.datatiles['entry'][index012].minvalue+pass);
+  this.gl.uniform1f(this.multipass_kdeShader.numPassValues, numgroups);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   scatter.quad.draw(
     this.gl,
-    this.kdeShader,
+    this.multipass_kdeShader,
     this.mvMatrix,
     this.pMatrix,
     this.datatiles['count'][index01].texture,
@@ -269,11 +278,11 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
   if(pass==0)
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-  this.gl.uniform1f(this.kdeShader.isFirstPass, 0.0);
+  this.gl.uniform1f(this.multipass_kdeShader.isFirstPass, 0.0);
   
   scatter.quad.draw(
     this.gl,
-    this.kdeShader,
+    this.multipass_kdeShader,
     this.mvMatrix,
     this.pMatrix,
     this.fbotex2,
@@ -288,27 +297,27 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
 
 ScatterGL.prototype.updateSingleAKDEPass = function(akdePass, isHorizontal, scatter, index01, index012, pass, numgroups, tex){
 
-  this.gl.uniform1f(this.akdeShader[akdePass].minCountValue, this.datatiles['count'][index01].minvalue);
-  this.gl.uniform1f(this.akdeShader[akdePass].maxCountValue, this.datatiles['count'][index01].maxvalue);
-  this.gl.uniform1f(this.akdeShader[akdePass].minIndexValue, this.datatiles['index'][index01].minvalue);
-  this.gl.uniform1f(this.akdeShader[akdePass].maxIndexValue, this.datatiles['index'][index01].maxvalue);
-  this.gl.uniform1f(this.akdeShader[akdePass].minEntryValue, this.datatiles['entry'][index012].minvalue);
-  this.gl.uniform1f(this.akdeShader[akdePass].maxEntryValue, this.datatiles['entry'][index012].maxvalue);
-  this.gl.uniform1f(this.akdeShader[akdePass].numBins, this.numbin);
-  this.gl.uniform1f(this.akdeShader[akdePass].numPoints, this.datatiles['count'][index01].numpoints);
-  this.gl.uniform1f(this.akdeShader[akdePass].bandwidth, this.bandwidth);
-  this.gl.uniform1f(this.akdeShader[akdePass].windowSize, this.windowSize);
-  this.gl.uniform1f(this.akdeShader[akdePass].isFirstPass, isHorizontal);
-  this.gl.uniform1f(this.akdeShader[akdePass].useDensity, this.useDensity);
-  this.gl.uniform1f(this.akdeShader[akdePass].entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
-  this.gl.uniform1f(this.akdeShader[akdePass].passValue, this.datatiles['entry'][index012].minvalue+pass);
-  this.gl.uniform1f(this.akdeShader[akdePass].numPassValues, numgroups);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].minCountValue, this.datatiles['count'][index01].minvalue);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].maxCountValue, this.datatiles['count'][index01].maxvalue);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].minIndexValue, this.datatiles['index'][index01].minvalue);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].maxIndexValue, this.datatiles['index'][index01].maxvalue);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].minEntryValue, this.datatiles['entry'][index012].minvalue);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].maxEntryValue, this.datatiles['entry'][index012].maxvalue);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].numBins, this.numbin);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].numPoints, this.datatiles['count'][index01].numpoints);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].bandwidth, this.bandwidth);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].windowSize, this.windowSize);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].isFirstPass, isHorizontal);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].useDensity, this.useDensity);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].passValue, this.datatiles['entry'][index012].minvalue+pass);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].numPassValues, numgroups);
   if(pass==0)
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   scatter.quad.draw(
     this.gl,
-    this.akdeShader[akdePass],
+    this.multipass_akdeShader[akdePass],
     this.mvMatrix,
     this.pMatrix,
     tex,
@@ -323,7 +332,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
 
   //first pass (f)
   {
-    this.gl.useProgram(this.akdeShader[0]);
+    this.gl.useProgram(this.multipass_akdeShader[0]);
 
     //horizontal pass
     this.gl.viewport(0, 0, this.numbin, this.numbin);
@@ -345,7 +354,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
 
   //second pass (g)
   {
-    this.gl.useProgram(this.akdeShader[1]);
+    this.gl.useProgram(this.multipass_akdeShader[1]);
 
     //horizontal pass
     this.gl.viewport(0, 0, this.numbin, this.numbin);
@@ -360,13 +369,13 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
     //this.gl.viewport(0, 0, this.numbin, this.numbin);
     this.gl.viewport(i*width, j*height, width, height);
     //this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
-    this.gl.uniform1f(this.akdeShader[1].isFirstPass, 0.0);
+    this.gl.uniform1f(this.multipass_akdeShader[1].isFirstPass, 0.0);
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     
     scatter.quad.draw(
       this.gl,
-      this.akdeShader[1],
+      this.multipass_akdeShader[1],
       this.mvMatrix,
       this.pMatrix,
       this.fbotex1,
@@ -380,7 +389,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
 
   //third pass (^f)
   {
-    this.gl.useProgram(this.akdeShader[2]);
+    this.gl.useProgram(this.multipass_akdeShader[2]);
 
     //horizontal pass
     this.gl.viewport(0, 0, this.numbin, this.numbin);
@@ -473,17 +482,25 @@ ScatterGL.prototype.updateTexture = function(){
 
     
     
-    if(this.kdetype == 'KDE'){
-      //for(var i=0; i<numgroups; i++){
-        this.updateKDE(scatter, index01, index012, 0, numgroups, width, height);
-      //}
+    if(this.rendertype == 'Multi' && this.kdetype == 'KDE'){
+      for(var i=0; i<numgroups; i++){
+        this.updateKDE(scatter, index01, index012, i, numgroups, width, height);
+      }
     }
-    else if(this.kdetype == 'AKDE')
-      //for(var i=0; i<numgroups; i++){
-        this.updateAKDE(scatter, index01, index012, 0, numgroups, width, height);
-      //}
-    else if(this.kdetype == 'Discrete')
+    else if(this.rendertype == 'Multi' && this.kdetype == 'AKDE'){
+      for(var i=0; i<numgroups; i++){
+        this.updateAKDE(scatter, index01, index012, i, numgroups, width, height);
+      }
+    }
+    else if(this.rendertype == 'Single' && this.kdetype == 'KDE'){
+      this.updateKDE(scatter, index01, index012, 0, numgroups, width, height);
+    }
+    else if(this.rendertype == 'Single' && this.kdetype == 'AKDE'){
+      this.updateAKDE(scatter, index01, index012, 0, numgroups, width, height);
+    }
+    else if(this.kdetype == 'Discrete'){
       this.updateDiscrete(scatter, index01, index012, width, height);
+    }
 
     if(measureTime){
       //glfinish does not work (equal to glflush)
@@ -584,100 +601,100 @@ ScatterGL.prototype.initShaders = function(){
   this.gl.useProgram(null);
   */
   //kde
-  var fragmentShader = getShader(this.gl, "./js/glsl/kde.frag", true);
+  var fragmentShader = getShader(this.gl, "./js/glsl/multipass_kde.frag", true);
   var vertexShader = getShader(this.gl, "./js/glsl/simple.vert", false);
 
-  this.kdeShader = this.gl.createProgram();
-  this.gl.attachShader(this.kdeShader, vertexShader);
-  this.gl.attachShader(this.kdeShader, fragmentShader);
-  this.gl.linkProgram(this.kdeShader);
+  this.multipass_kdeShader = this.gl.createProgram();
+  this.gl.attachShader(this.multipass_kdeShader, vertexShader);
+  this.gl.attachShader(this.multipass_kdeShader, fragmentShader);
+  this.gl.linkProgram(this.multipass_kdeShader);
 
-  if (!this.gl.getProgramParameter(this.kdeShader, this.gl.LINK_STATUS)) {
+  if (!this.gl.getProgramParameter(this.multipass_kdeShader, this.gl.LINK_STATUS)) {
     alert("Could not initialise shaders");
   }
 
-  this.gl.useProgram(this.kdeShader);
+  this.gl.useProgram(this.multipass_kdeShader);
 
-  this.kdeShader.vertexPositionAttribute = this.gl.getAttribLocation(this.kdeShader, "aVertexPosition");
-  this.gl.enableVertexAttribArray(this.kdeShader.vertexPositionAttribute);
+  this.multipass_kdeShader.vertexPositionAttribute = this.gl.getAttribLocation(this.multipass_kdeShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.multipass_kdeShader.vertexPositionAttribute);
 
-  this.kdeShader.textureCoordAttribute = this.gl.getAttribLocation(this.kdeShader, "aTexCoord");
-  this.gl.enableVertexAttribArray(this.kdeShader.textureCoordAttribute);
+  this.multipass_kdeShader.textureCoordAttribute = this.gl.getAttribLocation(this.multipass_kdeShader, "aTexCoord");
+  this.gl.enableVertexAttribArray(this.multipass_kdeShader.textureCoordAttribute);
 
-  this.kdeShader.minCountValue = this.gl.getUniformLocation(this.kdeShader, 'uMinCountValue');
-  this.kdeShader.maxCountValue = this.gl.getUniformLocation(this.kdeShader, 'uMaxCountValue');
-  this.kdeShader.minIndexValue = this.gl.getUniformLocation(this.kdeShader, 'uMinIndexValue');
-  this.kdeShader.maxIndexValue = this.gl.getUniformLocation(this.kdeShader, 'uMaxIndexValue');
-  this.kdeShader.minEntryValue = this.gl.getUniformLocation(this.kdeShader, 'uMinEntryValue');
-  this.kdeShader.maxEntryValue = this.gl.getUniformLocation(this.kdeShader, 'uMaxEntryValue');
-  this.kdeShader.numBins = this.gl.getUniformLocation(this.kdeShader, 'uNumBins');
-  this.kdeShader.isFirstPass = this.gl.getUniformLocation(this.kdeShader, 'uIsFirstPass');
-  this.kdeShader.useDensity = this.gl.getUniformLocation(this.kdeShader, 'uUseDensity');
-  this.kdeShader.bandwidth = this.gl.getUniformLocation(this.kdeShader, 'uBandwidth');
-  this.kdeShader.windowSize = this.gl.getUniformLocation(this.kdeShader, 'uWindowSize');
-  this.kdeShader.numPoints = this.gl.getUniformLocation(this.kdeShader, 'uNumPoints');
-  this.kdeShader.sampler0 = this.gl.getUniformLocation(this.kdeShader, "uSamplerCount");
-  this.kdeShader.sampler1 = this.gl.getUniformLocation(this.kdeShader, "uSamplerColorScale");
-  this.kdeShader.sampler2 = this.gl.getUniformLocation(this.kdeShader, "uSamplerIndex");
-  this.kdeShader.sampler3 = this.gl.getUniformLocation(this.kdeShader, "uSamplerEntry");
-  this.kdeShader.entryDataTileWidth = this.gl.getUniformLocation(this.kdeShader, "uEntryDataTileWidth");
-  this.kdeShader.passValue = this.gl.getUniformLocation(this.kdeShader, "uPassValue");
-  this.kdeShader.numPassValues = this.gl.getUniformLocation(this.kdeShader, "uNumPassValues");
+  this.multipass_kdeShader.minCountValue = this.gl.getUniformLocation(this.multipass_kdeShader, 'uMinCountValue');
+  this.multipass_kdeShader.maxCountValue = this.gl.getUniformLocation(this.multipass_kdeShader, 'uMaxCountValue');
+  this.multipass_kdeShader.minIndexValue = this.gl.getUniformLocation(this.multipass_kdeShader, 'uMinIndexValue');
+  this.multipass_kdeShader.maxIndexValue = this.gl.getUniformLocation(this.multipass_kdeShader, 'uMaxIndexValue');
+  this.multipass_kdeShader.minEntryValue = this.gl.getUniformLocation(this.multipass_kdeShader, 'uMinEntryValue');
+  this.multipass_kdeShader.maxEntryValue = this.gl.getUniformLocation(this.multipass_kdeShader, 'uMaxEntryValue');
+  this.multipass_kdeShader.numBins = this.gl.getUniformLocation(this.multipass_kdeShader, 'uNumBins');
+  this.multipass_kdeShader.isFirstPass = this.gl.getUniformLocation(this.multipass_kdeShader, 'uIsFirstPass');
+  this.multipass_kdeShader.useDensity = this.gl.getUniformLocation(this.multipass_kdeShader, 'uUseDensity');
+  this.multipass_kdeShader.bandwidth = this.gl.getUniformLocation(this.multipass_kdeShader, 'uBandwidth');
+  this.multipass_kdeShader.windowSize = this.gl.getUniformLocation(this.multipass_kdeShader, 'uWindowSize');
+  this.multipass_kdeShader.numPoints = this.gl.getUniformLocation(this.multipass_kdeShader, 'uNumPoints');
+  this.multipass_kdeShader.sampler0 = this.gl.getUniformLocation(this.multipass_kdeShader, "uSamplerCount");
+  this.multipass_kdeShader.sampler1 = this.gl.getUniformLocation(this.multipass_kdeShader, "uSamplerColorScale");
+  this.multipass_kdeShader.sampler2 = this.gl.getUniformLocation(this.multipass_kdeShader, "uSamplerIndex");
+  this.multipass_kdeShader.sampler3 = this.gl.getUniformLocation(this.multipass_kdeShader, "uSamplerEntry");
+  this.multipass_kdeShader.entryDataTileWidth = this.gl.getUniformLocation(this.multipass_kdeShader, "uEntryDataTileWidth");
+  this.multipass_kdeShader.passValue = this.gl.getUniformLocation(this.multipass_kdeShader, "uPassValue");
+  this.multipass_kdeShader.numPassValues = this.gl.getUniformLocation(this.multipass_kdeShader, "uNumPassValues");
 
 
-  this.kdeShader.pMatrixUniform = this.gl.getUniformLocation(this.kdeShader, "uPMatrix");
-  this.kdeShader.mvMatrixUniform = this.gl.getUniformLocation(this.kdeShader, "uMVMatrix");
+  this.multipass_kdeShader.pMatrixUniform = this.gl.getUniformLocation(this.multipass_kdeShader, "uPMatrix");
+  this.multipass_kdeShader.mvMatrixUniform = this.gl.getUniformLocation(this.multipass_kdeShader, "uMVMatrix");
 
   this.gl.useProgram(null);
 
 
   //akde
-  this.akdeShader = [];
+  this.multipass_akdeShader = [];
   for(var i=0; i<3; i++){
 
-    var fragmentShader = getShader(this.gl, "./js/glsl/akde"+i+".frag", true);
+    var fragmentShader = getShader(this.gl, "./js/glsl/multipass_akde"+i+".frag", true);
     var vertexShader = getShader(this.gl, "./js/glsl/simple.vert", false);
 
-    this.akdeShader[i] = this.gl.createProgram();
-    this.gl.attachShader(this.akdeShader[i], vertexShader);
-    this.gl.attachShader(this.akdeShader[i], fragmentShader);
-    this.gl.linkProgram(this.akdeShader[i]);
+    this.multipass_akdeShader[i] = this.gl.createProgram();
+    this.gl.attachShader(this.multipass_akdeShader[i], vertexShader);
+    this.gl.attachShader(this.multipass_akdeShader[i], fragmentShader);
+    this.gl.linkProgram(this.multipass_akdeShader[i]);
 
-    if (!this.gl.getProgramParameter(this.akdeShader[i], this.gl.LINK_STATUS)) {
+    if (!this.gl.getProgramParameter(this.multipass_akdeShader[i], this.gl.LINK_STATUS)) {
       alert("Could not initialise shaders");
     }
 
-    this.gl.useProgram(this.akdeShader[i]);
+    this.gl.useProgram(this.multipass_akdeShader[i]);
 
-    this.akdeShader[i].vertexPositionAttribute = this.gl.getAttribLocation(this.akdeShader[i], "aVertexPosition");
-    this.gl.enableVertexAttribArray(this.akdeShader[i].vertexPositionAttribute);
+    this.multipass_akdeShader[i].vertexPositionAttribute = this.gl.getAttribLocation(this.multipass_akdeShader[i], "aVertexPosition");
+    this.gl.enableVertexAttribArray(this.multipass_akdeShader[i].vertexPositionAttribute);
 
-    this.akdeShader[i].textureCoordAttribute = this.gl.getAttribLocation(this.akdeShader[i], "aTexCoord");
-    this.gl.enableVertexAttribArray(this.akdeShader[i].textureCoordAttribute);
+    this.multipass_akdeShader[i].textureCoordAttribute = this.gl.getAttribLocation(this.multipass_akdeShader[i], "aTexCoord");
+    this.gl.enableVertexAttribArray(this.multipass_akdeShader[i].textureCoordAttribute);
 
-    this.akdeShader[i].minCountValue = this.gl.getUniformLocation(this.akdeShader[i], 'uMinCountValue');
-    this.akdeShader[i].maxCountValue = this.gl.getUniformLocation(this.akdeShader[i], 'uMaxCountValue');
-    this.akdeShader[i].minIndexValue = this.gl.getUniformLocation(this.akdeShader[i], 'uMinIndexValue');
-    this.akdeShader[i].maxIndexValue = this.gl.getUniformLocation(this.akdeShader[i], 'uMaxIndexValue');
-    this.akdeShader[i].minEntryValue = this.gl.getUniformLocation(this.akdeShader[i], 'uMinEntryValue');
-    this.akdeShader[i].maxEntryValue = this.gl.getUniformLocation(this.akdeShader[i], 'uMaxEntryValue');
-    this.akdeShader[i].numBins = this.gl.getUniformLocation(this.akdeShader[i], 'uNumBins');
-    this.akdeShader[i].isFirstPass = this.gl.getUniformLocation(this.akdeShader[i], 'uIsFirstPass');
-    this.akdeShader[i].useDensity = this.gl.getUniformLocation(this.akdeShader[i], 'uUseDensity');
-    this.akdeShader[i].bandwidth = this.gl.getUniformLocation(this.akdeShader[i], 'uBandwidth');
-    this.akdeShader[i].windowSize = this.gl.getUniformLocation(this.akdeShader[i], 'uWindowSize');
-    this.akdeShader[i].numPoints = this.gl.getUniformLocation(this.akdeShader[i], 'uNumPoints');
-    this.akdeShader[i].sampler0 = this.gl.getUniformLocation(this.akdeShader[i], "uSamplerCount");
-    this.akdeShader[i].sampler1 = this.gl.getUniformLocation(this.akdeShader[i], "uSamplerColorScale");
-    this.akdeShader[i].sampler2 = this.gl.getUniformLocation(this.akdeShader[i], "uSamplerIndex");
-    this.akdeShader[i].sampler3 = this.gl.getUniformLocation(this.akdeShader[i], "uSamplerEntry");
-    this.akdeShader[i].entryDataTileWidth = this.gl.getUniformLocation(this.akdeShader[i], "uEntryDataTileWidth");
-    this.akdeShader[i].passValue = this.gl.getUniformLocation(this.akdeShader[i], "uPassValue");
-    this.akdeShader[i].numPassValues = this.gl.getUniformLocation(this.akdeShader[i], "uNumPassValues");
+    this.multipass_akdeShader[i].minCountValue = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uMinCountValue');
+    this.multipass_akdeShader[i].maxCountValue = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uMaxCountValue');
+    this.multipass_akdeShader[i].minIndexValue = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uMinIndexValue');
+    this.multipass_akdeShader[i].maxIndexValue = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uMaxIndexValue');
+    this.multipass_akdeShader[i].minEntryValue = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uMinEntryValue');
+    this.multipass_akdeShader[i].maxEntryValue = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uMaxEntryValue');
+    this.multipass_akdeShader[i].numBins = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uNumBins');
+    this.multipass_akdeShader[i].isFirstPass = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uIsFirstPass');
+    this.multipass_akdeShader[i].useDensity = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uUseDensity');
+    this.multipass_akdeShader[i].bandwidth = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uBandwidth');
+    this.multipass_akdeShader[i].windowSize = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uWindowSize');
+    this.multipass_akdeShader[i].numPoints = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uNumPoints');
+    this.multipass_akdeShader[i].sampler0 = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uSamplerCount");
+    this.multipass_akdeShader[i].sampler1 = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uSamplerColorScale");
+    this.multipass_akdeShader[i].sampler2 = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uSamplerIndex");
+    this.multipass_akdeShader[i].sampler3 = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uSamplerEntry");
+    this.multipass_akdeShader[i].entryDataTileWidth = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uEntryDataTileWidth");
+    this.multipass_akdeShader[i].passValue = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uPassValue");
+    this.multipass_akdeShader[i].numPassValues = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uNumPassValues");
 
 
-    this.akdeShader[i].pMatrixUniform = this.gl.getUniformLocation(this.akdeShader[i], "uPMatrix");
-    this.akdeShader[i].mvMatrixUniform = this.gl.getUniformLocation(this.akdeShader[i], "uMVMatrix");
+    this.multipass_akdeShader[i].pMatrixUniform = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uPMatrix");
+    this.multipass_akdeShader[i].mvMatrixUniform = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uMVMatrix");
 
     this.gl.useProgram(null);
 
