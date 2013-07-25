@@ -58,7 +58,16 @@ void main(void) {
 
     vec4 valuesi  = texture2D(uSamplerCount, coord2D); //count, f, lambda
 
-    if((coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
+
+    float value;
+    if(uUseDensity <= 0.0)
+      value = getValue(coord2D).r * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue;
+    else
+      value = uPassValue;
+
+    //TODO: remove this if. It REALLY impacts performance
+    if(
+      (valuesi.b > 0.0 && uIsFirstPass <= 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
 
       //if((uIsFirstPass <= 0.0 && valuesi.g > 0.0) || uIsFirstPass > 0.0){
 
@@ -90,13 +99,13 @@ void main(void) {
     //f = (1.0 / (uNumPoints*h)) * f;
     f = f/0.3989422804;
 
-    vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
-    gl_FragColor = vec4(color.xyz, 1);
+    //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
+    //gl_FragColor = vec4(color.xyz, 1);
 
     //gl_FragColor = vec4(values.g, values.g, values.g, 1.0);
-    //vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/uNumPassValues, 0)).rgb;
-    //float alpha = texture2D(uSamplerColorScale, vec2(f, 0)).a;
-    //gl_FragColor = vec4(color.xyz*alpha, alpha);
+    vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/uNumPassValues, 0)).rgb;
+    float alpha = texture2D(uSamplerColorScale, vec2(f, 0)).a;
+    gl_FragColor = vec4(color.xyz*alpha, alpha);
     
   }
 

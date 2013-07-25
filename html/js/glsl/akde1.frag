@@ -23,6 +23,12 @@ uniform float uNumPassValues;
 
 const int maxloop = 50000;
 
+vec4 getValue(vec2 coord){
+  float index = texture2D(uSamplerIndex, coord).r * (uMaxIndexValue - uMinIndexValue) + uMinIndexValue;
+  vec2 coordValue = vec2(index/uEntryDataTileWidth, 0);
+  return texture2D(uSamplerEntry, coordValue.xy);// * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue;
+}
+
 void main(void) {
 
   vec2 coord2D = vTexCoord;
@@ -42,7 +48,18 @@ void main(void) {
 
       vec2 coord2D = vTexCoord + vec2((float(index0) / uNumBins), (float(index1) / uNumBins));
       vec4 valuesij = texture2D(uSamplerCount, coord2D); //count, f
-      if(valuesij.g > 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
+      float value;
+
+      if(uUseDensity <= 0.0)
+        value = getValue(coord2D).r * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue;
+      else
+        value = uPassValue;
+
+      //TODO: remove this if. It REALLY impacts performance
+      if((uIsFirstPass > 0.0 && value >= uPassValue-0.1 && value <= uPassValue+0.1 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)
+        ||
+        (uIsFirstPass <= 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
+
         //mean *= valuesij.g;
         mean += log(valuesij.g);
         n++;
@@ -67,7 +84,7 @@ void main(void) {
     gl_FragColor = vec4(0, 0, 1.0, 1.0);
   else
     gl_FragColor = vec4(1, 0, 0.0, 1.0);
-  //gl_FragColor = vec4(lambda/100.0, 0, 0, 1.0);
+  //gl_FragColor = vec4(lambda, 0, 0, 1.0);
   gl_FragColor = vec4(values.r, values.g, lambda, 1.0);
   return;
   if(lambda <= 0.0)

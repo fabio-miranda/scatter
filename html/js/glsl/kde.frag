@@ -47,6 +47,8 @@ void main(void) {
   if(uIsFirstPass > 0.0)
     count = count * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
+  
+
 
   float h = uBandwidth;
   float oneoverh = 1.0 / h;

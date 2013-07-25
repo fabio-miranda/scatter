@@ -45,7 +45,6 @@ void main(void) {
   if(uIsFirstPass > 0.0)
     count = count * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
-
   float h = uBandwidth;
   float oneoverh = 1.0 / h;
   //float x = coord2D.x;
@@ -67,7 +66,7 @@ void main(void) {
     //TODO: remove this if. It REALLY impacts performance
     if((uIsFirstPass > 0.0 && value >= uPassValue-0.1 && value <= uPassValue+0.1 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)
       ||
-      (coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
+      (uIsFirstPass <= 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
 
       float counti  = texture2D(uSamplerCount, coord2D).g;
 

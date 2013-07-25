@@ -284,7 +284,7 @@ function adddimension(){
   var option=document.createElement("option");
   option.text = 'density';
   dropdown.add(option, null);
-  $('#dropdownmenu_dim3_'+currentnumdim).val('density');
+  $('#dropdownmenu_dim3_'+currentnumdim).val('4');
   
 
   currentnumdim++;
@@ -462,7 +462,7 @@ function initialize(){
         'numbinscatter' : $('#numbinscatter').val(),
         'i' : 0,
         'j' : 0,
-        'k' : 'density',
+        'k' : '4',
       },
     cb_receiveDataTile
   );

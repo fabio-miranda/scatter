@@ -476,12 +476,14 @@ ScatterGL.prototype.updateTexture = function(){
     
     
     if(this.kdetype == 'KDE'){
-      for(var i=0; i<numgroups; i++){
-        this.updateKDE(scatter, index01, index012, i, numgroups, width, height);
-      }
+      //for(var i=0; i<numgroups; i++){
+        this.updateKDE(scatter, index01, index012, 0, numgroups, width, height);
+      //}
     }
     else if(this.kdetype == 'AKDE')
-      this.updateAKDE(scatter, index01, index012, 0, numgroups, width, height);
+      //for(var i=0; i<numgroups; i++){
+        this.updateAKDE(scatter, index01, index012, 0, numgroups, width, height);
+      //}
     else if(this.kdetype == 'Discrete')
       this.updateDiscrete(scatter, index01, index012, width, height);
 
