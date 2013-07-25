@@ -55,6 +55,7 @@ ColorScale.prototype.setValues = function(values, isLinear){
     this.texdata[4*i+1] = g;
     this.texdata[4*i+2] = b;
     this.texdata[4*i+3] = scaleAlpha(i);
+
   }
 
   //console.log(texData);
@@ -119,8 +120,8 @@ ColorScale.prototype.initGL = function(){
 
   //http://www.khronos.org/webgl/wiki/HandlingHighDPI
   this.devicePixelRatio = window.devicePixelRatio || 1;
-  this.canvas.width = 10;
-  this.canvas.height = 50;
+  this.canvas.width = 10 * window.devicePixelRatio;
+  this.canvas.height = this.texsize * window.devicePixelRatio;
   //this.canvas.addEventListener("mousedown", function(evt){that.mousedown(evt);}, false);
   //this.canvas.addEventListener("mouseup", function(evt){that.mouseup(evt);}, false);
   //this.canvas.addEventListener("mousemove", function(evt){that.mousemove(evt);}, false);
