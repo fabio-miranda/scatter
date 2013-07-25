@@ -66,7 +66,8 @@ void main(void) {
       value = uPassValue;
 
     //TODO: remove this if. It REALLY impacts performance
-    if(
+    if((valuesi.b > 0.0 && uIsFirstPass > 0.0 && value >= uPassValue-0.1 && value <= uPassValue+0.1 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)
+      ||
       (valuesi.b > 0.0 && uIsFirstPass <= 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
 
       //if((uIsFirstPass <= 0.0 && valuesi.g > 0.0) || uIsFirstPass > 0.0){
