@@ -288,8 +288,6 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
 
 ScatterGL.prototype.updateSingleAKDEPass = function(akdePass, isHorizontal, scatter, index01, index012, pass, numgroups, tex){
 
-  console.log(pass);
-
   this.gl.uniform1f(this.akdeShader[akdePass].minCountValue, this.datatiles['count'][index01].minvalue);
   this.gl.uniform1f(this.akdeShader[akdePass].maxCountValue, this.datatiles['count'][index01].maxvalue);
   this.gl.uniform1f(this.akdeShader[akdePass].minIndexValue, this.datatiles['index'][index01].minvalue);

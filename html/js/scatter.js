@@ -284,7 +284,7 @@ function adddimension(){
   var option=document.createElement("option");
   option.text = 'density';
   dropdown.add(option, null);
-  $('#dropdownmenu_dim3_'+currentnumdim).val('4');
+  $('#dropdownmenu_dim3_'+currentnumdim).val('density');
   
 
   currentnumdim++;
@@ -354,19 +354,23 @@ function changeBandwidth(value){
 
   //update slider and input
   $('#bandwidth').attr('value', value);
-  $('#bandwidthslider').attr('value', value);
+  $('#div_bandwidthslider').slider('value', value);
 }
 
 function changeZoom(delta){
+
+  if($('#div_zoomslider').slider('value') + delta < 0.0) return;
+  if($('#div_zoomslider').slider('value') + delta > 1.0) return;
+
   scattermatrix.changeZoom(delta);
   scattermatrix.draw();
-  $('#zoomslider').attr('value', $('#zoomslider').attr('value')+delta);
+  $('#div_zoomslider').slider('value', $('#div_zoomslider').slider('value')+delta);
 }
 
 function setZoom(value){
   scattermatrix.setZoom(value);
   scattermatrix.draw();
-  $('#zoomslider').attr('value', value);
+  $('#div_zoomslider').slider('value', value);
 }
 
 function changeWindowSize(){
@@ -394,7 +398,6 @@ function initColorScale(){
 function initialize(){
 
   $( "#div_bandwidthslider" ).slider({
-    id: 'bandwidthslider',
     min: 0.001,
     max: 0.2,
     step: 0.001,
@@ -404,7 +407,6 @@ function initialize(){
   });
 
   $( "#div_zoomslider" ).slider({
-    id: 'zoomslider',
     min: 0.0,
     max: 1.0,
     step: 0.1,
@@ -462,7 +464,7 @@ function initialize(){
         'numbinscatter' : $('#numbinscatter').val(),
         'i' : 0,
         'j' : 0,
-        'k' : '4',
+        'k' : 'density',
       },
     cb_receiveDataTile
   );
