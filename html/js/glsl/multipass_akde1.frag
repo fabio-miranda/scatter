@@ -48,17 +48,11 @@ void main(void) {
 
       vec2 coord2D = vTexCoord + vec2((float(index0) / uNumBins), (float(index1) / uNumBins));
       vec4 valuesij = texture2D(uSamplerCount, coord2D); //count, f
-      float value;
-
-      if(uUseDensity <= 0.0)
-        value = getValue(coord2D).r * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue;
-      else
-        value = uPassValue;
 
       //TODO: remove this if. It REALLY impacts performance
-      if((uIsFirstPass > 0.0 && value >= uPassValue-0.1 && value <= uPassValue+0.1 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)
-        ||
-        (uIsFirstPass <= 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
+      //TODO: should I consider all points, or just the one in the groups?
+      //Note: im just considering the groups, since in the last pass I filter them.
+      if(coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
 
         //mean *= valuesij.g;
         mean += log(valuesij.g);

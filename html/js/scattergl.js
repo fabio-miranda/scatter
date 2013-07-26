@@ -72,6 +72,8 @@ function ScatterGL(canvas){
   this.fbotex1 = this.gl.createTexture();
   this.fbo2 = this.gl.createFramebuffer();
   this.fbotex2 = this.gl.createTexture();
+  this.fbofinal = this.gl.createFramebuffer();
+  this.fbotexfinal = this.gl.createTexture();
   //createFBO(this.gl, this.canvas.width, this.canvas.height, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.fbotex, this.fbo);
 
   this.finalquad = new quad(this.gl, true);
@@ -93,6 +95,7 @@ ScatterGL.prototype.update = function(type, image, imgsize, numpoints, numdim, i
   //For float textures, only NEAREST is supported? (http://www.khronos.org/registry/gles/extensions/OES/OES_texture_float.txt)
   createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
   createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
+  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexfinal, this.fbofinal);
 
   this.updateTexture();
 }
@@ -275,7 +278,7 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
   //vertical pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   //this.gl.viewport(i*width, j*height, width, height);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
   if(pass==0)
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   this.gl.uniform1f(this.multipass_kdeShader.isFirstPass, 0.0);
@@ -312,8 +315,6 @@ ScatterGL.prototype.updateSingleAKDEPass = function(akdePass, isHorizontal, scat
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].passValue, this.datatiles['entry'][index012].minvalue+pass);
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].numPassValues, numgroups);
-  if(pass==0)
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   scatter.quad.draw(
     this.gl,
@@ -338,6 +339,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     this.updateSingleAKDEPass(0, 1, scatter, index01, index012, pass, numgroups, this.datatiles['count'][index01].texture);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
@@ -346,6 +348,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     this.updateSingleAKDEPass(0, 0, scatter, index01, index012, pass, numgroups, this.fbotex1);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
@@ -360,6 +363,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     this.updateSingleAKDEPass(1, 1, scatter, index01, index012, pass, numgroups, this.fbotex2);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
@@ -395,6 +399,7 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     this.updateSingleAKDEPass(2, 1, scatter, index01, index012, pass, numgroups, this.fbotex1);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
@@ -402,7 +407,9 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
     //vertical pass
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
-    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+    if(pass==0)
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     this.updateSingleAKDEPass(2, 0, scatter, index01, index012, pass, numgroups, this.fbotex2, this.colorscaletex);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
   }
@@ -423,7 +430,7 @@ ScatterGL.prototype.updateDiscrete = function(scatter, index01, index012, width,
   this.gl.uniform1f(this.discreteShader.entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
 
   this.gl.viewport(0, 0, this.numbin, this.numbin);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   scatter.quad.draw(
@@ -481,7 +488,7 @@ ScatterGL.prototype.updateTexture = function(){
       numgroups = this.datatiles['entry'][index012].maxvalue - this.datatiles['entry'][index012].minvalue + 1;
 
     
-    
+    console.log(this.rendertype);
     if(this.rendertype == 'Multi' && this.kdetype == 'KDE'){
       for(var i=0; i<numgroups; i++){
         this.updateKDE(scatter, index01, index012, i, numgroups, width, height);
@@ -541,7 +548,7 @@ ScatterGL.prototype.draw = function(){
     this.simpleShader,
     this.mvMatrix,
     this.pMatrix,
-    this.fbotex1
+    this.fbotexfinal
   );
 
   this.gl.useProgram(null);
