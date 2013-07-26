@@ -24,7 +24,7 @@ function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
 function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
 function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
 
-ColorScale.prototype.setValues = function(values, isLinear){
+ColorScale.prototype.setValues = function(values, isLinear, hasAlpha){
   var scaleColor;
   var scaleAlpha;
 
@@ -54,9 +54,18 @@ ColorScale.prototype.setValues = function(values, isLinear){
     this.texdata[4*i] = r;
     this.texdata[4*i+1] = g;
     this.texdata[4*i+2] = b;
-    this.texdata[4*i+3] = scaleAlpha(i);
+
+    if(hasAlpha)
+      this.texdata[4*i+3] = scaleAlpha(i);
+    else
+      this.texdata[4*i+3] = 255.0;
 
   }
+
+  this.texdata[4*0] = 255;
+  this.texdata[4*0+1] = 255;
+  this.texdata[4*0+2] = 255;
+  this.texdata[4*0+3] = 0;
 
   //console.log(texData);
 

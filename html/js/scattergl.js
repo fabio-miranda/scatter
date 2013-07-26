@@ -175,6 +175,14 @@ ScatterGL.prototype.changeWindowSize = function(windowSize){
 
 }
 
+ScatterGL.prototype.changeMeanSize = function(meanSize){
+
+  this.meanSize = meanSize;
+
+  this.updateTexture();
+
+}
+
 ScatterGL.prototype.hasDataTile = function(type, i, j, k){
 
   var index = i+' '+j;
@@ -358,6 +366,8 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
   //second pass (g)
   {
     this.gl.useProgram(this.multipass_akdeShader[1]);
+
+    this.gl.uniform1f(this.multipass_akdeShader[1].meanSize, this.meanSize);
 
     //horizontal pass
     this.gl.viewport(0, 0, this.numbin, this.numbin);
@@ -706,6 +716,8 @@ ScatterGL.prototype.initShaders = function(){
     this.gl.useProgram(null);
 
   }
+
+  this.multipass_akdeShader[1].meanSize = this.gl.getUniformLocation(this.multipass_akdeShader[1], 'uMeanSize');
 
   //discrete
   var fragmentShader = getShader(this.gl, "./js/glsl/discrete.frag", true);

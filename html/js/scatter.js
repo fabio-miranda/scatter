@@ -332,13 +332,18 @@ function changeColorScale(){
   var color = $('#colorbrewer').val();
   var dataclasses = $('#dataclasses').val();
   var interpolationType = $('#interpolationType').val();
+  var transparency = $('#transparency').val();
 
   var isLinear = false;
   if(interpolationType == 'Linear')
     isLinear = true;
+
+  var hasAlpha = false;
+  if(transparency == 'Alpha')
+    hasAlpha = true;
   
   if(colorbrewer[color][dataclasses] != null){
-    colorscale.setValues(colorbrewer[color][dataclasses], isLinear);
+    colorscale.setValues(colorbrewer[color][dataclasses], isLinear, hasAlpha);
 
     scattermatrix.setColorScale(colorscale.texdata);
     redrawscatterplots();
@@ -353,6 +358,11 @@ function changeRenderType(){
 
 function changeKDEType(){
   scattermatrix.changeKDEType($('#kdetype').prop('value'));
+  scattermatrix.draw();
+}
+
+function changeTransparency(){
+  changeColorScale();
   scattermatrix.draw();
 }
 
@@ -384,6 +394,11 @@ function setZoom(value){
 
 function changeWindowSize(){
   scattermatrix.changeWindowSize($('#windowsize').prop('value'));
+  scattermatrix.draw();
+}
+
+function changeMeanSize(){
+  scattermatrix.changeMeanSize($('#meansize').prop('value'));
   scattermatrix.draw();
 }
 
@@ -481,7 +496,9 @@ function initialize(){
   changeBandwidth(0.052);
   changeNumBin();
   changeWindowSize();
+  changeMeanSize();
   changeKDEType();
+  changeTransparency()
 
   /*
   $.post(

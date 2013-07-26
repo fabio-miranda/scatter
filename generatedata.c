@@ -732,7 +732,7 @@ int main(int argc, char* argv[]){
     fprintf(file,"max: %f",1.0f);
     fclose(file);
 
-    int numbinscatter[4] = {2, 128, 256, 512};//, 1024};//, 2048, 4096};
+    int numbinscatter[8] = {2, 4, 16, 32, 64, 128, 256, 512};//, 1024};//, 2048, 4096};
     //int numbinhistogram[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
     int i,j,k,l;//,l,m;
     for(i=0; i<numdim; i++){

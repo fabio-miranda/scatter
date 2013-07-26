@@ -13,6 +13,7 @@ uniform float uMinEntryValue;
 uniform float uMaxEntryValue;
 uniform float uNumBins;
 uniform float uWindowSize;
+uniform float uMeanSize;
 uniform float uNumPoints;
 uniform float uIsFirstPass;
 uniform float uUseDensity;
@@ -35,7 +36,7 @@ void main(void) {
   vec4 values  = texture2D(uSamplerCount, coord2D); //count, f
   float mean=0.0;
   float n=0.0;
-  float window = 32.0;
+  float window = uMeanSize;
   for(int i=0; i<maxloop; i++){
     if(i >= int(window)) break;
 
