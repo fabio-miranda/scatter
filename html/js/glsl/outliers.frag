@@ -21,11 +21,11 @@ uniform float uBandwidth;
 uniform float uEntryDataTileWidth;
 uniform float uPassValue;
 uniform float uNumPassValues;
+uniform float uOutliersThreshold;
 
 
 const int maxloop = 50000;
-const float distThreshold = 0.1;
-const float windowSize = 32;
+const float windowSize = 4.0;
 
 
 float gauss(float r){
@@ -42,7 +42,23 @@ vec4 getValue(vec2 coord){
 void main(void) {
 
   vec2 coord2D = vTexCoord;
+  /*
+  float pointValue = 0.0;
+  for(int i=0;i<maxloop; i++){
+    if(i >= int(windowSize)) break;
 
+    int index = i - int(windowSize)/2;
+    coord2D = vec2(vTexCoord.x + uIsFirstPass * (float(index) / uNumBins), vTexCoord.y + (1.0 - uIsFirstPass) * (float(index) / uNumBins)); //make sure to access not the next texel, but the next bin
+    pointValue += (getValue(coord2D).r  * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue);
+
+  }
+
+  vec3 pointColor = texture2D(uSamplerColorScale, vec2(pointValue / 4.0, 0)).rgb;
+  gl_FragColor = vec4(pointColor, 1.0);
+  return;
+  */
+
+  
 
   if(uIsFirstPass > 0.0){
     vec3 finalcolor = texture2D(uSamplerFinal, vTexCoord).rgb;
@@ -73,7 +89,7 @@ void main(void) {
 
   float distance = distance(densValue.rgb, pointColor);
 
-  if(distance > distThreshold){
+  if(distance > uOutliersThreshold){
     gl_FragColor = vec4(pointColor, 1.0);
   }
   else
@@ -81,5 +97,5 @@ void main(void) {
 
   //gl_FragColor = vec4(pointColor.rgb, 1.0);
   //gl_FragColor = vec4(vec3(distance), 1.0);
-
+  
 }

@@ -58,6 +58,7 @@ function ScatterGL(canvas){
   this.drawReady = false;
   this.drawOutliers = false;
   this.zoomLevel = 0.0;
+  this.outliersThreshold = 0.5;
   this.translation = [0.0,0.0];
 
   this.numbin = null;
@@ -171,6 +172,14 @@ ScatterGL.prototype.changeRenderType = function(rendertype){
 ScatterGL.prototype.changeOutliers = function(drawOutliers){
 
   this.drawOutliers = drawOutliers;
+
+  this.updateTexture();
+
+}
+
+ScatterGL.prototype.setOutliersThreshold = function(value){
+
+  this.outliersThreshold = value;
 
   this.updateTexture();
 
@@ -491,6 +500,7 @@ ScatterGL.prototype.updateOutliers = function(scatter, index01, index012, numgro
   this.gl.uniform1f(this.outliersShader.useDensity, this.useDensity);
   this.gl.uniform1f(this.outliersShader.entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
   this.gl.uniform1f(this.outliersShader.numPassValues, numgroups);
+  this.gl.uniform1f(this.outliersShader.outliersThreshold, this.outliersThreshold);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   scatter.quad.draw(
@@ -906,6 +916,7 @@ ScatterGL.prototype.initShaders = function(){
   this.outliersShader.sampler3 = this.gl.getUniformLocation(this.outliersShader, "uSamplerEntry");
   this.outliersShader.sampler4 = this.gl.getUniformLocation(this.outliersShader, "uSamplerFinal");
   this.outliersShader.entryDataTileWidth = this.gl.getUniformLocation(this.outliersShader, "uEntryDataTileWidth");
+  this.outliersShader.outliersThreshold = this.gl.getUniformLocation(this.outliersShader, "uOutliersThreshold");
 
 
   this.outliersShader.pMatrixUniform = this.gl.getUniformLocation(this.outliersShader, "uPMatrix");

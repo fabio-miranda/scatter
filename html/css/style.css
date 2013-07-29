@@ -52,6 +52,11 @@ select {
   background: #ffffff;
 }
 
+#div_outliersslider {
+  width : 200px;
+  background: #ffffff;
+}
+
 #div_zoomslider {
   background: #ffffff;
 }

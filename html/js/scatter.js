@@ -405,6 +405,11 @@ function setZoom(value){
   $('#div_zoomslider').slider('value', value);
 }
 
+function setOutliersThreshold(value){
+  scattermatrix.setOutliersThreshold(value);
+  scattermatrix.draw();
+}
+
 function changeWindowSize(){
   scattermatrix.changeWindowSize($('#windowsize').prop('value'));
   scattermatrix.draw();
@@ -450,6 +455,16 @@ function initialize(){
     orientation: "vertical",
     slide: function( event, ui ) {
       setZoom(ui.value);
+    }
+  });
+
+  $( "#div_outliersslider" ).slider({
+    min: 0.0,
+    max: 1.0,
+    value: 0.5,
+    step: 0.1,
+    slide: function( event, ui ) {
+      setOutliersThreshold(ui.value);
     }
   });
 
