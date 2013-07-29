@@ -498,7 +498,6 @@ ScatterGL.prototype.updateTexture = function(){
       numgroups = this.datatiles['entry'][index012].maxvalue - this.datatiles['entry'][index012].minvalue + 1;
 
     
-    console.log(this.rendertype);
     if(this.rendertype == 'Multi' && this.kdetype == 'KDE'){
       for(var i=0; i<numgroups; i++){
         this.updateKDE(scatter, index01, index012, i, numgroups, width, height);

@@ -366,6 +366,11 @@ function changeTransparency(){
   scattermatrix.draw();
 }
 
+function changeDataset(value){
+  window.location.search = 'datapath='+value;
+
+}
+
 function changeBandwidth(value){
   scattermatrix.changeBandwidth(value);
 
@@ -444,6 +449,7 @@ function initialize(){
   initColorScale();
 
   datapath = window.location.search.substring(window.location.search.indexOf('=')+1);
+  $('#dataset').val(datapath);
   /*
   $.post(
     '/getDataTile2D',
@@ -498,7 +504,7 @@ function initialize(){
   changeWindowSize();
   changeMeanSize();
   changeKDEType();
-  changeTransparency()
+  changeTransparency();
 
   /*
   $.post(

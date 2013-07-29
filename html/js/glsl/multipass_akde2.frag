@@ -110,7 +110,7 @@ void main(void) {
       gl_FragColor = vec4(color.xyz*alpha, alpha); //TODO: multiply color by alpha?
     }
     else{
-      vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/uNumPassValues, 0)).rgb;
+      vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/(uNumPassValues+1.0) + f/(uNumPassValues+1.0), 0)).rgb;
       float alpha = texture2D(uSamplerColorScale, vec2(f, 0)).a;
       gl_FragColor = vec4(color.xyz*alpha, alpha); //TODO: multiply color by alpha?
     }

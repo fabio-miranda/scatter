@@ -22,6 +22,12 @@
   </head>
   <body>
     <!--<canvas id='scatterplotmatrix' class='scatterplotmatrix'></canvas>-->
+    <select id='dataset' onchange='changeDataset(this.value)'>
+      <option>data/outlets/datatiles/</option>
+      <option>data/iris/datatiles/</option>
+      <option selected='selected'>data/wine/datatiles/</option>
+      <option>data/donations/datatiles/</option>
+    </select>
 
 
     <table id='scatterplottable' class='scatterplottable'>
@@ -42,7 +48,7 @@
           <center>
             <!--<span id='add' class='button' onclick=addscatterplot()>+</span>
             <span id='remove' class='button' onclick=removescatterplot()>-</span><br/>-->
-            <select id='numbinscatter' selected='128' onchange=changeNumBin()>
+            <select id='numbinscatter' selected='128' onchange='changeNumBin()'>
               <option>2</option>
               <option>4</option>
               <option>8</option>
@@ -62,8 +68,8 @@
           <table id='scatterplotdim1' class='scatterplotmatrix scatterplotdim1'>
             <tr></tr>
           </table>
-          <center><input id='bandwidth' onchange=changeBandwidth(this.value)></input>
-            <select id='windowsize' onchange=changeWindowSize()>
+          <center><input id='bandwidth' onchange='changeBandwidth(this.value)'></input>
+            <select id='windowsize' onchange='changeWindowSize()'>
               <option>2</option>
               <option>4</option>
               <option>8</option>
@@ -77,7 +83,7 @@
               <option>2048</option>
               <option>4096</option>
             </select>
-            <select id='meansize' onchange=changeMeanSize()>
+            <select id='meansize' onchange='changeMeanSize()'>
               <option>2</option>
               <option>4</option>
               <option>8</option>
@@ -91,7 +97,7 @@
               <option>2048</option>
               <option>4096</option>
             </select>
-            <select id='kdetype' selected='AKDE' onchange=changeKDEType()>
+            <select id='kdetype' selected='AKDE' onchange='changeKDEType()'>
               <option>KDE</option>
               <option selected='selected'>AKDE</option>
               <option>Discrete</option>
@@ -104,16 +110,20 @@
               <option selected='selected'>Single</option>
               <option>Multi</option>
             </select>
+            <select id='outliers' onchange='changeOutliers()'>
+              <option selected='selected'>Outliers</option>
+              <option>No outliers</option>
+            </select>
           </center>
         </td>
         <td>
-          <select id='interpolationType' onchange=changeColorScale()>
+          <select id='interpolationType' onchange='changeColorScale()'>
             <option selected='selected'>Discrete</option>
             <option>Linear</option>
           </select></br>
           <div id='div_colorbrewer'></div>
           <div id='div_dataclasses'></div>
-          <select id='transparency' onchange=changeTransparency()>
+          <select id='transparency' onchange='changeTransparency()'>
             <option selected='selected'>Opaque</option>
             <option>Alpha</option>
           </select>
@@ -121,7 +131,7 @@
       </tr>
     </table>
     <canvas id='histogram' class='histogram'></canvas>
-    <div id='histogramdiv' class='histogram' style='width:500px; height:200px;'></div>
+    <!--<div id='histogramdiv' class='histogram' style='width:500px; height:200px;'></div>-->
     <!--
     <select id='numbinhistogram' onchange=changeNumBin()>
         <option>2</option>
