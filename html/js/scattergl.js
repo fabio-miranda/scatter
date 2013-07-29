@@ -56,6 +56,7 @@ function ScatterGL(canvas){
   this.kdetype = 'KDE';
   this.rendertype = 'Single'
   this.drawReady = false;
+  this.drawOutliers = false;
   this.zoomLevel = 0.0;
   this.translation = [0.0,0.0];
 
@@ -162,6 +163,14 @@ ScatterGL.prototype.changeKDEType = function(kdetype){
 ScatterGL.prototype.changeRenderType = function(rendertype){
 
   this.rendertype = rendertype;
+
+  this.updateTexture();
+
+}
+
+ScatterGL.prototype.changeOutliers = function(drawOutliers){
+
+  this.drawOutliers = drawOutliers;
 
   this.updateTexture();
 
@@ -458,6 +467,70 @@ ScatterGL.prototype.updateDiscrete = function(scatter, index01, index012, width,
 
 }
 
+ScatterGL.prototype.updateOutliers = function(scatter, index01, index012, numgroups){
+
+  this.gl.useProgram(this.outliersShader);
+
+  console.log(this.datatiles['count'][index01].minvalue);
+
+  //horizontal pass
+  this.gl.viewport(0, 0, this.numbin, this.numbin);
+  //this.gl.viewport(i*width, j*height, width, height);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+  this.gl.uniform1f(this.outliersShader.minCountValue, this.datatiles['count'][index01].minvalue);
+  this.gl.uniform1f(this.outliersShader.maxCountValue, this.datatiles['count'][index01].maxvalue);
+  this.gl.uniform1f(this.outliersShader.minIndexValue, this.datatiles['index'][index01].minvalue);
+  this.gl.uniform1f(this.outliersShader.maxIndexValue, this.datatiles['index'][index01].maxvalue);
+  this.gl.uniform1f(this.outliersShader.minEntryValue, this.datatiles['entry'][index012].minvalue);
+  this.gl.uniform1f(this.outliersShader.maxEntryValue, this.datatiles['entry'][index012].maxvalue);
+  this.gl.uniform1f(this.outliersShader.numBins, this.numbin);
+  this.gl.uniform1f(this.outliersShader.numPoints, this.datatiles['count'][index01].numpoints);
+  this.gl.uniform1f(this.outliersShader.bandwidth, this.bandwidth);
+  this.gl.uniform1f(this.outliersShader.windowSize, this.windowSize);
+  this.gl.uniform1f(this.outliersShader.isFirstPass, 1.0);
+  this.gl.uniform1f(this.outliersShader.useDensity, this.useDensity);
+  this.gl.uniform1f(this.outliersShader.entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
+  this.gl.uniform1f(this.outliersShader.numPassValues, numgroups);
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+  scatter.quad.draw(
+    this.gl,
+    this.outliersShader,
+    this.mvMatrix,
+    this.pMatrix,
+    this.datatiles['count'][index01].texture,
+    this.colorscaletex,
+    this.datatiles['index'][index01].texture,
+    this.datatiles['entry'][index012].texture,
+    this.fbotexfinal
+  );
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+  //return;
+
+  //vertical pass
+  this.gl.viewport(0, 0, this.numbin, this.numbin);
+  //this.gl.viewport(i*width, j*height, width, height);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  this.gl.uniform1f(this.outliersShader.isFirstPass, 0.0);
+  
+  scatter.quad.draw(
+    this.gl,
+    this.outliersShader,
+    this.mvMatrix,
+    this.pMatrix,
+    this.datatiles['count'][index01].texture,
+    this.colorscaletex,
+    this.datatiles['index'][index01].texture,
+    this.datatiles['entry'][index012].texture,
+    this.fbotex1
+  );
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+
+  this.gl.useProgram(null);
+}
+
 
 ScatterGL.prototype.updateTexture = function(){
 
@@ -516,6 +589,10 @@ ScatterGL.prototype.updateTexture = function(){
     }
     else if(this.kdetype == 'Discrete'){
       this.updateDiscrete(scatter, index01, index012, width, height);
+    }
+
+    if(this.drawOutliers){
+      this.updateOutliers(scatter, index01, index012, numgroups);
     }
 
     if(measureTime){
@@ -789,6 +866,50 @@ ScatterGL.prototype.initShaders = function(){
 
   this.simpleShader.pMatrixUniform = this.gl.getUniformLocation(this.simpleShader, "uPMatrix");
   this.simpleShader.mvMatrixUniform = this.gl.getUniformLocation(this.simpleShader, "uMVMatrix");
+
+  this.gl.useProgram(null);
+
+  //outliers
+  var fragmentShader = getShader(this.gl, "./js/glsl/outliers.frag", true);
+  var vertexShader = getShader(this.gl, "./js/glsl/simple.vert", false);
+
+  this.outliersShader = this.gl.createProgram();
+  this.gl.attachShader(this.outliersShader, vertexShader);
+  this.gl.attachShader(this.outliersShader, fragmentShader);
+  this.gl.linkProgram(this.outliersShader);
+
+  if (!this.gl.getProgramParameter(this.outliersShader, this.gl.LINK_STATUS)) {
+    alert("Could not initialise shaders");
+  }
+
+  this.gl.useProgram(this.outliersShader);
+
+  this.outliersShader.vertexPositionAttribute = this.gl.getAttribLocation(this.outliersShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.outliersShader.vertexPositionAttribute);
+
+  this.outliersShader.textureCoordAttribute = this.gl.getAttribLocation(this.outliersShader, "aTexCoord");
+  this.gl.enableVertexAttribArray(this.outliersShader.textureCoordAttribute);
+
+  this.outliersShader.minCountValue = this.gl.getUniformLocation(this.outliersShader, 'uMinCountValue');
+  this.outliersShader.maxCountValue = this.gl.getUniformLocation(this.outliersShader, 'uMaxCountValue');
+  this.outliersShader.minIndexValue = this.gl.getUniformLocation(this.outliersShader, 'uMinIndexValue');
+  this.outliersShader.maxIndexValue = this.gl.getUniformLocation(this.outliersShader, 'uMaxIndexValue');
+  this.outliersShader.minEntryValue = this.gl.getUniformLocation(this.outliersShader, 'uMinEntryValue');
+  this.outliersShader.maxEntryValue = this.gl.getUniformLocation(this.outliersShader, 'uMaxEntryValue');
+  this.outliersShader.numBins = this.gl.getUniformLocation(this.outliersShader, 'uNumBins');
+  this.outliersShader.isFirstPass = this.gl.getUniformLocation(this.outliersShader, 'uIsFirstPass');
+  this.outliersShader.bandwidth = this.gl.getUniformLocation(this.outliersShader, 'uBandwidth');
+  this.outliersShader.numPoints = this.gl.getUniformLocation(this.outliersShader, 'uNumPoints');
+  this.outliersShader.sampler0 = this.gl.getUniformLocation(this.outliersShader, "uSamplerCount");
+  this.outliersShader.sampler1 = this.gl.getUniformLocation(this.outliersShader, "uSamplerColorScale");
+  this.outliersShader.sampler2 = this.gl.getUniformLocation(this.outliersShader, "uSamplerIndex");
+  this.outliersShader.sampler3 = this.gl.getUniformLocation(this.outliersShader, "uSamplerEntry");
+  this.outliersShader.sampler4 = this.gl.getUniformLocation(this.outliersShader, "uSamplerFinal");
+  this.outliersShader.entryDataTileWidth = this.gl.getUniformLocation(this.outliersShader, "uEntryDataTileWidth");
+
+
+  this.outliersShader.pMatrixUniform = this.gl.getUniformLocation(this.outliersShader, "uPMatrix");
+  this.outliersShader.mvMatrixUniform = this.gl.getUniformLocation(this.outliersShader, "uMVMatrix");
 
   this.gl.useProgram(null);
 

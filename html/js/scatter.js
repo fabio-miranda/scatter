@@ -368,7 +368,15 @@ function changeTransparency(){
 
 function changeDataset(value){
   window.location.search = 'datapath='+value;
+}
 
+function changeOutliers(){
+  var value = $('#outliers').prop('value');
+  if(value == 'Outliers')
+    scattermatrix.changeOutliers(true);
+  else
+    scattermatrix.changeOutliers(false);
+  scattermatrix.draw();
 }
 
 function changeBandwidth(value){
@@ -449,6 +457,10 @@ function initialize(){
   initColorScale();
 
   datapath = window.location.search.substring(window.location.search.indexOf('=')+1);
+  if(datapath.length == 0){
+    datapath = './data/iris/datatiles/';
+    changeDataset(datapath);
+  }
   $('#dataset').val(datapath);
   /*
   $.post(
@@ -505,6 +517,7 @@ function initialize(){
   changeMeanSize();
   changeKDEType();
   changeTransparency();
+  changeOutliers();
 
   /*
   $.post(

@@ -12,11 +12,7 @@ HTML_DIR = os.path.join(os.path.abspath("."), u"html")
 class ScatterPage:
 
   @cherrypy.expose
-  def index(self):
-    return open(os.path.join(HTML_DIR, u'index.html'))
-
-  @cherrypy.expose
-  def index(self, datapath):
+  def index(self, datapath = None):
     return open(os.path.join(HTML_DIR, u'index.html'))
 
   # @cherrypy.expose
