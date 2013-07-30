@@ -410,6 +410,11 @@ function setOutliersThreshold(value){
   scattermatrix.draw();
 }
 
+function setOutliersSize(value){
+  scattermatrix.setOutliersSize(value);
+  scattermatrix.draw();
+}
+
 function changeWindowSize(){
   scattermatrix.changeWindowSize($('#windowsize').prop('value'));
   scattermatrix.draw();
@@ -462,9 +467,19 @@ function initialize(){
     min: 0.0,
     max: 1.0,
     value: 0.5,
-    step: 0.1,
+    step: 0.01,
     slide: function( event, ui ) {
       setOutliersThreshold(ui.value);
+    }
+  });
+
+  $( "#div_outlierssizeslider" ).slider({
+    min: 2.0,
+    max: 16.0,
+    value: 4.0,
+    step: 1.0,
+    slide: function( event, ui ) {
+      setOutliersSize(ui.value);
     }
   });
 

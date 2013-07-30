@@ -13,7 +13,7 @@ uniform float uMaxIndexValue;
 uniform float uMinEntryValue;
 uniform float uMaxEntryValue;
 uniform float uNumBins;
-uniform float uWindowSize;
+uniform float uOutliersSize;
 uniform float uNumPoints;
 uniform float uIsFirstPass;
 uniform float uUseDensity;
@@ -25,7 +25,6 @@ uniform float uOutliersThreshold;
 
 
 const int maxloop = 50000;
-const float windowSize = 4.0;
 
 
 float gauss(float r){
@@ -42,21 +41,50 @@ vec4 getValue(vec2 coord){
 void main(void) {
 
   vec2 coord2D = vTexCoord;
-  /*
+  
   float pointValue = 0.0;
   for(int i=0;i<maxloop; i++){
-    if(i >= int(windowSize)) break;
+    if(i >= int(uOutliersSize)) break;
 
-    int index = i - int(windowSize)/2;
+    int index = i - int(uOutliersSize)/2;
     coord2D = vec2(vTexCoord.x + uIsFirstPass * (float(index) / uNumBins), vTexCoord.y + (1.0 - uIsFirstPass) * (float(index) / uNumBins)); //make sure to access not the next texel, but the next bin
-    pointValue += (getValue(coord2D).r  * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue);
+    vec3 count = texture2D(uSamplerCount, coord2D).rgb;
+
+    if(uIsFirstPass > 0.0){
+      if(count.r > 0.0)
+        pointValue += (getValue(coord2D).r  * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue);
+    }
+    else{
+      //if(count.r > 0.0)
+        pointValue += count.g;
+    }
+      
 
   }
 
-  vec3 pointColor = texture2D(uSamplerColorScale, vec2(pointValue / 4.0, 0)).rgb;
-  gl_FragColor = vec4(pointColor, 1.0);
-  return;
-  */
+  if(uIsFirstPass > 0.0){
+    float count = texture2D(uSamplerCount, vTexCoord).r;
+    gl_FragColor = vec4(count, pointValue, 0, 1);
+  }
+  else{
+    //float count = texture2D(uSamplerCount, vTexCoord).g;
+    vec3 densValue = texture2D(uSamplerFinal, vTexCoord).rgb;
+    vec3 pointColor = texture2D(uSamplerColorScale, vec2(pointValue / 4.0, 0)).rgb;
+    
+
+    if(pointValue > 0.0){
+      float distance = distance(densValue, pointColor);
+
+      if(distance > uOutliersThreshold)
+        gl_FragColor = vec4(pointColor, 1.0);
+      else
+        gl_FragColor = vec4(densValue, 1.0);
+    }
+    else
+      gl_FragColor = vec4(densValue, 1.0);
+    
+  }
+  /*
 
   
 
@@ -97,5 +125,5 @@ void main(void) {
 
   //gl_FragColor = vec4(pointColor.rgb, 1.0);
   //gl_FragColor = vec4(vec3(distance), 1.0);
-  
+  */
 }

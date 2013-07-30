@@ -59,6 +59,7 @@ function ScatterGL(canvas){
   this.drawOutliers = false;
   this.zoomLevel = 0.0;
   this.outliersThreshold = 0.5;
+  this.outliersSize = 4.0;
   this.translation = [0.0,0.0];
 
   this.numbin = null;
@@ -180,6 +181,14 @@ ScatterGL.prototype.changeOutliers = function(drawOutliers){
 ScatterGL.prototype.setOutliersThreshold = function(value){
 
   this.outliersThreshold = value;
+
+  this.updateTexture();
+
+}
+
+ScatterGL.prototype.setOutliersSize = function(value){
+
+  this.outliersSize = value;
 
   this.updateTexture();
 
@@ -480,8 +489,6 @@ ScatterGL.prototype.updateOutliers = function(scatter, index01, index012, numgro
 
   this.gl.useProgram(this.outliersShader);
 
-  console.log(this.datatiles['count'][index01].minvalue);
-
   //horizontal pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   //this.gl.viewport(i*width, j*height, width, height);
@@ -495,7 +502,7 @@ ScatterGL.prototype.updateOutliers = function(scatter, index01, index012, numgro
   this.gl.uniform1f(this.outliersShader.numBins, this.numbin);
   this.gl.uniform1f(this.outliersShader.numPoints, this.datatiles['count'][index01].numpoints);
   this.gl.uniform1f(this.outliersShader.bandwidth, this.bandwidth);
-  this.gl.uniform1f(this.outliersShader.windowSize, this.windowSize);
+  this.gl.uniform1f(this.outliersShader.outliersSize, this.outliersSize);
   this.gl.uniform1f(this.outliersShader.isFirstPass, 1.0);
   this.gl.uniform1f(this.outliersShader.useDensity, this.useDensity);
   this.gl.uniform1f(this.outliersShader.entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
@@ -520,7 +527,7 @@ ScatterGL.prototype.updateOutliers = function(scatter, index01, index012, numgro
   //vertical pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   //this.gl.viewport(i*width, j*height, width, height);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
 
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   this.gl.uniform1f(this.outliersShader.isFirstPass, 0.0);
@@ -530,15 +537,37 @@ ScatterGL.prototype.updateOutliers = function(scatter, index01, index012, numgro
     this.outliersShader,
     this.mvMatrix,
     this.pMatrix,
-    this.datatiles['count'][index01].texture,
+    this.fbotex1,
     this.colorscaletex,
     this.datatiles['index'][index01].texture,
     this.datatiles['entry'][index012].texture,
-    this.fbotex1
+    this.fbotexfinal
   );
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
 
   this.gl.useProgram(null);
+
+  //just send to final tex
+  this.gl.useProgram(this.simpleShader);
+  this.gl.viewport(0, 0, this.numbin, this.numbin);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+  this.gl.uniform2f(this.simpleShader.scale, 1.0, 1.0);
+  this.gl.uniform2f(this.simpleShader.translation, 0.0, 0.0);
+
+
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  
+  scatter.quad.draw(
+    this.gl,
+    this.simpleShader,
+    this.mvMatrix,
+    this.pMatrix,
+    this.fbotex2
+  );
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+
+  this.gl.useProgram(null);
+
 }
 
 
@@ -909,6 +938,7 @@ ScatterGL.prototype.initShaders = function(){
   this.outliersShader.numBins = this.gl.getUniformLocation(this.outliersShader, 'uNumBins');
   this.outliersShader.isFirstPass = this.gl.getUniformLocation(this.outliersShader, 'uIsFirstPass');
   this.outliersShader.bandwidth = this.gl.getUniformLocation(this.outliersShader, 'uBandwidth');
+  this.outliersShader.outliersSize = this.gl.getUniformLocation(this.outliersShader, 'uOutliersSize');
   this.outliersShader.numPoints = this.gl.getUniformLocation(this.outliersShader, 'uNumPoints');
   this.outliersShader.sampler0 = this.gl.getUniformLocation(this.outliersShader, "uSamplerCount");
   this.outliersShader.sampler1 = this.gl.getUniformLocation(this.outliersShader, "uSamplerColorScale");
