@@ -74,17 +74,18 @@
               <option>4096</option>
             </select>
             <select id='kdetype' selected='AKDE' onchange='changeKDEType()'>
-              <option>KDE</option>
-              <option selected='selected'>AKDE</option>
-              <option>Discrete</option>
+              <option value='kde'>KDE</option>
+              <option value='akde' selected='selected'>AKDE</option>
+              <option value='discrete'>Discrete</option>
             </select>
           </center>
           <center>Band:<div id='div_bandwidthslider'></div></center>
           <center>
             <table id='scatterplotdim3' class='scatterplotmatrix scatterplotdim3'></table>
             <select id='rendertype' onchange='changeRenderType()'>
-              <option selected='selected'>Single</option>
-              <option>Multi</option>
+              <option value='single' selected='selected'>Single pass</option>
+              <option value='multi'>Multi: Over</option>
+              <option value='multi'>Multi: Add</option>
             </select></br>
             <select id='outliers' onchange='changeOutliers()'>
               <option selected='selected'>Outliers</option>

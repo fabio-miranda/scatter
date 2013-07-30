@@ -5,6 +5,7 @@ uniform sampler2D uSamplerColorScale;
 uniform sampler2D uSamplerCount;
 uniform sampler2D uSamplerIndex;
 uniform sampler2D uSamplerEntry;
+uniform sampler2D uSamplerFinal;
 uniform float uMinCountValue;
 uniform float uMaxCountValue;
 uniform float uMinIndexValue;
@@ -103,12 +104,15 @@ void main(void) {
 
     //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     //gl_FragColor = vec4(color.xyz, 1);
+    
     if(uUseDensity > 0.0){
       vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).rgb;
       float alpha = texture2D(uSamplerColorScale, vec2(f, 0)).a;
       gl_FragColor = vec4(color.xyz*alpha, alpha); //TODO: multiply color by alpha?
     }
     else{
+      vec4 oldcolor = texture2D(uSamplerFinal, vTexCoord);
+
       //vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/(uNumPassValues+1.0) + f/(uNumPassValues+1.0), 0)).rgb;
       vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/(uNumPassValues+1.0), 0)).rgb;
       float alpha = texture2D(uSamplerColorScale, vec2(f, 0)).a;

@@ -53,8 +53,8 @@ function ScatterGL(canvas){
   this.mousestate = 'MOUSEUP';
   this.devicePixelRatio = 1;
   this.bandwidth = 0.01;
-  this.kdetype = 'KDE';
-  this.rendertype = 'Single'
+  this.kdetype = 'kde';
+  this.rendertype = 'single'
   this.drawReady = false;
   this.drawOutliers = false;
   this.zoomLevel = 0.0;
@@ -279,7 +279,7 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
   //horizontal pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   //this.gl.viewport(i*width, j*height, width, height);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
   this.gl.uniform1f(this.multipass_kdeShader.minCountValue, this.datatiles['count'][index01].minvalue);
   this.gl.uniform1f(this.multipass_kdeShader.maxCountValue, this.datatiles['count'][index01].maxvalue);
   this.gl.uniform1f(this.multipass_kdeShader.minIndexValue, this.datatiles['index'][index01].minvalue);
@@ -305,7 +305,8 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
     this.datatiles['count'][index01].texture,
     this.colorscaletex,
     this.datatiles['index'][index01].texture,
-    this.datatiles['entry'][index012].texture
+    this.datatiles['entry'][index012].texture,
+    null
   );
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
   //return;
@@ -313,7 +314,7 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
   //vertical pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   //this.gl.viewport(i*width, j*height, width, height);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
   if(pass==0)
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   this.gl.uniform1f(this.multipass_kdeShader.isFirstPass, 0.0);
@@ -323,10 +324,32 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
     this.multipass_kdeShader,
     this.mvMatrix,
     this.pMatrix,
-    this.fbotex2,
+    this.fbotex1,
     this.colorscaletex,
     this.datatiles['index'][index01].texture,
-    this.datatiles['entry'][index012].texture
+    this.datatiles['entry'][index012].texture,
+    this.fbotexfinal
+  );
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+
+  this.gl.useProgram(null);
+
+  //just send to final tex
+  this.gl.useProgram(this.simpleShader);
+  this.gl.viewport(0, 0, this.numbin, this.numbin);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+  this.gl.uniform2f(this.simpleShader.scale, 1.0, 1.0);
+  this.gl.uniform2f(this.simpleShader.translation, 0.0, 0.0);
+
+  console.log('1');
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  
+  scatter.quad.draw(
+    this.gl,
+    this.simpleShader,
+    this.mvMatrix,
+    this.pMatrix,
+    this.fbotex2
   );
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
 
@@ -610,23 +633,23 @@ ScatterGL.prototype.updateTexture = function(){
       numgroups = this.datatiles['entry'][index012].maxvalue - this.datatiles['entry'][index012].minvalue + 1;
 
     
-    if(this.rendertype == 'Multi' && this.kdetype == 'KDE'){
+    if(this.rendertype == 'multi' && this.kdetype == 'kde'){
       for(var i=0; i<numgroups; i++){
         this.updateKDE(scatter, index01, index012, i, numgroups, width, height);
       }
     }
-    else if(this.rendertype == 'Multi' && this.kdetype == 'AKDE'){
+    else if(this.rendertype == 'multi' && this.kdetype == 'akde'){
       for(var i=0; i<numgroups; i++){
         this.updateAKDE(scatter, index01, index012, i, numgroups, width, height);
       }
     }
-    else if(this.rendertype == 'Single' && this.kdetype == 'KDE'){
+    else if(this.rendertype == 'single' && this.kdetype == 'kde'){
       this.updateKDE(scatter, index01, index012, 0, numgroups, width, height);
     }
-    else if(this.rendertype == 'Single' && this.kdetype == 'AKDE'){
+    else if(this.rendertype == 'single' && this.kdetype == 'akde'){
       this.updateAKDE(scatter, index01, index012, 0, numgroups, width, height);
     }
-    else if(this.kdetype == 'Discrete'){
+    else if(this.kdetype == 'discrete'){
       this.updateDiscrete(scatter, index01, index012, width, height);
     }
 
@@ -769,6 +792,7 @@ ScatterGL.prototype.initShaders = function(){
   this.multipass_kdeShader.sampler1 = this.gl.getUniformLocation(this.multipass_kdeShader, "uSamplerColorScale");
   this.multipass_kdeShader.sampler2 = this.gl.getUniformLocation(this.multipass_kdeShader, "uSamplerIndex");
   this.multipass_kdeShader.sampler3 = this.gl.getUniformLocation(this.multipass_kdeShader, "uSamplerEntry");
+  this.multipass_kdeShader.sampler4 = this.gl.getUniformLocation(this.multipass_kdeShader, "uSamplerFinal");
   this.multipass_kdeShader.entryDataTileWidth = this.gl.getUniformLocation(this.multipass_kdeShader, "uEntryDataTileWidth");
   this.multipass_kdeShader.passValue = this.gl.getUniformLocation(this.multipass_kdeShader, "uPassValue");
   this.multipass_kdeShader.numPassValues = this.gl.getUniformLocation(this.multipass_kdeShader, "uNumPassValues");
