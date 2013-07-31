@@ -24,19 +24,24 @@ function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
 function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
 function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
 
-ColorScale.prototype.setValues = function(values, isLinear, hasAlpha){
+ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, fixedAlpha){
   var scaleColor;
   var scaleAlpha;
 
-  if(isLinear){
+  if(isColorLinear){
     scaleColor = d3.scale.linear()
-      .domain(d3.range(0, 255+255.0/(values.length-1), 255.0/(values.length-1)));
-    scaleAlpha = d3.scale.linear()
       .domain(d3.range(0, 255+255.0/(values.length-1), 255.0/(values.length-1)));
   }
   else{
     scaleColor = d3.scale.quantize() //quantize only takes two numbers as domain
       .domain([0,this.texsize]);
+  }
+
+  if(isAlphaLinear){
+    scaleAlpha = d3.scale.linear()
+      .domain(d3.range(0, 255+255.0/(values.length-1), 255.0/(values.length-1)));
+  }
+  else{
     scaleAlpha = d3.scale.quantize() //quantize only takes two numbers as domain
       .domain([0,this.texsize]);
   }
@@ -55,10 +60,10 @@ ColorScale.prototype.setValues = function(values, isLinear, hasAlpha){
     this.texdata[4*i+1] = g;
     this.texdata[4*i+2] = b;
 
-    if(hasAlpha)
+    if(fixedAlpha == null)
       this.texdata[4*i+3] = scaleAlpha(i);
     else
-      this.texdata[4*i+3] = 255.0;
+      this.texdata[4*i+3] = fixedAlpha * 255.0;
 
   }
 

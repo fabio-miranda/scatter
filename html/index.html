@@ -82,11 +82,6 @@
           <center>Band:<div id='div_bandwidthslider'></div></center>
           <center>
             <table id='scatterplotdim3' class='scatterplotmatrix scatterplotdim3'></table>
-            <select id='rendertype' onchange='changeRenderType()'>
-              <option value='single'>Single pass</option>
-              <option value='multi' selected='selected'>Multi: Over</option>
-              <option value='multi'>Multi: Add</option>
-            </select></br>
             <select id='outliers' onchange='changeOutliers()'>
               <option>Outliers</option>
               <option selected='selected'>No outliers</option>
@@ -126,15 +121,17 @@
           </table>
         </td>
         <td>
-          <select id='interpolationType' onchange='changeColorScale()'>
-            <option selected='selected'>Discrete</option>
-            <option>Linear</option>
+          <select id='colorType' onchange='changeColorScale()'>
+            <option value='color_discrete' selected='selected'>Discrete colors</option>
+            <option value='color_linear' >Linear colors</option>
           </select></br>
           <div id='div_colorbrewer'></div>
           <div id='div_dataclasses'></div>
-          <select id='transparency' onchange='changeTransparency()'>
-            <option selected='selected'>Opaque</option>
-            <option>Alpha</option>
+          <select id='alphaType' onchange='changeTransparency()'>
+            <option value='alpha_10' selected='selected'>Fixed alpha: 1.0</option>
+            <option value='alpha_05'>Fixed alpha: 0.5</option>
+            <option value='alpha_linear'>Linear alpha</option>
+            <option value='alpha_discrete'>Discrete alpha</option>
           </select>
         </td>
       </tr>

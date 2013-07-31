@@ -119,7 +119,7 @@ void main(void) {
       //vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/(uNumPassValues+1.0) + f/(uNumPassValues+1.0), 0)).rgb;
       vec4 newcolor = texture2D(uSamplerColorScale, vec2(uPassValue/(uNumPassValues+1.0), 0));
       newcolor.a = texture2D(uSamplerColorScale, vec2(f, 0)).a;
-      newcolor.a = newcolor.a*0.5;
+      //newcolor.a = newcolor.a*0.5;
 
       //TODO: use premultipled alpha? http://en.wikibooks.org/wiki/GLSL_Programming/Unity/Transparency
       vec4 finalcolor;

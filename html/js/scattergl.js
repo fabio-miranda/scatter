@@ -54,7 +54,6 @@ function ScatterGL(canvas){
   this.devicePixelRatio = 1;
   this.bandwidth = 0.01;
   this.kdetype = 'kde';
-  this.rendertype = 'single'
   this.drawReady = false;
   this.drawOutliers = false;
   this.zoomLevel = 0.0;
@@ -157,14 +156,6 @@ ScatterGL.prototype.setZoom = function(zoomLevel){
 ScatterGL.prototype.changeKDEType = function(kdetype){
 
   this.kdetype = kdetype;
-
-  this.updateTexture();
-
-}
-
-ScatterGL.prototype.changeRenderType = function(rendertype){
-
-  this.rendertype = rendertype;
 
   this.updateTexture();
 
@@ -656,21 +647,15 @@ ScatterGL.prototype.updateTexture = function(){
       numgroups = this.datatiles['entry'][index012].maxvalue - this.datatiles['entry'][index012].minvalue + 1;
 
     
-    if(this.rendertype == 'multi' && this.kdetype == 'kde'){
+    if(this.kdetype == 'kde'){
       for(var i=0; i<numgroups; i++){
         this.updateKDE(scatter, index01, index012, i, numgroups, width, height);
       }
     }
-    else if(this.rendertype == 'multi' && this.kdetype == 'akde'){
+    else if(this.kdetype == 'akde'){
       for(var i=0; i<numgroups; i++){
         this.updateAKDE(scatter, index01, index012, i, numgroups, width, height);
       }
-    }
-    else if(this.rendertype == 'single' && this.kdetype == 'kde'){
-      this.updateKDE(scatter, index01, index012, 0, numgroups, width, height);
-    }
-    else if(this.rendertype == 'single' && this.kdetype == 'akde'){
-      this.updateAKDE(scatter, index01, index012, 0, numgroups, width, height);
     }
     else if(this.kdetype == 'discrete'){
       this.updateDiscrete(scatter, index01, index012, width, height);

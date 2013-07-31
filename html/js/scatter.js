@@ -327,33 +327,32 @@ function removescatterplot(){
 
 function changeColorScale(){
 
-  colorscale = new ColorScale(document.getElementById('colorscale'));
+  var color = $('#colorbrewer').prop('value');
+  var dataclasses = $('#dataclasses').prop('value');
+  var colorType = $('#colorType').prop('value');
+  var alphaType = $('#alphaType').prop('value');
+  var kdetype = $('#kdetype').prop('value');
 
-  var color = $('#colorbrewer').val();
-  var dataclasses = $('#dataclasses').val();
-  var interpolationType = $('#interpolationType').val();
-  var transparency = $('#transparency').val();
+  var isColorLinear = false;
+  var isAlphaLinear = false;
+  if(colorType == 'color_linear')
+    isColorLinear = true;
+  if(alphaType == 'alpha_linear')
+    isAlphaLinear = true;
 
-  var isLinear = false;
-  if(interpolationType == 'Linear')
-    isLinear = true;
-
-  var hasAlpha = false;
-  if(transparency == 'Alpha')
-    hasAlpha = true;
+  var fixedAlpha = null;
+  if(alphaType == 'alpha_05')
+    fixedAlpha = 0.5;
+  else if(alphaType == 'alpha_10')
+    fixedAlpha = 1.0;
   
   if(colorbrewer[color][dataclasses] != null){
-    colorscale.setValues(colorbrewer[color][dataclasses], isLinear, hasAlpha);
+    colorscale.setValues(colorbrewer[color][dataclasses], isColorLinear, isAlphaLinear, fixedAlpha);
 
     scattermatrix.setColorScale(colorscale.texdata);
     redrawscatterplots();
   }
 
-}
-
-function changeRenderType(){
-  scattermatrix.changeRenderType($('#rendertype').prop('value'));
-  scattermatrix.draw();
 }
 
 function changeKDEType(){
@@ -484,6 +483,7 @@ function initialize(){
   });
 
   scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
+  colorscale = new ColorScale(document.getElementById('colorscale'));
   initColorScale();
 
   datapath = window.location.search.substring(window.location.search.indexOf('=')+1);
@@ -548,7 +548,6 @@ function initialize(){
   changeKDEType();
   changeTransparency();
   changeOutliers();
-  changeRenderType();
 
   /*
   $.post(
