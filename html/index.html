@@ -74,7 +74,7 @@
               <option>4096</option>
             </select>
             <select id='kdetype' selected='AKDE' onchange='changeKDEType()'>
-              <option value='kde'>KDE</option>
+              <option value='kde' >KDE</option>
               <option value='akde' selected='selected'>AKDE</option>
               <option value='discrete'>Discrete</option>
             </select>
@@ -83,13 +83,13 @@
           <center>
             <table id='scatterplotdim3' class='scatterplotmatrix scatterplotdim3'></table>
             <select id='rendertype' onchange='changeRenderType()'>
-              <option value='single' selected='selected'>Single pass</option>
-              <option value='multi'>Multi: Over</option>
+              <option value='single'>Single pass</option>
+              <option value='multi' selected='selected'>Multi: Over</option>
               <option value='multi'>Multi: Add</option>
             </select></br>
             <select id='outliers' onchange='changeOutliers()'>
-              <option selected='selected'>Outliers</option>
-              <option>No outliers</option>
+              <option>Outliers</option>
+              <option selected='selected'>No outliers</option>
             </select>
             <center>Outliers threshold: <div id='div_outliersslider'></div></center>
             <center>Outliers size: <div id='div_outlierssizeslider'></div></center>

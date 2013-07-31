@@ -341,7 +341,6 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
   this.gl.uniform2f(this.simpleShader.scale, 1.0, 1.0);
   this.gl.uniform2f(this.simpleShader.translation, 0.0, 0.0);
 
-  console.log('1');
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   
   scatter.quad.draw(
@@ -356,7 +355,7 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
   this.gl.useProgram(null);
 }
 
-ScatterGL.prototype.updateSingleAKDEPass = function(akdePass, isHorizontal, scatter, index01, index012, pass, numgroups, tex){
+ScatterGL.prototype.updateSingleAKDEPass = function(akdePass, isHorizontal, scatter, index01, index012, pass, numgroups, tex, texold){
 
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].minCountValue, this.datatiles['count'][index01].minvalue);
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].maxCountValue, this.datatiles['count'][index01].maxvalue);
@@ -382,7 +381,8 @@ ScatterGL.prototype.updateSingleAKDEPass = function(akdePass, isHorizontal, scat
     tex,
     this.colorscaletex,
     this.datatiles['index'][index01].texture,
-    this.datatiles['entry'][index012].texture
+    this.datatiles['entry'][index012].texture,
+    texold
   );
 
 }
@@ -467,12 +467,32 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
     //vertical pass
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
-    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
     if(pass==0)
       this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    this.updateSingleAKDEPass(2, 0, scatter, index01, index012, pass, numgroups, this.fbotex2, this.colorscaletex);
+    this.updateSingleAKDEPass(2, 0, scatter, index01, index012, pass, numgroups, this.fbotex2, this.fbotexfinal);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
   }
+
+  //just send to final tex. TODO: performance hit?
+  this.gl.useProgram(this.simpleShader);
+  this.gl.viewport(0, 0, this.numbin, this.numbin);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+  this.gl.uniform2f(this.simpleShader.scale, 1.0, 1.0);
+  this.gl.uniform2f(this.simpleShader.translation, 0.0, 0.0);
+
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  
+  scatter.quad.draw(
+    this.gl,
+    this.simpleShader,
+    this.mvMatrix,
+    this.pMatrix,
+    this.fbotex1
+  );
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+
+  this.gl.useProgram(null);
 
 }
 
@@ -570,7 +590,7 @@ ScatterGL.prototype.updateOutliers = function(scatter, index01, index012, numgro
 
   this.gl.useProgram(null);
 
-  //just send to final tex
+  //just send to final tex. TODO: performance hit?
   this.gl.useProgram(this.simpleShader);
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
@@ -622,6 +642,9 @@ ScatterGL.prototype.updateTexture = function(){
     this.drawReady = true;
     var index01 = dim0+' '+dim1;
     var index012 = dim0+' '+dim1+' '+dim2;
+
+    //TODO: performance hit?
+    clearFBO(this.gl, this.fbofinal);
 
     
     //render
@@ -844,6 +867,7 @@ ScatterGL.prototype.initShaders = function(){
     this.multipass_akdeShader[i].sampler1 = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uSamplerColorScale");
     this.multipass_akdeShader[i].sampler2 = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uSamplerIndex");
     this.multipass_akdeShader[i].sampler3 = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uSamplerEntry");
+    this.multipass_akdeShader[i].sampler4 = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uSamplerFinal");
     this.multipass_akdeShader[i].entryDataTileWidth = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uEntryDataTileWidth");
     this.multipass_akdeShader[i].passValue = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uPassValue");
     this.multipass_akdeShader[i].numPassValues = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uNumPassValues");
@@ -1076,10 +1100,10 @@ ScatterGL.prototype.initGL = function(){
   this.gl.viewportHeight = this.canvas.height;
 
   this.gl.disable(this.gl.DEPTH_TEST);
-  this.gl.enable(this.gl.BLEND);
+  this.gl.disable(this.gl.BLEND);
   //this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
-  this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-  this.gl.clearColor(1, 1, 1, 1);
+  //this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+  this.gl.clearColor(0, 0, 0, 0);
 
   var float_texture_ext = this.gl.getExtension('OES_texture_float');
 

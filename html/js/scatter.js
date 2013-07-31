@@ -548,6 +548,7 @@ function initialize(){
   changeKDEType();
   changeTransparency();
   changeOutliers();
+  changeRenderType();
 
   /*
   $.post(

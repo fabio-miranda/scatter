@@ -30,6 +30,12 @@ function deleteFBO(gl, fbo){
     gl.deleteFramebuffer(fbo);
 }
 
+function clearFBO(gl, fbo){
+  gl.bindFramebuffer( gl.FRAMEBUFFER, fbo);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.bindFramebuffer( gl.FRAMEBUFFER, null );
+}
+
 function createFBO(gl, interpolation, width, height, iformat, format, type, tex, fbo){
 
   gl.activeTexture(gl.TEXTURE0);
