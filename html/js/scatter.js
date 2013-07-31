@@ -491,8 +491,8 @@ function initialize(){
   $( "#div_contourwidthslider" ).slider({
     min: 0.0,
     max: 5.0,
-    value: 1.0,
-    step: 1.0,
+    value: 0.5,
+    step: 0.25,
     slide: function( event, ui ) {
       setContourWidth(ui.value);
     }

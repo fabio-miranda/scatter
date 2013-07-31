@@ -53,7 +53,7 @@ function ScatterGL(canvas){
   this.mousestate = 'MOUSEUP';
   this.devicePixelRatio = 1;
   this.bandwidth = 0.01;
-  this.contourWidth = 1.0;
+  this.contourWidth = 0.5;
   this.kdetype = 'kde';
   this.drawReady = false;
   this.drawOutliers = false;
