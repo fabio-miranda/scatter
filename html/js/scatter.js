@@ -414,6 +414,12 @@ function setOutliersSize(value){
   scattermatrix.draw();
 }
 
+function setContourWidth(value){
+  scattermatrix.setContourWidth(value);
+  scattermatrix.draw();
+}
+
+
 function changeWindowSize(){
   scattermatrix.changeWindowSize($('#windowsize').prop('value'));
   scattermatrix.draw();
@@ -479,6 +485,16 @@ function initialize(){
     step: 1.0,
     slide: function( event, ui ) {
       setOutliersSize(ui.value);
+    }
+  });
+
+  $( "#div_contourwidthslider" ).slider({
+    min: 0.0,
+    max: 5.0,
+    value: 1.0,
+    step: 1.0,
+    slide: function( event, ui ) {
+      setContourWidth(ui.value);
     }
   });
 

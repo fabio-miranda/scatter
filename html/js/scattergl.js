@@ -53,6 +53,7 @@ function ScatterGL(canvas){
   this.mousestate = 'MOUSEUP';
   this.devicePixelRatio = 1;
   this.bandwidth = 0.01;
+  this.contourWidth = 1.0;
   this.kdetype = 'kde';
   this.drawReady = false;
   this.drawOutliers = false;
@@ -97,10 +98,10 @@ ScatterGL.prototype.update = function(type, image, imgsize, numpoints, numdim, i
   this.datatiles[type][index] = new Datatile(this.gl, image, imgsize, numpoints, numdim, index, numbin, minvalue, maxvalue);
 
   //For float textures, only NEAREST is supported? (http://www.khronos.org/registry/gles/extensions/OES/OES_texture_float.txt)
-  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
-  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
-  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexfinal, this.fbofinal);
-  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexf, this.fbof);
+  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
+  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
+  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexfinal, this.fbofinal);
+  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexf, this.fbof);
 
   this.updateTexture();
 }
@@ -143,6 +144,14 @@ ScatterGL.prototype.setColorScale = function(colorscalevalues){
 ScatterGL.prototype.changeBandwidth = function(bandwidth){
 
   this.bandwidth = bandwidth;
+
+  this.updateTexture();
+
+}
+
+ScatterGL.prototype.setContourWidth = function(contourWidth){
+
+  this.contourWidth = contourWidth;
 
   this.updateTexture();
 
@@ -308,7 +317,7 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
   //vertical pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   //this.gl.viewport(i*width, j*height, width, height);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbof);
   if(pass==0)
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   this.gl.uniform1f(this.multipass_kdeShader.isFirstPass, 0.0);
@@ -323,26 +332,6 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
     this.datatiles['index'][index01].texture,
     this.datatiles['entry'][index012].texture,
     this.fbotexfinal
-  );
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
-
-  this.gl.useProgram(null);
-
-  //just send to final tex
-  this.gl.useProgram(this.simpleShader);
-  this.gl.viewport(0, 0, this.numbin, this.numbin);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbof);
-  this.gl.uniform2f(this.simpleShader.scale, 1.0, 1.0);
-  this.gl.uniform2f(this.simpleShader.translation, 0.0, 0.0);
-
-  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-  
-  scatter.quad.draw(
-    this.gl,
-    this.simpleShader,
-    this.mvMatrix,
-    this.pMatrix,
-    this.fbotex2
   );
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
 
@@ -461,32 +450,12 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
     //vertical pass
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
-    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbof);
     if(pass==0)
       this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     this.updateSingleAKDEPass(2, 0, scatter, index01, index012, pass, numgroups, this.fbotex2, this.fbotexfinal);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
   }
-
-  //just send to final tex. TODO: performance hit?
-  this.gl.useProgram(this.simpleShader);
-  this.gl.viewport(0, 0, this.numbin, this.numbin);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
-  this.gl.uniform2f(this.simpleShader.scale, 1.0, 1.0);
-  this.gl.uniform2f(this.simpleShader.translation, 0.0, 0.0);
-
-  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-  
-  scatter.quad.draw(
-    this.gl,
-    this.simpleShader,
-    this.mvMatrix,
-    this.pMatrix,
-    this.fbotex1
-  );
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
-
-  this.gl.useProgram(null);
 
 }
 
@@ -616,9 +585,10 @@ ScatterGL.prototype.updateShade = function(scatter, index012, pass, numgroups){
   //this.gl.viewport(i*width, j*height, width, height);
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
   this.gl.uniform1f(this.shadeShader.useDensity, this.useDensity);
-  this.gl.uniform1f(this.shadeShader.uNumBins, this.numBins);
+  this.gl.uniform1f(this.shadeShader.numBins, this.numbin);
   this.gl.uniform1f(this.shadeShader.passValue, this.datatiles['entry'][index012].minvalue+pass);
   this.gl.uniform1f(this.shadeShader.numPassValues, numgroups);
+  this.gl.uniform1f(this.shadeShader.contourWidth, this.contourWidth);
 
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
@@ -712,6 +682,7 @@ ScatterGL.prototype.updateTexture = function(){
     else if(this.kdetype == 'akde'){
       for(var i=0; i<numgroups; i++){
         this.updateAKDE(scatter, index01, index012, i, numgroups, width, height);
+        this.updateShade(scatter, index012, i, numgroups);
       }
     }
     else if(this.kdetype == 'discrete'){
@@ -1075,6 +1046,8 @@ ScatterGL.prototype.initShaders = function(){
   this.shadeShader.useDensity = this.gl.getUniformLocation(this.shadeShader, 'uUseDensity');
   this.shadeShader.passValue = this.gl.getUniformLocation(this.shadeShader, "uPassValue");
   this.shadeShader.numPassValues = this.gl.getUniformLocation(this.shadeShader, "uNumPassValues");
+  this.shadeShader.contourWidth = this.gl.getUniformLocation(this.shadeShader, "uContourWidth");
+  //this.shadeShader.contour = this.gl.getUniformLocation(this.shadeShader, "uContour");
 
 
   this.shadeShader.pMatrixUniform = this.gl.getUniformLocation(this.shadeShader, "uPMatrix");
