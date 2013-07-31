@@ -78,7 +78,7 @@ void main(void) {
       if(distance > uOutliersThreshold)
         gl_FragColor = vec4(pointColor, 1.0);
       else
-        gl_FragColor = vec4(densValue.rgb, 1.0);
+        gl_FragColor = vec4(densValue.rgb, densValue.a);
     }
     else
       gl_FragColor = vec4(densValue.rgb, densValue.a);
