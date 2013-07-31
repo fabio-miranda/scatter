@@ -74,8 +74,8 @@
               <option>4096</option>
             </select>
             <select id='kdetype' selected='AKDE' onchange='changeKDEType()'>
-              <option value='kde' >KDE</option>
-              <option value='akde' selected='selected'>AKDE</option>
+              <option value='kde' selected='selected'>KDE</option>
+              <option value='akde'>AKDE</option>
               <option value='discrete'>Discrete</option>
             </select>
           </center>
@@ -85,6 +85,10 @@
             <select id='outliers' onchange='changeOutliers()'>
               <option>Outliers</option>
               <option selected='selected'>No outliers</option>
+            </select>
+            <select id='contour' onchange='changeContour()'>
+              <option selected='selected'>Contour</option>
+              <option>No contour</option>
             </select>
             <center>Outliers threshold: <div id='div_outliersslider'></div></center>
             <center>Outliers size: <div id='div_outlierssizeslider'></div></center>

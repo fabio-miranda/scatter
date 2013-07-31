@@ -101,9 +101,11 @@ void main(void) {
     //f = (1.0 / (uNumPoints*h)) * f;
     f = f/0.3989422804;
 
+    gl_FragColor = vec4(f, f, f, 1.0);
+
     //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     //gl_FragColor = vec4(color.xyz, 1);
-
+    /*
     //gl_FragColor = vec4(values.g, values.g, values.g, 1.0);
     if(uUseDensity > 0.0){
       vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).rgb;
@@ -128,7 +130,7 @@ void main(void) {
       //newcolor.a = 0.5;
       gl_FragColor = finalcolor;
     }
-    
+    */
   }
 
 

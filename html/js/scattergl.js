@@ -74,6 +74,8 @@ function ScatterGL(canvas){
   this.fbotex1 = this.gl.createTexture();
   this.fbo2 = this.gl.createFramebuffer();
   this.fbotex2 = this.gl.createTexture();
+  this.fbof = this.gl.createFramebuffer();
+  this.fbotexf = this.gl.createTexture();
   this.fbofinal = this.gl.createFramebuffer();
   this.fbotexfinal = this.gl.createTexture();
   //createFBO(this.gl, this.canvas.width, this.canvas.height, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.fbotex, this.fbo);
@@ -95,9 +97,10 @@ ScatterGL.prototype.update = function(type, image, imgsize, numpoints, numdim, i
   this.datatiles[type][index] = new Datatile(this.gl, image, imgsize, numpoints, numdim, index, numbin, minvalue, maxvalue);
 
   //For float textures, only NEAREST is supported? (http://www.khronos.org/registry/gles/extensions/OES/OES_texture_float.txt)
-  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
-  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
-  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexfinal, this.fbofinal);
+  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex1, this.fbo1);
+  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
+  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexfinal, this.fbofinal);
+  createFBO(this.gl, this.gl.NEAREST, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexf, this.fbof);
 
   this.updateTexture();
 }
@@ -328,7 +331,7 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
   //just send to final tex
   this.gl.useProgram(this.simpleShader);
   this.gl.viewport(0, 0, this.numbin, this.numbin);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbof);
   this.gl.uniform2f(this.simpleShader.scale, 1.0, 1.0);
   this.gl.uniform2f(this.simpleShader.translation, 0.0, 0.0);
 
@@ -604,6 +607,59 @@ ScatterGL.prototype.updateOutliers = function(scatter, index01, index012, numgro
 
 }
 
+ScatterGL.prototype.updateShade = function(scatter, index012, pass, numgroups){
+
+  this.gl.useProgram(this.shadeShader);
+
+  //horizontal pass
+  this.gl.viewport(0, 0, this.numbin, this.numbin);
+  //this.gl.viewport(i*width, j*height, width, height);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+  this.gl.uniform1f(this.shadeShader.useDensity, this.useDensity);
+  this.gl.uniform1f(this.shadeShader.uNumBins, this.numBins);
+  this.gl.uniform1f(this.shadeShader.passValue, this.datatiles['entry'][index012].minvalue+pass);
+  this.gl.uniform1f(this.shadeShader.numPassValues, numgroups);
+
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+  scatter.quad.draw(
+    this.gl,
+    this.shadeShader,
+    this.mvMatrix,
+    this.pMatrix,
+    this.fbotexf,
+    this.colorscaletex,
+    this.fbotexfinal
+  );
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+  //return;
+
+  this.gl.useProgram(null);
+
+  //just send to final tex. TODO: performance hit?
+  this.gl.useProgram(this.simpleShader);
+  this.gl.viewport(0, 0, this.numbin, this.numbin);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+  this.gl.uniform2f(this.simpleShader.scale, 1.0, 1.0);
+  this.gl.uniform2f(this.simpleShader.translation, 0.0, 0.0);
+
+
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  
+  scatter.quad.draw(
+    this.gl,
+    this.simpleShader,
+    this.mvMatrix,
+    this.pMatrix,
+    this.fbotex1
+  );
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+
+  this.gl.useProgram(null);
+
+}
+
+
 
 ScatterGL.prototype.updateTexture = function(){
 
@@ -650,6 +706,7 @@ ScatterGL.prototype.updateTexture = function(){
     if(this.kdetype == 'kde'){
       for(var i=0; i<numgroups; i++){
         this.updateKDE(scatter, index01, index012, i, numgroups, width, height);
+        this.updateShade(scatter, index012, i, numgroups);
       }
     }
     else if(this.kdetype == 'akde'){
@@ -665,6 +722,8 @@ ScatterGL.prototype.updateTexture = function(){
       this.updateOutliers(scatter, index01, index012, numgroups);
     }
 
+    //this.updateContour(scatter);
+
     if(measureTime){
       //glfinish does not work (equal to glflush)
       //to make sure everything is done by the time we measure the time, just do a readPixels, instead of glfinish
@@ -676,7 +735,7 @@ ScatterGL.prototype.updateTexture = function(){
 
     }
   }
-}
+}//
 
 ScatterGL.prototype.draw = function(){
 
@@ -988,6 +1047,42 @@ ScatterGL.prototype.initShaders = function(){
   this.gl.useProgram(null);
 
 
+  //shade
+  var fragmentShader = getShader(this.gl, "./js/glsl/shade.frag", true);
+  var vertexShader = getShader(this.gl, "./js/glsl/simple.vert", false);
+
+  this.shadeShader = this.gl.createProgram();
+  this.gl.attachShader(this.shadeShader, vertexShader);
+  this.gl.attachShader(this.shadeShader, fragmentShader);
+  this.gl.linkProgram(this.shadeShader);
+
+  if (!this.gl.getProgramParameter(this.shadeShader, this.gl.LINK_STATUS)) {
+    alert("Could not initialise shaders");
+  }
+
+  this.gl.useProgram(this.shadeShader);
+
+  this.shadeShader.vertexPositionAttribute = this.gl.getAttribLocation(this.shadeShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.shadeShader.vertexPositionAttribute);
+
+  this.shadeShader.textureCoordAttribute = this.gl.getAttribLocation(this.shadeShader, "aTexCoord");
+  this.gl.enableVertexAttribArray(this.shadeShader.textureCoordAttribute);
+
+  this.shadeShader.sampler0 = this.gl.getUniformLocation(this.shadeShader, "uSamplerF");
+  this.shadeShader.sampler1 = this.gl.getUniformLocation(this.shadeShader, "uSamplerColorScale");
+  this.shadeShader.sampler2 = this.gl.getUniformLocation(this.shadeShader, "uSamplerFinal");
+  this.shadeShader.numBins = this.gl.getUniformLocation(this.shadeShader, 'uNumBins');
+  this.shadeShader.useDensity = this.gl.getUniformLocation(this.shadeShader, 'uUseDensity');
+  this.shadeShader.passValue = this.gl.getUniformLocation(this.shadeShader, "uPassValue");
+  this.shadeShader.numPassValues = this.gl.getUniformLocation(this.shadeShader, "uNumPassValues");
+
+
+  this.shadeShader.pMatrixUniform = this.gl.getUniformLocation(this.shadeShader, "uPMatrix");
+  this.shadeShader.mvMatrixUniform = this.gl.getUniformLocation(this.shadeShader, "uMVMatrix");
+
+  this.gl.useProgram(null);
+
+
   //selection
   var fragmentShader = getShader(this.gl, "./js/glsl/selection.frag", true);
   var vertexShader = getShader(this.gl, "./js/glsl/selection.vert", false);
@@ -1091,11 +1186,15 @@ ScatterGL.prototype.initGL = function(){
   this.gl.clearColor(0, 0, 0, 0);
 
   var float_texture_ext = this.gl.getExtension('OES_texture_float');
+  var standard_derivatives_ext = this.gl.getExtension('OES_standard_derivatives');
 
   if (!this.gl){
     alert("Could not initialise Webgl.");
   }
   if(!float_texture_ext){
     alert("OES_texture_float not supported.");
+  }
+  if(!standard_derivatives_ext){
+    alert("OES_standard_derivatives not supported.");
   }
 }

@@ -9,7 +9,7 @@ function ColorScale(canvas){
   this.pMatrix = mat4.create();
   this.devicePixelRatio = 1;
 
-  this.texsize = 256;
+  this.texsize = 1024;
   this.texture = null;
   this.texdata = null;
 
@@ -27,10 +27,12 @@ function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
 ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, fixedAlpha){
   var scaleColor;
   var scaleAlpha;
+  var domain = d3.range(0, this.texsize+this.texsize/(values.length), this.texsize/(values.length));
+  console.log(domain);
 
   if(isColorLinear){
     scaleColor = d3.scale.linear()
-      .domain(d3.range(0, 255+255.0/(values.length-1), 255.0/(values.length-1)));
+      .domain(domain);
   }
   else{
     scaleColor = d3.scale.quantize() //quantize only takes two numbers as domain
@@ -39,7 +41,7 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
 
   if(isAlphaLinear){
     scaleAlpha = d3.scale.linear()
-      .domain(d3.range(0, 255+255.0/(values.length-1), 255.0/(values.length-1)));
+      .domain(domain);
   }
   else{
     scaleAlpha = d3.scale.quantize() //quantize only takes two numbers as domain
@@ -47,10 +49,11 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
   }
 
   scaleColor.range(values);
-  scaleAlpha.range(d3.range(0, 255+255.0/(values.length-1), 255.0/(values.length-1)));
+  scaleAlpha.range(d3.range(0, 255+255.0/(values.length), 255.0/(values.length)));
 
   //create texture
   this.texdata = new Uint8Array(4*this.texsize);
+  var count = 1;
   for(var i=0; i<this.texsize; i++){
     var hex = scaleColor(i);
     var r = hexToR(hex);
@@ -64,7 +67,20 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
       this.texdata[4*i+3] = scaleAlpha(i);
     else
       this.texdata[4*i+3] = fixedAlpha * 255.0;
-
+    /*
+    if(i >= domain[count]){
+      console.log(i);
+      for(var j=0; j<1; j++){
+        this.texdata[4*(i+j)] = 0.0;
+        this.texdata[4*(i+j)+1] = 0.0;
+        this.texdata[4*(i+j)+2] = 0.0;
+        this.texdata[4*(i+j)+3] = 255.0;
+      }
+      i+=1;
+      count++;
+    }
+    */
+    
   }
 
   this.texdata[4*0] = 255;
@@ -145,8 +161,8 @@ ColorScale.prototype.initGL = function(){
   this.gl.viewportHeight = this.canvas.height;
 
   this.gl.disable(this.gl.DEPTH_TEST);
-  this.gl.enable(this.gl.BLEND);
-  this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+  this.gl.disable(this.gl.BLEND);
+  //this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
 
   if (!this.gl){
     alert("Could not initialise Webgl.");
