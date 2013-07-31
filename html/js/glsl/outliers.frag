@@ -68,20 +68,20 @@ void main(void) {
   }
   else{
     //float count = texture2D(uSamplerCount, vTexCoord).g;
-    vec3 densValue = texture2D(uSamplerFinal, vTexCoord).rgb;
+    vec4 densValue = texture2D(uSamplerFinal, vTexCoord).rgba;
     vec3 pointColor = texture2D(uSamplerColorScale, vec2(pointValue / 4.0, 0)).rgb;
     
 
     if(pointValue > 0.0){
-      float distance = distance(densValue, pointColor);
+      float distance = distance(densValue.rgb, pointColor.rgb);
 
       if(distance > uOutliersThreshold)
         gl_FragColor = vec4(pointColor, 1.0);
       else
-        gl_FragColor = vec4(densValue, 1.0);
+        gl_FragColor = vec4(densValue.rgb, 1.0);
     }
     else
-      gl_FragColor = vec4(densValue, 1.0);
+      gl_FragColor = vec4(densValue.rgb, densValue.a);
     
   }
   /*
