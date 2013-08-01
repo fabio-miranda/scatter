@@ -2,8 +2,8 @@
 
 var histogram;
 var scattermatrix;
-var map;
-var canvaslayer;
+var map = null;
+var canvaslayer = null;
 var currentnumdim=0;
 var dim=16;
 var datapath;
@@ -11,7 +11,7 @@ var info;
 var colorscale;
 var canvas;
 var useKDE = true;
-var useMap = false;
+var useMap = true;
 
 
 function cb_receiveDataTile(datatile){
@@ -46,7 +46,7 @@ function cb_receiveDataTile(datatile){
       datatile['maxvalue']
     );
 
-    scattermatrix.draw();
+    update(map, canvaslayer);
   }
 
 }
@@ -86,7 +86,7 @@ function cb_receiveDataTileHistogram(datatile){
       datatile['numbin']
     );
 
-    scattermatrix.draw();
+    update(map, canvaslayer);
   }
 
 }
@@ -103,11 +103,11 @@ function redrawscatterplots(){
       var dim3 = $('#dropdownmenu_dim3_'+j).val();
 
       scattermatrix.addscatter(i, j, dim1, dim2, dim3);
-      //scattermatrix.draw();
+      //update(map, canvaslayer);
     }
   }
 
-  scattermatrix.draw();
+  update(map, canvaslayer);
 }
 
 function requestDataTiles(){
@@ -252,7 +252,7 @@ function adddimension(){
     scattermatrix.reset();
     requestDataTiles();
     redrawscatterplots();
-    scattermatrix.draw();
+    update(map, canvaslayer);
   };
 
   var values = new Array(scattermatrix.numdim);
@@ -361,12 +361,12 @@ function changeColorScale(){
 
 function changeKDEType(){
   scattermatrix.changeKDEType($('#kdetype').prop('value'));
-  scattermatrix.draw();
+  update(map, canvaslayer);
 }
 
 function changeTransparency(){
   changeColorScale();
-  scattermatrix.draw();
+  update(map, canvaslayer);
 }
 
 function changeDataset(value){
@@ -379,13 +379,13 @@ function changeOutliers(){
     scattermatrix.changeOutliers(true);
   else
     scattermatrix.changeOutliers(false);
-  scattermatrix.draw();
+  update(map, canvaslayer);
 }
 
 function changeBandwidth(value){
   scattermatrix.changeBandwidth(value);
 
-  scattermatrix.draw();
+  update(map, canvaslayer);
 
   //update slider and input
   $('#bandwidth').attr('value', value);
@@ -398,40 +398,40 @@ function changeZoom(delta){
   if($('#div_zoomslider').slider('value') + delta > 1.0) return;
 
   scattermatrix.changeZoom(delta);
-  scattermatrix.draw();
+  update(map, canvaslayer);
   $('#div_zoomslider').slider('value', $('#div_zoomslider').slider('value')+delta);
 }
 
 function setZoom(value){
   scattermatrix.setZoom(value);
-  scattermatrix.draw();
+  update(map, canvaslayer);
   $('#div_zoomslider').slider('value', value);
 }
 
 function setOutliersThreshold(value){
   scattermatrix.setOutliersThreshold(value);
-  scattermatrix.draw();
+  update(map, canvaslayer);
 }
 
 function setOutliersSize(value){
   scattermatrix.setOutliersSize(value);
-  scattermatrix.draw();
+  update(map, canvaslayer);
 }
 
 function setContourWidth(value){
   scattermatrix.setContourWidth(value);
-  scattermatrix.draw();
+  update(map, canvaslayer);
 }
 
 
 function changeWindowSize(){
   scattermatrix.changeWindowSize($('#windowsize').prop('value'));
-  scattermatrix.draw();
+  update(map, canvaslayer);
 }
 
 function changeMeanSize(){
   scattermatrix.changeMeanSize($('#meansize').prop('value'));
-  scattermatrix.draw();
+  update(map, canvaslayer);
 }
 
 function initColorScale(){
@@ -462,8 +462,8 @@ function update(){
 function initMap(){
 
   var mapOptions = {
-    zoom: 4,
-    center: new google.maps.LatLng(39.3, -95.8),
+    zoom: 12,
+    center: new google.maps.LatLng(37.7750,-122.4183),
     mapTypeId: google.maps.MapTypeId.ROADMAP,
     styles: [
       {

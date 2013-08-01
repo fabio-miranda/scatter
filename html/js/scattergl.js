@@ -738,12 +738,14 @@ ScatterGL.prototype.draw = function(map, canvaslayer){
 
     var scale = Math.pow(2, map.zoom);
     var offset = mapProjection.fromLatLngToPoint(canvaslayer.getTopLeft());
+    var pos = mapProjection.fromLatLngToPoint(new google.maps.LatLng(37.7750,-122.4183));
+
 
     mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 0]);
     mat4.translate(this.pMatrix, this.pMatrix, [-offset.x, -offset.y, 0.0]);
 
-    mat4.translate(this.mvMatrix, this.mvMatrix, [40,40,0]);
-    mat4.scale(this.mvMatrix, this.mvMatrix, [40,40,1]);
+    mat4.translate(this.mvMatrix, this.mvMatrix, [pos.x, pos.y, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [0.1,0.1,1]);
 
 
     this.zoomLevel = 0;
