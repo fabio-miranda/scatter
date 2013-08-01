@@ -32,6 +32,7 @@ function cb_receiveDataTile(datatile){
     var latlng0 = new google.maps.LatLng(datatile['lat0'],datatile['lng0']);
     var latlng1 = new google.maps.LatLng(datatile['lat1'],datatile['lng1']);
     scattermatrix.setGeoInfo(latlng0, latlng1);
+    map.fitBounds(new google.maps.LatLngBounds(latlng0, latlng1));
   }
 
   var image = new Image();
@@ -474,8 +475,8 @@ function update(){
 function initMap(){
 
   var mapOptions = {
-    zoom: 12,
-    center: new google.maps.LatLng(37.7750,-122.4183),
+    zoom: 1,
+    center: new google.maps.LatLng(0,0),
     mapTypeId: google.maps.MapTypeId.ROADMAP,
     styles : [
       {
