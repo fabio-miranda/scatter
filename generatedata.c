@@ -691,7 +691,7 @@ int generateHistogramTile(int numentries, int numdim,
 int main(int argc, char* argv[]){
 
     if(argc < 5){
-      printf("Usage: numentries numdim dimperimage outputdir [inputfile]\n");
+      printf("Usage: numentries numdim geoinfo outputdir [inputfile]\n");
       return 0;
     }
 
@@ -699,6 +699,7 @@ int main(int argc, char* argv[]){
     int numentries = atoi(argv[1]);
     int numdim = atoi(argv[2]);
     //int dimperimage = atoi(argv[3]);
+    int geoinfo = atoi(argv[3]);
     char* outputdir = argv[4];
     float* maxvalues = malloc(numdim * sizeof(float));
     float* minvalues = malloc(numdim * sizeof(float));
@@ -729,10 +730,20 @@ int main(int argc, char* argv[]){
     //fprintf(file,"%d\n",dimperimage); //dimperimage (4)
     //fprintf(file,"%d\n",dimperimage); //dimperimage (histogram)
     fprintf(file,"min: %f\n",0.0f);
-    fprintf(file,"max: %f",1.0f);
+    fprintf(file,"max: %f\n",1.0f);
+    if(geoinfo){
+      fprintf(file,"hasgeoinfo: 1\n");
+      fprintf(file,"lat0: %f\n",minvalues[0]);
+      fprintf(file,"lng0: %f\n",minvalues[1]);
+      fprintf(file,"lat1: %f\n",maxvalues[0]);
+      fprintf(file,"lng1: %f",maxvalues[1]);
+    }
+    else
+      fprintf(file,"hasgeoinfo: 0");
+
     fclose(file);
 
-    int numbinscatter[8] = {2, 4, 16, 32, 64, 128, 256, 512};//, 1024};//, 2048, 4096};
+    int numbinscatter[9] = {2, 4, 16, 32, 64, 128, 256, 512,1024};//, 1024};//, 2048, 4096};
     //int numbinhistogram[9] = {2, 4, 8, 16, 32, 64, 128, 256, 512};
     int i,j,k,l;//,l,m;
     for(i=0; i<numdim; i++){

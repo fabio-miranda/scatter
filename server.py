@@ -126,6 +126,17 @@ class ScatterPage:
     f = open(datapath+'/info.txt', 'r')
     numentries = int(f.readline().split(':')[1])
     numdim = int(f.readline().split(':')[1])
+    auxmin = float(f.readline().split(':')[1])
+    auxmax = float(f.readline().split(':')[1])
+    hasgeoinfo = float(f.readline().split(':')[1])
+    if(hasgeoinfo > 0):
+      data['hasgeoinfo'] = 1
+      data['lat0'] = float(f.readline().split(':')[1])
+      data['lng0'] = float(f.readline().split(':')[1])
+      data['lat1'] = float(f.readline().split(':')[1])
+      data['lng1'] = float(f.readline().split(':')[1])
+    else:
+      data['hasgeoinfo'] = 0
 
     f = open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k'+str(k)+'.info.txt', 'r')
     minCountValue = float(f.readline().split(':')[1])
@@ -134,6 +145,7 @@ class ScatterPage:
     maxIndexValue = float(f.readline().split(':')[1])
     minEntriesValue = float(f.readline().split(':')[1])
     maxEntriesValue = float(f.readline().split(':')[1])
+
 
     buffer = StringIO.StringIO()
     img = Image.open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k'+str(k)+'.entry.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
@@ -156,7 +168,6 @@ class ScatterPage:
     data['dim1'] = j
     data['minvalue'] = minEntriesValue
     data['maxvalue'] = maxEntriesValue
-
 
     return json.dumps(data)
 

@@ -61,6 +61,7 @@ function ScatterGL(canvas){
   this.outliersThreshold = 0.5;
   this.outliersSize = 4.0;
   this.translation = [0.0,0.0];
+  this.latlng = null;
 
   this.numbin = null;
   this.datatiles = {};
@@ -138,6 +139,14 @@ ScatterGL.prototype.setColorScale = function(colorscalevalues){
   createTextureFromArray(this.gl, this.gl.NEAREST, colorscalevalues.length/4, 1, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, colorscalevalues, this.colorscaletex);
 
   this.updateTexture();
+
+}
+
+ScatterGL.prototype.setGeoInfo = function(latlng0, latlng1){
+
+  this.latlng = [];
+  this.latlng[0] = latlng0;
+  this.latlng[1] = latlng1;
 
 }
 
@@ -730,22 +739,24 @@ ScatterGL.prototype.draw = function(map, canvaslayer){
   this.gl.uniform2f(this.simpleShader.translation, 0, 0);
 
 
-  if(map != null){
+  if(map != null && canvaslayer != null && map.getProjection() != null){
 
     var mapProjection = map.getProjection();
 
     mat4.copy(this.pMatrix, [2/width, 0, 0, 0, 0, -2/height, 0, 0, 0, 0, 0, 0, -1, 1, 0, 1]);
 
     var scale = Math.pow(2, map.zoom);
+
     var offset = mapProjection.fromLatLngToPoint(canvaslayer.getTopLeft());
-    var pos = mapProjection.fromLatLngToPoint(new google.maps.LatLng(37.7750,-122.4183));
+    var pos0 = mapProjection.fromLatLngToPoint(this.latlng[0]);
+    var pos1 = mapProjection.fromLatLngToPoint(this.latlng[1]);
 
 
     mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 0]);
     mat4.translate(this.pMatrix, this.pMatrix, [-offset.x, -offset.y, 0.0]);
 
-    mat4.translate(this.mvMatrix, this.mvMatrix, [pos.x, pos.y, 0]);
-    mat4.scale(this.mvMatrix, this.mvMatrix, [0.1,0.1,1]);
+    mat4.translate(this.mvMatrix, this.mvMatrix, [pos0.x, pos0.y, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [pos1.x-pos0.x,pos1.y-pos0.y,1]);
 
 
     this.zoomLevel = 0;
@@ -1180,8 +1191,6 @@ ScatterGL.prototype.initGL = function(){
   this.gl = this.canvas.getContext("experimental-webgl");
   this.gl.viewportWidth = this.canvas.width;
   this.gl.viewportHeight = this.canvas.height;
-
-  console.log(this.canvas.width);
 
   this.gl.disable(this.gl.DEPTH_TEST);
   this.gl.disable(this.gl.BLEND);

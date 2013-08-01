@@ -11,7 +11,7 @@ var info;
 var colorscale;
 var canvas;
 var useKDE = true;
-var useMap = true;
+var useMap = false;
 
 
 function cb_receiveDataTile(datatile){
@@ -28,6 +28,11 @@ function cb_receiveDataTile(datatile){
   var numdim = datatile['numdim'];
   var dimperimage = datatile['dimperimage'];
   var numrelations = datatile['numrelations'];
+  if(datatile['hasgeoinfo'] > 0){
+    var latlng0 = new google.maps.LatLng(datatile['lat0'],datatile['lng0']);
+    var latlng1 = new google.maps.LatLng(datatile['lat1'],datatile['lng1']);
+    scattermatrix.setGeoInfo(latlng0, latlng1);
+  }
 
   var image = new Image();
   image.index = datatile['index'];
@@ -289,6 +294,13 @@ function adddimension(){
   option.text = 'density';
   dropdown.add(option, null);
   $('#dropdownmenu_dim3_'+currentnumdim).val('density');
+
+  for(var i=0; i<3; i++){
+    var dim = getQueryVariable('dim'+i);
+    if(dim!=false){
+      $('#dropdownmenu_dim'+(i+1)+'_'+currentnumdim).val(dim);
+    }
+  }
   
 
   currentnumdim++;
@@ -465,14 +477,25 @@ function initMap(){
     zoom: 12,
     center: new google.maps.LatLng(37.7750,-122.4183),
     mapTypeId: google.maps.MapTypeId.ROADMAP,
-    styles: [
+    styles : [
       {
-        featureType: 'water',
-        stylers: [{ color: '#c3cfdd'}]
-      },
-      {
-        featureType: 'poi',
-        stylers: [{visibility: 'off'}]
+        stylers: [
+          { hue: "#00ffe6" },
+          { saturation: -20 }
+        ]
+      },{
+        featureType: "road",
+        elementType: "geometry",
+        stylers: [
+          { lightness: 100 },
+          { visibility: "simplified" }
+        ]
+      },{
+        featureType: "road",
+        elementType: "labels",
+        stylers: [
+          { visibility: "off" }
+        ]
       }
     ]
   };
@@ -489,7 +512,22 @@ function initMap(){
 
 }
 
+function getQueryVariable(variable) {
+  var query = window.location.search.substring(1);
+  var vars = query.split(',');//query.split('&');
+  for (var i = 0; i < vars.length; i++) {
+      var pair = vars[i].split('=');
+      if (decodeURIComponent(pair[0]) == variable) {
+          return decodeURIComponent(pair[1]);
+      }
+  }
+  return false;
+}
+
 function initialize(){
+
+  datapath = getQueryVariable('datapath');
+  useMap = getQueryVariable('map');
 
   if(useMap){
     initMap();
@@ -497,6 +535,7 @@ function initialize(){
     $('#div_map').width('800px');
     $('#div_map').height('800px');
     $('#scatterplotmatrix').hide();
+    $('#zoom').hide();
   }
   else{
     canvas = document.getElementById('scatterplotmatrix');
@@ -559,7 +598,6 @@ function initialize(){
   colorscale = new ColorScale(document.getElementById('colorscale'));
   initColorScale();
 
-  datapath = window.location.search.substring(window.location.search.indexOf('=')+1);
   if(datapath.length == 0){
     datapath = './data/iris/datatiles/';
     changeDataset(datapath);
@@ -579,14 +617,24 @@ function initialize(){
     cb_receiveDataTile
   );
   */
+
+  var dim0 = 0;
+  var dim1 = 0;
+  var dim2 = 'density';
+  if(getQueryVariable('dim0') != false)
+    dim0 = getQueryVariable('dim0');
+  if(getQueryVariable('dim1') != false)
+    dim1 = getQueryVariable('dim1');
+  if(getQueryVariable('dim2') != false)
+    dim2 = getQueryVariable('dim2');
   
   $.post(
     '/getCountDataTile',
       {
         'datapath' : datapath,
         'numbinscatter' : $('#numbinscatter').val(),
-        'i' : 0,
-        'j' : 0,
+        'i' : dim0,
+        'j' : dim1,
       },
     cb_receiveDataTile
   );
@@ -596,8 +644,8 @@ function initialize(){
       {
         'datapath' : datapath,
         'numbinscatter' : $('#numbinscatter').val(),
-        'i' : 0,
-        'j' : 0,
+        'i' : dim0,
+        'j' : dim1,
       },
     cb_receiveDataTile
   );
@@ -607,9 +655,9 @@ function initialize(){
       {
         'datapath' : datapath,
         'numbinscatter' : $('#numbinscatter').val(),
-        'i' : 0,
-        'j' : 0,
-        'k' : 'density',
+        'i' : dim0,
+        'j' : dim1,
+        'k' : dim2,
       },
     cb_receiveDataTile
   );

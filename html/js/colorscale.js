@@ -28,7 +28,6 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
   var scaleColor;
   var scaleAlpha;
   var domain = d3.range(0, this.texsize+this.texsize/(values.length), this.texsize/(values.length));
-  console.log(domain);
 
   if(isColorLinear){
     scaleColor = d3.scale.linear()
