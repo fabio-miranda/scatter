@@ -41,6 +41,11 @@ select {
   font-size: 12px;
 }
 
+#div_map {
+  margin: 0;
+  padding: 0;
+}
+
 
 
 #bandwidth {
@@ -84,8 +89,6 @@ select {
 }
 
 .scatterplotmatrix {
-  width: 800px;
-  height: 800px;
   text-align: center;
 }
 

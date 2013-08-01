@@ -708,7 +708,8 @@ ScatterGL.prototype.updateTexture = function(){
   }
 }//
 
-ScatterGL.prototype.draw = function(){
+
+ScatterGL.prototype.draw = function(map, canvaslayer){
 
   //this.update();
 
@@ -720,14 +721,40 @@ ScatterGL.prototype.draw = function(){
   var height = this.canvas.height / (this.maxdim + 1);
 
   mat4.identity(this.mvMatrix);
-  mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
   this.gl.useProgram(this.simpleShader);
   this.gl.viewport(0, 0, width, height);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
-  this.gl.uniform2f(this.simpleShader.scale, 1.0-this.zoomLevel, 1.0-this.zoomLevel);
-  this.gl.uniform2f(this.simpleShader.translation, this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight);
+  this.gl.uniform2f(this.simpleShader.scale, 1.0, 1.0);
+  this.gl.uniform2f(this.simpleShader.translation, 0, 0);
+
+
+  if(map != null){
+
+    var mapProjection = map.getProjection();
+
+    mat4.copy(this.pMatrix, [2/width, 0, 0, 0, 0, -2/height, 0, 0, 0, 0, 0, 0, -1, 1, 0, 1]);
+
+    var scale = Math.pow(2, map.zoom);
+    var offset = mapProjection.fromLatLngToPoint(canvaslayer.getTopLeft());
+
+    mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 0]);
+    mat4.translate(this.pMatrix, this.pMatrix, [-offset.x, -offset.y, 0.0]);
+
+    mat4.translate(this.mvMatrix, this.mvMatrix, [40,40,0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [40,40,1]);
+
+
+    this.zoomLevel = 0;
+    this.translation[0] = 0;
+    this.translation[1] = 0;
+  }
+  else{
+    mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+    this.gl.uniform2f(this.simpleShader.scale, 1.0-this.zoomLevel, 1.0-this.zoomLevel);
+    this.gl.uniform2f(this.simpleShader.translation, this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight);
+  }
 
   this.finalquad.draw(
     this.gl,
@@ -1151,6 +1178,8 @@ ScatterGL.prototype.initGL = function(){
   this.gl = this.canvas.getContext("experimental-webgl");
   this.gl.viewportWidth = this.canvas.width;
   this.gl.viewportHeight = this.canvas.height;
+
+  console.log(this.canvas.width);
 
   this.gl.disable(this.gl.DEPTH_TEST);
   this.gl.disable(this.gl.BLEND);

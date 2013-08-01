@@ -2,12 +2,16 @@
 
 var histogram;
 var scattermatrix;
+var map;
+var canvaslayer;
 var currentnumdim=0;
 var dim=16;
 var datapath;
 var info;
 var colorscale;
+var canvas;
 var useKDE = true;
+var useMap = false;
 
 
 function cb_receiveDataTile(datatile){
@@ -447,7 +451,59 @@ function initColorScale(){
   changeColorScale();
 }
 
+function resize(){
+  scattermatrix.draw(map, canvaslayer);
+}
+
+function update(){
+  scattermatrix.draw(map, canvaslayer);
+}
+
+function initMap(){
+
+  var mapOptions = {
+    zoom: 4,
+    center: new google.maps.LatLng(39.3, -95.8),
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    styles: [
+      {
+        featureType: 'water',
+        stylers: [{ color: '#c3cfdd'}]
+      },
+      {
+        featureType: 'poi',
+        stylers: [{visibility: 'off'}]
+      }
+    ]
+  };
+  var div = document.getElementById('div_map');
+  map = new google.maps.Map(div, mapOptions);
+
+  var canvasLayerOptions = {
+    map: map,
+    resizeHandler: resize,
+    animate: false,
+    updateHandler: update
+  };
+  canvaslayer = new CanvasLayer(canvasLayerOptions);
+
+}
+
 function initialize(){
+
+  if(useMap){
+    initMap();
+    canvas = canvaslayer.canvas;
+    $('#div_map').width('800px');
+    $('#div_map').height('800px');
+    $('#scatterplotmatrix').hide();
+  }
+  else{
+    canvas = document.getElementById('scatterplotmatrix');
+    $('#scatterplotmatrix').width('800px');
+    $('#scatterplotmatrix').height('800px');
+    $('#div_map').hide();
+  }
 
   $( "#div_bandwidthslider" ).slider({
     min: 0.001,
@@ -498,7 +554,8 @@ function initialize(){
     }
   });
 
-  scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
+  //scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
+  scattermatrix = new ScatterGL(canvas);
   colorscale = new ColorScale(document.getElementById('colorscale'));
   initColorScale();
 
