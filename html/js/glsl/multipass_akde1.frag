@@ -71,7 +71,7 @@ void main(void) {
   if(values.g > 0.0){
     //g = pow(mean, 1.0/(n));
     g = mean;
-    lambda = sqrt(g / values.g);
+    lambda = sqrt(g / values.g); //TODO: see here. Replace with uNumPoints?
   }
 
   //gl_FragColor = values; //count, f, lambda

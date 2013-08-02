@@ -478,6 +478,12 @@ function initMap(){
     zoom: 1,
     center: new google.maps.LatLng(0,0),
     mapTypeId: google.maps.MapTypeId.ROADMAP,
+    panControl: false,
+    zoomControl: true,
+    mapTypeControl: true,
+    scaleControl: true,
+    streetViewControl: false,
+    overviewMapControl: false,
     styles : [
       {
         stylers: [
