@@ -5,6 +5,11 @@ mkdir ./wine/datatiles
 mkdir ./iris/datatiles
 ../generatedata.o 150 5 0 ./iris/datatiles/ ./iris/data.csv
 mkdir ./faithful/datatiles
-../generatedata.o 272 2 1 ./faithful/datatiles/ ./faithful/faithful.dat
+../generatedata.o 272 2 0 ./faithful/datatiles/ ./faithful/faithful.dat
 mkdir ./auto-mpg/datatiles
-../generatedata.o 392 9 1 ./auto-mpg/datatiles/ ./auto-mpg/auto-mpg.data
+../generatedata.o 392 9 0 ./auto-mpg/datatiles/ ./auto-mpg/auto-mpg.data
+mkdir ./noise/datatiles
+../generatedata.o 77505 2 1 ./noise/datatiles/ ./noise/noise.data
+mkdir ./wifi/datatiles
+./generatedata.o 1227 2 1 ./data/wifi/datatiles/ ./data/wifi/wifi.data
+
