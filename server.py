@@ -6,6 +6,7 @@ import json
 import os
 import numpy
 import base64
+import random
 
 
 HTML_DIR = os.path.join(os.path.abspath("."), u"html")
@@ -25,6 +26,68 @@ class ScatterPage:
   #   data['dim2'] = 16
 
   #   return json.dumps(data)
+
+  @cherrypy.expose
+  def getPoint(self, datapath, filepath, numbinscatter, i, j, entry, numentries):
+
+    entry = int(entry)
+    numentries = int(numentries)
+    i = int(i)
+    j = int(j)
+
+    cherrypy.response.headers['Content-Type'] = "application/json;"
+
+    data = {}
+
+    mini = float("inf")
+    maxi = - float("inf")
+    minj = float("inf")
+    maxj = - float("inf")
+
+    f = open(filepath, 'r')
+    entrycount = 0
+    for count in range(0, entry+numentries):
+      line = f.readline();
+      print line
+      if(count >= entry):
+        data[count] = {};
+        data[count]['i'] = float(line.split(';')[i])
+        data[count]['j'] = float(line.split(';')[j])
+
+        if(data[count]['i'] > maxi):
+          maxi = data[count]['i']
+        if(data[count]['j'] > maxj):
+          maxj = data[count]['j']
+        if(data[count]['i'] < mini):
+          mini = data[count]['i']
+        if(data[count]['j'] < minj):
+          minj = data[count]['j']
+        entrycount+=1
+
+
+    data['mini'] = mini
+    data['minj'] = minj
+    data['maxi'] = maxi
+    data['maxj'] = maxj
+    data['numentries'] = entrycount
+    print data
+
+
+    return json.dumps(data)
+
+  @cherrypy.expose
+  def getLine(self, datapath, numbinscatter, i, j, entry, numentries):
+    cherrypy.response.headers['Content-Type'] = "application/json;"
+
+    data = {}
+
+    data['i0'] = random.random()
+    data['j0'] = random.random()
+    data['i1'] = random.random()
+    data['j1'] = random.random()
+
+    return json.dumps(data)
+
 
   @cherrypy.expose
   def getCountDataTile(self, datapath, numbinscatter, i, j):

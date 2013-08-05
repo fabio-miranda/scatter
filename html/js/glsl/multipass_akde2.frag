@@ -50,7 +50,8 @@ void main(void) {
   //float x = coord2D.x;
   
   float f = 0.0;
-  //float W = 0.0;
+  float W = 0.0;
+  float numcounts = 0.0;
   for(int i=0;i<maxloop; i++){
     if(i >= int(uWindowSize)) break;
 
@@ -85,6 +86,8 @@ void main(void) {
         float k = counti * gaus;
 
         f += k;
+        W += hi;
+        numcounts += counti;
         //W += counti ;
       //}
     }
@@ -98,9 +101,9 @@ void main(void) {
   }
   else{
 
-    //f = (1.0 / (uNumPoints*h)) * f;
+    //W = W / numcounts;
+    //f = (1.0 / (uNumPoints * W)) * f;
     f = f/0.3989422804;
-
     gl_FragColor = vec4(f, f, f, 1.0);
 
     //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;

@@ -40,7 +40,7 @@ SelectionQuad.prototype.updateBB = function(){
 }
 
 
-function ScatterGL(canvas){
+function ScatterGL(canvas, usePoints){
   this.canvas = canvas;
   this.scatterplots = {};
   this.gl = null;
@@ -62,6 +62,11 @@ function ScatterGL(canvas){
   this.outliersSize = 4.0;
   this.translation = [0.0,0.0];
   this.latlng = null;
+  if(usePoints)
+    this.usePoints = 1.0;
+  else
+    this.usePoints = 0.0;
+
 
   this.numbin = null;
   this.datatiles = {};
@@ -80,9 +85,13 @@ function ScatterGL(canvas){
   this.fbotexf = this.gl.createTexture();
   this.fbofinal = this.gl.createFramebuffer();
   this.fbotexfinal = this.gl.createTexture();
+  this.fbocount = this.gl.createFramebuffer();
+  this.fbotexcount = this.gl.createTexture();
   //createFBO(this.gl, this.canvas.width, this.canvas.height, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.fbotex, this.fbo);
 
   this.finalquad = new quad(this.gl, true);
+
+  this.points = new points(this.gl);
 
   this.selection = new SelectionQuad(this.gl);
 }
@@ -103,6 +112,7 @@ ScatterGL.prototype.update = function(type, image, imgsize, numpoints, numdim, i
   createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotex2, this.fbo2);
   createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexfinal, this.fbofinal);
   createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexf, this.fbof);
+  createFBO(this.gl, this.gl.LINEAR, this.numbin, this.numbin, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.fbotexcount, this.fbocount);
 
   this.updateTexture();
 }
@@ -290,7 +300,7 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
 
   //horizontal pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
-  //this.gl.viewport(i*width, j*height, width, height);
+  //this.gl.viewport(0, 0, width, height);
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
   this.gl.uniform1f(this.multipass_kdeShader.minCountValue, this.datatiles['count'][index01].minvalue);
   this.gl.uniform1f(this.multipass_kdeShader.maxCountValue, this.datatiles['count'][index01].maxvalue);
@@ -299,22 +309,36 @@ ScatterGL.prototype.updateKDE = function(scatter, index01, index012, pass, numgr
   this.gl.uniform1f(this.multipass_kdeShader.minEntryValue, this.datatiles['entry'][index012].minvalue);
   this.gl.uniform1f(this.multipass_kdeShader.maxEntryValue, this.datatiles['entry'][index012].maxvalue);
   this.gl.uniform1f(this.multipass_kdeShader.numBins, this.numbin);
-  this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.datatiles['count'][index01].numpoints);
+
+  if(this.usePoints)
+    this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.points.numrasterpoints);
+  else
+    this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.datatiles['count'][index01].numpoints);
+
+  console.log(this.points.numrasterpoints);
+
   this.gl.uniform1f(this.multipass_kdeShader.bandwidth, this.bandwidth);
   this.gl.uniform1f(this.multipass_kdeShader.windowSize, this.windowSize);
   this.gl.uniform1f(this.multipass_kdeShader.isFirstPass, 1.0);
+  this.gl.uniform1f(this.multipass_kdeShader.usePoints, this.usePoints);
   this.gl.uniform1f(this.multipass_kdeShader.useDensity, this.useDensity);
   this.gl.uniform1f(this.multipass_kdeShader.entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
   this.gl.uniform1f(this.multipass_kdeShader.passValue, this.datatiles['entry'][index012].minvalue+pass);
   this.gl.uniform1f(this.multipass_kdeShader.numPassValues, numgroups);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
+  var texcount;
+  if(this.usePoints)
+    texcount = this.fbotexcount;
+  else
+    texcount = this.datatiles['count'][index01].texture;
+
   scatter.quad.draw(
     this.gl,
     this.multipass_kdeShader,
     this.mvMatrix,
     this.pMatrix,
-    this.datatiles['count'][index01].texture,
+    texcount,
     this.colorscaletex,
     this.datatiles['index'][index01].texture,
     this.datatiles['entry'][index012].texture,
@@ -356,7 +380,14 @@ ScatterGL.prototype.updateSingleAKDEPass = function(akdePass, isHorizontal, scat
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].minEntryValue, this.datatiles['entry'][index012].minvalue);
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].maxEntryValue, this.datatiles['entry'][index012].maxvalue);
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].numBins, this.numbin);
-  this.gl.uniform1f(this.multipass_akdeShader[akdePass].numPoints, this.datatiles['count'][index01].numpoints);
+  this.gl.uniform1f(this.multipass_akdeShader[akdePass].usePoints, this.usePoints);
+
+  if(this.usePoints)
+    this.gl.uniform1f(this.multipass_akdeShader[akdePass].numPoints, this.points.numrasterpoints * this.numbin);
+  else
+    this.gl.uniform1f(this.multipass_akdeShader[akdePass].numPoints, this.datatiles['count'][index01].numpoints);
+
+
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].bandwidth, this.bandwidth);
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].windowSize, this.windowSize);
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].isFirstPass, isHorizontal);
@@ -364,6 +395,7 @@ ScatterGL.prototype.updateSingleAKDEPass = function(akdePass, isHorizontal, scat
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].entryDataTileWidth, this.datatiles['entry'][index012].imgsize);
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].passValue, this.datatiles['entry'][index012].minvalue+pass);
   this.gl.uniform1f(this.multipass_akdeShader[akdePass].numPassValues, numgroups);
+
 
   scatter.quad.draw(
     this.gl,
@@ -385,12 +417,18 @@ ScatterGL.prototype.updateAKDE = function(scatter, index01, index012, pass, numg
   {
     this.gl.useProgram(this.multipass_akdeShader[0]);
 
+    var texcount;
+    if(this.usePoints)
+      texcount = this.fbotexcount;
+    else
+      texcount = this.datatiles['count'][index01].texture;
+
     //horizontal pass
     this.gl.viewport(0, 0, this.numbin, this.numbin);
     //this.gl.viewport(i*width, j*height, width, height);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    this.updateSingleAKDEPass(0, 1, scatter, index01, index012, pass, numgroups, this.datatiles['count'][index01].texture);
+    this.updateSingleAKDEPass(0, 1, scatter, index01, index012, pass, numgroups, texcount);
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
 
@@ -689,7 +727,7 @@ ScatterGL.prototype.updateTexture = function(){
       }
     }
     else if(this.kdetype == 'akde'){
-      for(var i=0; i<numgroups; i++){
+      for(var i=2; i<3; i++){
         this.updateAKDE(scatter, index01, index012, i, numgroups, width, height);
         this.updateShade(scatter, index012, i, numgroups);
       }
@@ -718,7 +756,8 @@ ScatterGL.prototype.updateTexture = function(){
 }//
 
 
-ScatterGL.prototype.draw = function(map, canvaslayer){
+ScatterGL.prototype.drawTexture = function(map, canvaslayer){
+
 
   //this.update();
 
@@ -768,7 +807,7 @@ ScatterGL.prototype.draw = function(map, canvaslayer){
     this.gl.uniform2f(this.simpleShader.scale, 1.0-this.zoomLevel, 1.0-this.zoomLevel);
     this.gl.uniform2f(this.simpleShader.translation, this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight);
   }
-
+  
   this.finalquad.draw(
     this.gl,
     this.simpleShader,
@@ -791,6 +830,38 @@ ScatterGL.prototype.draw = function(map, canvaslayer){
     this.selection.quad.draw(this.gl, this.selectionShader, this.mvMatrix, this.pMatrix);
   }
   */
+}
+
+ScatterGL.prototype.drawPoints = function(){
+  //this.drawTexture();
+  //return;
+  this.gl.enable(this.gl.BLEND);
+  this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+
+  var width = this.canvas.width / (this.maxdim + 1);
+  var height = this.canvas.height / (this.maxdim + 1);
+
+  mat4.identity(this.mvMatrix);
+
+  this.gl.useProgram(this.pointShader);
+  this.gl.viewport(0, 0, this.numbin, this.numbin);
+  console.log(this.numbin);
+
+  mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbocount);
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  this.points.draw(this.gl, this.pointShader, this.mvMatrix, this.pMatrix);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
+
+  this.gl.useProgram(null);
+
+  this.gl.disable(this.gl.BLEND);
+
+  //return;
+
+  this.updateTexture();
+  this.drawTexture();
 }
 
 
@@ -861,6 +932,7 @@ ScatterGL.prototype.initShaders = function(){
   this.multipass_kdeShader.minEntryValue = this.gl.getUniformLocation(this.multipass_kdeShader, 'uMinEntryValue');
   this.multipass_kdeShader.maxEntryValue = this.gl.getUniformLocation(this.multipass_kdeShader, 'uMaxEntryValue');
   this.multipass_kdeShader.numBins = this.gl.getUniformLocation(this.multipass_kdeShader, 'uNumBins');
+  this.multipass_kdeShader.usePoints = this.gl.getUniformLocation(this.multipass_kdeShader, 'uUsePoints');
   this.multipass_kdeShader.isFirstPass = this.gl.getUniformLocation(this.multipass_kdeShader, 'uIsFirstPass');
   this.multipass_kdeShader.useDensity = this.gl.getUniformLocation(this.multipass_kdeShader, 'uUseDensity');
   this.multipass_kdeShader.bandwidth = this.gl.getUniformLocation(this.multipass_kdeShader, 'uBandwidth');
@@ -878,6 +950,10 @@ ScatterGL.prototype.initShaders = function(){
 
   this.multipass_kdeShader.pMatrixUniform = this.gl.getUniformLocation(this.multipass_kdeShader, "uPMatrix");
   this.multipass_kdeShader.mvMatrixUniform = this.gl.getUniformLocation(this.multipass_kdeShader, "uMVMatrix");
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  this.gl.disableVertexAttribArray(this.multipass_kdeShader.vertexPositionAttribute);
+  this.gl.disableVertexAttribArray(this.multipass_kdeShader.textureCoordAttribute);
 
   this.gl.useProgram(null);
 
@@ -913,6 +989,7 @@ ScatterGL.prototype.initShaders = function(){
     this.multipass_akdeShader[i].minEntryValue = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uMinEntryValue');
     this.multipass_akdeShader[i].maxEntryValue = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uMaxEntryValue');
     this.multipass_akdeShader[i].numBins = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uNumBins');
+    this.multipass_akdeShader[i].usePoints = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uUsePoints');
     this.multipass_akdeShader[i].isFirstPass = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uIsFirstPass');
     this.multipass_akdeShader[i].useDensity = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uUseDensity');
     this.multipass_akdeShader[i].bandwidth = this.gl.getUniformLocation(this.multipass_akdeShader[i], 'uBandwidth');
@@ -930,6 +1007,10 @@ ScatterGL.prototype.initShaders = function(){
 
     this.multipass_akdeShader[i].pMatrixUniform = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uPMatrix");
     this.multipass_akdeShader[i].mvMatrixUniform = this.gl.getUniformLocation(this.multipass_akdeShader[i], "uMVMatrix");
+
+    //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+    this.gl.disableVertexAttribArray(this.multipass_akdeShader[i].vertexPositionAttribute);
+    this.gl.disableVertexAttribArray(this.multipass_akdeShader[i].textureCoordAttribute);
 
     this.gl.useProgram(null);
 
@@ -979,6 +1060,10 @@ ScatterGL.prototype.initShaders = function(){
   this.discreteShader.pMatrixUniform = this.gl.getUniformLocation(this.discreteShader, "uPMatrix");
   this.discreteShader.mvMatrixUniform = this.gl.getUniformLocation(this.discreteShader, "uMVMatrix");
 
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  this.gl.disableVertexAttribArray(this.discreteShader.vertexPositionAttribute);
+  this.gl.disableVertexAttribArray(this.discreteShader.textureCoordAttribute);
+
   this.gl.useProgram(null);
 
   //zoom
@@ -1008,6 +1093,35 @@ ScatterGL.prototype.initShaders = function(){
 
   this.simpleShader.pMatrixUniform = this.gl.getUniformLocation(this.simpleShader, "uPMatrix");
   this.simpleShader.mvMatrixUniform = this.gl.getUniformLocation(this.simpleShader, "uMVMatrix");
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  this.gl.disableVertexAttribArray(this.simpleShader.vertexPositionAttribute);
+  this.gl.disableVertexAttribArray(this.simpleShader.textureCoordAttribute);
+
+  this.gl.useProgram(null);
+
+  //point
+  var fragmentShader = getShader(this.gl, "./js/glsl/point.frag", true);
+  var vertexShader = getShader(this.gl, "./js/glsl/point.vert", false);
+
+  this.pointShader = this.gl.createProgram();
+  this.gl.attachShader(this.pointShader, vertexShader);
+  this.gl.attachShader(this.pointShader, fragmentShader);
+  this.gl.linkProgram(this.pointShader);
+
+  if (!this.gl.getProgramParameter(this.pointShader, this.gl.LINK_STATUS)) {
+    alert("Could not initialise shaders");
+  }
+
+  this.gl.useProgram(this.pointShader);
+
+  this.pointShader.vertexPositionAttribute = this.gl.getAttribLocation(this.pointShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.pointShader.vertexPositionAttribute);
+
+  this.pointShader.pMatrixUniform = this.gl.getUniformLocation(this.pointShader, "uPMatrix");
+  this.pointShader.mvMatrixUniform = this.gl.getUniformLocation(this.pointShader, "uMVMatrix");
+
+  this.gl.disableVertexAttribArray(this.pointShader.vertexPositionAttribute);
 
   this.gl.useProgram(null);
 
@@ -1055,6 +1169,10 @@ ScatterGL.prototype.initShaders = function(){
   this.outliersShader.pMatrixUniform = this.gl.getUniformLocation(this.outliersShader, "uPMatrix");
   this.outliersShader.mvMatrixUniform = this.gl.getUniformLocation(this.outliersShader, "uMVMatrix");
 
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  this.gl.disableVertexAttribArray(this.outliersShader.vertexPositionAttribute);
+  this.gl.disableVertexAttribArray(this.outliersShader.textureCoordAttribute);
+
   this.gl.useProgram(null);
 
 
@@ -1093,10 +1211,15 @@ ScatterGL.prototype.initShaders = function(){
   this.shadeShader.pMatrixUniform = this.gl.getUniformLocation(this.shadeShader, "uPMatrix");
   this.shadeShader.mvMatrixUniform = this.gl.getUniformLocation(this.shadeShader, "uMVMatrix");
 
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  this.gl.disableVertexAttribArray(this.shadeShader.vertexPositionAttribute);
+  this.gl.disableVertexAttribArray(this.shadeShader.textureCoordAttribute);
+
   this.gl.useProgram(null);
 
 
   //selection
+  /*
   var fragmentShader = getShader(this.gl, "./js/glsl/selection.frag", true);
   var vertexShader = getShader(this.gl, "./js/glsl/selection.vert", false);
 
@@ -1116,8 +1239,11 @@ ScatterGL.prototype.initShaders = function(){
 
   this.selectionShader.pMatrixUniform = this.gl.getUniformLocation(this.selectionShader, "uPMatrix");
   this.selectionShader.mvMatrixUniform = this.gl.getUniformLocation(this.selectionShader, "uMVMatrix");
+
+  this.gl.disableVertexAttribArray(this.selectionShader.vertexPositionAttribute);
   
   this.gl.useProgram(null);
+  */
 }
 
 function getxy(that, evt){

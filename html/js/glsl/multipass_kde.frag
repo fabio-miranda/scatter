@@ -14,6 +14,7 @@ uniform float uMinIndexValue;
 uniform float uMaxIndexValue;
 uniform float uMinEntryValue;
 uniform float uMaxEntryValue;
+uniform float uUsePoints;
 uniform float uNumBins;
 uniform float uWindowSize;
 uniform float uNumPoints;
@@ -47,7 +48,7 @@ void main(void) {
 
   float count;
   count = texture2D(uSamplerCount, coord2D).r;
-  if(uIsFirstPass > 0.0)
+  if(uIsFirstPass > 0.0 && uUsePoints <= 0.0)
     count = count * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
   
@@ -58,7 +59,7 @@ void main(void) {
   //float x = coord2D.x;
   float f = 0.0;
   //float W = 0.0;
-  float numpoints = 0.0;
+  float numpoints = 1.0;
   for(int i=0;i<maxloop; i++){
     if(i >= int(uWindowSize)) break;
 
@@ -78,7 +79,7 @@ void main(void) {
 
       float counti  = texture2D(uSamplerCount, coord2D).g;
 
-      if(uIsFirstPass > 0.0)
+      if(uIsFirstPass > 0.0 && uUsePoints <= 0.0)
         counti = counti * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
       //if(getValue(coord2D).r * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue == 2.0)
@@ -97,12 +98,16 @@ void main(void) {
   if(uIsFirstPass > 0.0){
     gl_FragColor = vec4(count, f, f, 1.0);
     //gl_FragColor = vec4(count, count, count, 1.0); 
+    //gl_FragColor = vec4(1, 0, 0, 1);
   }
   else{
 
+    //f = (1.0 / (uNumPoints*h)) * f;
     f = (1.0 / (uNumPoints*h)) * f;
     //f = (1.0 / (50.0*h)) * f;
     f = f/0.3989422804;
+
+    //f = f / 10.0;
 
     //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     //gl_FragColor = vec4(color.xyz, 1);

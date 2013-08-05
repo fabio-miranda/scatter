@@ -6,13 +6,64 @@ var map = null;
 var canvaslayer = null;
 var currentnumdim=0;
 var dim=16;
+var dim0;
+var dim1;
+var dim2;
 var datapath;
+var filepath;
 var info;
 var colorscale;
 var canvas;
 var useKDE = true;
 var useMap = false;
+var usePoints = false;
 
+
+function cb_receivePoint(data){
+
+  scattermatrix.points.reset();
+
+  for(var i=0; i<data['numentries']; i++){
+    var x = (data[i]['i'] - data['mini']) / (data['maxi'] - data['mini']);
+    var y = (data[i]['j'] - data['minj']) / (data['maxj'] - data['minj']);
+    scattermatrix.points.addPoint(x, y);
+  }
+  
+
+  update(map, canvaslayer);
+
+  //requestPoints();
+}
+/*
+function cb_receiveLine(point){
+
+  scattermatrix.points.array.push(point['i0']);
+  scattermatrix.points.array.push(point['i1']);
+  scattermatrix.points.array.push(point['j0']);
+  scattermatrix.points.array.push(point['j1']);
+
+  update(map, canvaslayer);
+
+  requestPoints();
+}
+*/
+
+function requestPoints(){
+
+  $.post(
+      '/getPoint',
+        {
+          'datapath' : datapath,
+          'filepath' : filepath,
+          'numbinscatter' : $('#numbinscatter').val(),
+          'i' : $('#dropdownmenu_dim1_0').val(),
+          'j' : $('#dropdownmenu_dim2_0').val(),
+          'entry' : 0,
+          'numentries' : 150 
+        },
+      cb_receivePoint
+    );
+}
 
 function cb_receiveDataTile(datatile){
 
@@ -21,6 +72,7 @@ function cb_receiveDataTile(datatile){
   if(document.getElementById('dropdownmenu_dim1_0') == null){
     adddimension();
   }
+
 
   redrawscatterplots();
 
@@ -56,6 +108,7 @@ function cb_receiveDataTile(datatile){
   }
 
 }
+
 /*
 function cb_receiveDataTileHistogram(datatile){
 
@@ -256,7 +309,11 @@ function adddimension(){
 
   var onchange = function(){
     scattermatrix.reset();
-    requestDataTiles();
+    //requestDataTiles();
+    if(usePoints)
+      requestPoints();
+    else
+      requestDataTiles();
     redrawscatterplots();
     update(map, canvaslayer);
   };
@@ -359,7 +416,7 @@ function changeColorScale(){
 
   var fixedAlpha = null;
   if(alphaType == 'alpha_05')
-    fixedAlpha = 0.5;
+    fixedAlpha = 0.8;
   else if(alphaType == 'alpha_10')
     fixedAlpha = 1.0;
   
@@ -465,11 +522,18 @@ function initColorScale(){
 }
 
 function resize(){
-  scattermatrix.draw(map, canvaslayer);
+  if(usePoints)
+    scattermatrix.drawPoints(map, canvaslayer);
+  else
+    scattermatrix.drawTexture(map, canvaslayer);
 }
 
 function update(){
-  scattermatrix.draw(map, canvaslayer);
+
+  if(usePoints)
+    scattermatrix.drawPoints(map, canvaslayer);
+  else
+    scattermatrix.drawTexture(map, canvaslayer);
 }
 
 function initMap(){
@@ -488,7 +552,7 @@ function initMap(){
       {
         stylers: [
           { hue: "#00ffe6" },
-          { saturation: -20 }
+          { saturation: -20 } //-20
         ]
       },{
         featureType: "road",
@@ -534,7 +598,9 @@ function getQueryVariable(variable) {
 function initialize(){
 
   datapath = getQueryVariable('datapath');
+  filepath = getQueryVariable('filepath');
   useMap = getQueryVariable('map');
+  renderingType = getQueryVariable('rendering');
 
   if(useMap){
     initMap();
@@ -549,6 +615,13 @@ function initialize(){
     $('#scatterplotmatrix').width('800px');
     $('#scatterplotmatrix').height('800px');
     $('#div_map').hide();
+  }
+
+  if(renderingType == 'points'){
+    usePoints = true;
+  }
+  else{
+    usePoints = false;
   }
 
   $( "#div_bandwidthslider" ).slider({
@@ -601,7 +674,7 @@ function initialize(){
   });
 
   //scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
-  scattermatrix = new ScatterGL(canvas);
+  scattermatrix = new ScatterGL(canvas, usePoints);
   colorscale = new ColorScale(document.getElementById('colorscale'));
   initColorScale();
 
@@ -625,9 +698,9 @@ function initialize(){
   );
   */
 
-  var dim0 = 0;
-  var dim1 = 0;
-  var dim2 = 'density';
+  dim0 = 0;
+  dim1 = 0;
+  dim2 = 'density';
   if(getQueryVariable('dim0') != false)
     dim0 = getQueryVariable('dim0');
   if(getQueryVariable('dim1') != false)
@@ -635,6 +708,8 @@ function initialize(){
   if(getQueryVariable('dim2') != false)
     dim2 = getQueryVariable('dim2');
   
+
+
   $.post(
     '/getCountDataTile',
       {
@@ -676,6 +751,19 @@ function initialize(){
   changeKDEType();
   changeTransparency();
   changeOutliers();
+
+  //if(usePoints){
+    //for(var i=0; i<500; i++)
+      //requestPoints();
+    /*
+    for(var i=0; i<1; i++){
+      scattermatrix.points.addLine(0.2, 0.2, 0.8, 0.8);
+      scattermatrix.points.addLine(0.2, 0.8, 0.8, 0.2);
+      scattermatrix.points.addLine(0.2, 0.8, 0.8, 0.8);
+      scattermatrix.points.addLine(0.2, 0.2, 0.8, 0.8);
+    }
+    */
+  //}
 
   /*
   $.post(

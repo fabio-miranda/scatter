@@ -94,6 +94,73 @@ function createTextureFromImage(gl, interpolation, iformat, format, type, image,
 
 }
 
+function distance(x0, y0, x1, y1){
+    return Math.sqrt((x0 -= x1) * x0 + (y0 -= y1) * y0);
+};
+
+function points(gl){
+
+  this.array = [];
+  this.pointsBuffer = null;
+  this.color = null;
+
+  this.pointsBuffer = gl.createBuffer();
+  this.pointsBuffer.itemSize = 2;
+
+  this.numrasterpoints = 0;
+
+}
+
+points.prototype.addPoint = function(x, y){
+  
+  this.array.push(x);
+  this.array.push(y);
+
+  this.numrasterpoints++;
+}
+
+points.prototype.reset = function(x, y){
+  
+  this.array.length = 0;
+  this.numrasterpoints=0;
+}
+
+points.prototype.addLine = function(x0, y0, x1, y1){
+  this.array.push(x0);
+  this.array.push(y0);
+  this.array.push(x1);
+  this.array.push(y1);
+
+  this.numrasterpoints += distance(x0, y0, x1, y1);
+
+}
+
+
+points.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix){
+
+  //TODO: optimize? Do we really need to call bufferData for every point inserted?
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.pointsBuffer);
+  var numpoints = this.array.length / 2;
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.array), gl.DYNAMIC_DRAW);
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  //TODO: do this every frame?
+  gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.pointsBuffer);
+  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.pointsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+
+  gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+  gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+  gl.drawArrays(gl.POINTS, 0, numpoints);
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  gl.disableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+}
+
+
+
 function quad(gl, hasTexture){
 
   this.quadBuffer = null;
@@ -143,6 +210,11 @@ quad.prototype.initBuffers = function(gl){
 
 quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, tex0, tex1, tex2, tex3, tex4){
 
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  //TODO: do this every frame?
+  gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+  gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+
   gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.quadBuffer.itemSize, gl.FLOAT, false, 0, 0);
   
@@ -183,5 +255,10 @@ quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, tex0, tex1,
   gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
   gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, this.quadBuffer.numItems);
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  gl.disableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+  if(tex0 != null)
+    gl.disableVertexAttribArray(shaderProgram.textureCoordAttribute);
 }
 
