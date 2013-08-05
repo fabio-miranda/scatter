@@ -1,0 +1,487 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!-- saved from url=(0059)http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>On the visualisation of detrital age distributions</title> 
+ 
+<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<!-- html --> 
+<meta name="src" content="PDPvsKDE.tex"> 
+<meta name="date" content="2012-04-27 13:17:00"> 
+<link rel="stylesheet" type="text/css" href="./On the visualisation of detrital age distributions_files/PDPvsKDE.css">
+<link rel="stylesheet" type="text/css" href="./On the visualisation of detrital age distributions_files/mystyle.css">
+</head><body>
+<table class="main"><tbody><tr><td>
+   <div class="abstract">
+   </div>     <div class="maketitle">
+
+
+<h2 class="titleHead">On the visualisation of detrital age distributions</h2>
+Pieter Vermeesch<sup class="textsuperscript"></sup><br>
+<span class="cmti-10">Birkbeck, University of London</span><br>
+<span class="cmti-10">Malet Street, London WC1E 7HX</span><br>
+<span class="cmti-10">+44 (0)20 7679 2418</span><br>
+<span class="cmitt-10">p.vermeesch [at] ucl.ac.uk</span><br>
+_____________________________________________________
+<!--l. 15--><p class="noindent"><span class="cmbx-12">Abstract</span>
+<!--l. 15--></p><p class="noindent">Since the development of SIMS and LA-ICP-MS technology in the 1980s and
+1990s, single grain U-Pb dating of detrital zircon has quickly become the most
+popular technique for sedimentary provenance studies. Currently by far the most
+widespread method for visualising detrital age distributions is the so-called
+Probability Density Plot (PDP), which is calculated by summing a number of
+Gaussian distributions whose means and standard deviations correspond to the
+individual ages and their respective analytical uncertainties. Unfortunately, the
+PDP lacks a firm theoretical basis and can produce counter-intuitive results when
+data quantity (number of analyses) and/or quality (precision) is high. As a more
+robust alternative to the PDP, this paper proposes a standard statistical
+technique called Kernel Density Estimation (KDE), which also involves summing
+a set of Gaussian distributions, but does not explicitly take into account
+the analytical uncertainties. The Java-based <span class="cmtt-12">DensityPlotter </span>program
+(<span class="cmtt-12"><a href="http://densityplotter.london-geochron.com/">http://densityplotter.london-geochron.com</a></span>) was developed with the
+aim to facilitate the adoption of KDE plots in the context of detrital
+
+geochronology.
+____________________________________________________________
+</p></div>
+     <h3 class="sectionHead"><span class="titlemark">1.  </span> <a id="x1-10001"></a>Introduction</h3>
+<!--l. 39--><p class="noindent">Zircon (ZrSiO<sub><span class="cmr-8">4</span></sub>) is a common accessory mineral in acidic igneous rocks, which
+form the main proto-sources of the siliciclastic sediments. It contains up to a
+percent of radioactive U and Th, which decay to various isotopes of lead with
+known half lives, forming the basis of the U-Th-Pb geochronometer. Zircon is
+a very durable mineral that undergoes minimal chemical alteration or
+mechanical abrasion. Therefore, zircon crystals can be considered time capsules
+carrying the igneous and metamorphic history of their proto-sources.
+The probability distribution of a representative sample of zircon U-Pb
+ages from a detrital population can serve as a characteristic fingerprint
+that may be used to trace the flow of sand through sediment routing
+systems. As a provenance tracer, zircon U-Pb data are less susceptible to
+winnowing effects than conventional petrographic techniques (<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgarzanti2009">Garzanti
+et&nbsp;al.</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgarzanti2009">2009</a>). Using modern microprobe technology, it is quite easy to date, say,
+a hundred grains of zircon in a matter of just a few hours. Due to the
+robustness of zircons as a tracer of sedimentary provenance, and the relative
+ease of dating them, the use of detrital zircon U-Pb geochronology has
+truly exploded in recent years. A literature survey using the keywords
+‘detrital’, ‘zircon’, and ‘provenance’ indicates that the proliferation of detrital
+zircon studies has followed an exponential trend, with the number of
+
+publications doubling roughly every five years over the past two decades. At
+present, nearly a thousand detrital zircon publications appear each year.
+<br class="newline">
+<!--l. 64--></p><p class="indent">   To address the technical and methodological issues arising from the increased
+popularity of the technique, a detrital zircon geochronology workshop was held
+immediately prior to the 2011 Goldschmidt conference in Prague. During this
+workshop, a concensus was reached that the statistical tools used by the
+community to analyse the vast amounts of U-Pb data produced by today’s SIMS
+and LA-ICP-MS laboratories are inadequate. Particularly the use of so-called
+Probability Density Plots (PDPs), which are ubiquitous in the detrital zircon
+geochronology literature, was identified as a cause for concern. It was noted that,
+in spite of its name, the PDP lacks any theoretical basis as a probability density
+estimator, although some maintained that it may still serve a purpose as a data
+visualisation tool. <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgalbraith1998">Galbraith</a>&nbsp;(<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgalbraith1998">1998</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgalbraith2010">2010</a>) eloquently pointed out some problems
+with the PDP in the context of fission track and luminescence dating,
+but unfortunately this work was published in specialised journals and
+has not been picked up by the detrital zircon U-Pb dating community.
+Furthermore, <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgalbraith1990a">Galbraith</a>&nbsp;(<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgalbraith1990a">1990</a>)’s alternative for the PDP, the so-called radial
+plot, is not ideally suited for displaying large datasets of relatively precise
+zircon U-Pb ages. This paper proposes the Kernel Density Estimator
+(KDE), which has a similar appearance as the PDP, but is built on solid
+theoretical foundations, as a statistically more robust alternative to the PDP
+(Section <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-20002">2<!--tex4ht:ref: sec:kdevspdp --></a>). In order to aid in the adoption of this method by the detrital
+zircon U-Pb dating community, a Java-based data visualisation tool called
+
+<span class="cmtt-12">DensityPlotter </span>was developed for plotting detrital age distributions (Section
+<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-50003">3<!--tex4ht:ref: sec:densityplotter --></a>).
+<!--l. 92--></p><p class="noindent">
+   </p><h3 class="sectionHead"><span class="titlemark">2.  </span> <a id="x1-20002"></a>KDE vs. PDP</h3>
+<!--l. 94--><p class="noindent"></p><hr class="figure"><div class="figure">
+
+<a id="x1-20011"></a>
+
+<!--l. 95--><p class="noindent"><img src="./On the visualisation of detrital age distributions_files/PDPvsKDE0x.png" alt="PIC" class="graphics" width="390.0pt" height="192.67557pt"><!--tex4ht:graphics  
+name="PDPvsKDE0x.png" src="KDEvsPDP.pdf"  
+-->
+<br> </p><div class="caption"><span class="id">Figure&nbsp;1: </span><span class="content">(a) The ‘Kernel Density Estimator’ (KDE) is a function that
+stacks a Gaussian ‘bell curve’ on top of each measurement, whose standard
+deviation is determined by the local probability density. (b) The ‘Probability
+Density Plot’ (PDP) is a function that stacks a Gaussian ‘bell curve’ on top of
+each measurement whose standard deviation is determined by the analytical
+precision. </span></div><!--tex4ht:label?: x1-20011 -->
+
+<!--l. 103--><p class="noindent"></p></div><hr class="endfigure">
+<!--l. 105--><p class="indent">   In contrast with the geochronology of igneous and metamorphic rocks, in
+which one seeks to date an individual geological event, detrital studies
+generally aim to characterise an entire population of ages by means of a
+large number of single grain analyses. In statistical terms, the goal of
+such studies is to estimate the so-called Probability Density Function
+(PDF), which gives the relative likelihood of the different ages in the
+population. By definition, the probability for a randomly selected grain to fall
+within a given range is then given by the integral of the PDF over this
+range:
+   </p><table class="equation"><tbody><tr><td><a id="x1-2002r1"></a>
+   <center class="math-display">
+<img src="./On the visualisation of detrital age distributions_files/PDPvsKDE1x.png" alt="                ∫
+                   t2
+P(t1 ≤ t ≤ t2) =     PDF  (t)dt
+                  t1
+" class="math-display"></center></td><td class="equation-label">(1)</td></tr></tbody></table>
+<!--l. 118--><p class="nopar">
+   </p><h4 class="subsectionHead"><span class="titlemark">2.1.  </span> <a id="x1-30002.1"></a>Kernel Density Estimation</h4>
+
+<!--l. 122--><p class="noindent">A large body of statistical literature has been written on the subject of
+probability density estimation (e.g.,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsilverman1986">Silverman</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsilverman1986">1986</a>;&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xdevroye1987">Devroye</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xdevroye1987">1987</a>). The most
+widely used tools are the traditional histogram, which is discrete and
+discontinuous, and the Kernel Density Estimator (KDE), which is a smooth and
+continuous alternative (<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsilverman1986">Silverman</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsilverman1986">1986</a>). A KDE is produced by arranging the
+measurements along a line and stacking a so-called ‘kernel’ (i.e., a box, triangle,
+Gaussian, etc.) of a certain width (the ‘bandwidth’) on top of each of them
+(Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-20011">1<!--tex4ht:ref: fig:KDEvsPDP --></a>.a). Given a set of n measurements x<sub><span class="cmmi-8">i</span></sub> (i=1<span class="cmsy-10x-x-120">→</span>n), the kernel density
+estimator can be written as follows:
+   </p><table class="equation"><tbody><tr><td><a id="x1-3001r2"></a>
+   <center class="math-display">
+<img src="./On the visualisation of detrital age distributions_files/PDPvsKDE2x.png" alt="                      (       )
+             1  ∑n      x - xi
+KDE   (x) = ---    K    ------
+            nh  i=1       h
+" class="math-display"></center></td><td class="equation-label">(2)</td></tr></tbody></table>
+<!--l. 137--><p class="nopar">
+<!--l. 139--></p><p class="indent">   where K(<span class="cmsy-10x-x-120">⋅</span>) is the ‘kernel’ and h is the ‘bandwidth’. Some popular choices for
+the kernel are (<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsilverman1986">Silverman</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsilverman1986">1986</a>):
+<!--l. 142--></p><p class="indent">
+
+</p><table class="align">
+             <tbody><tr><td class="align-odd">Epanechnikov: </td>             <td class="align-even"><span class="cmmi-12">K</span>(<span class="cmmi-12">t</span>) = <span class="cmmi-12">max</span><img src="./On the visualisation of detrital age distributions_files/PDPvsKDE3x.png" alt="[    (        )     ]
+    3      1 2   √ --
+ 0, -- 1 - -t   ∕  5
+    4      5" class="left" align="middle"></td>                          <td class="align-label"><a id="x1-3002r3"></a>(3)
+             </td></tr><tr><td class="align-odd">Triangular: </td>                <td class="align-even"><span class="cmmi-12">K</span>(<span class="cmmi-12">t</span>) = <span class="cmmi-12">max</span>[0<span class="cmmi-12">, </span>1 <span class="cmsy-10x-x-120">-∥</span><span class="cmmi-12">t</span><span class="cmsy-10x-x-120">∥</span>]</td>                                     <td class="align-label"><a id="x1-3003r4"></a>(4)
+             </td></tr><tr><td class="align-odd">Gaussian: </td>                 <td class="align-even"><span class="cmmi-12">K</span>(<span class="cmmi-12">t</span>) = <img src="./On the visualisation of detrital age distributions_files/PDPvsKDE4x.png" alt="--1--
+√2-π-" class="frac" align="middle"><span class="cmmi-12">e</span><sup><span class="cmsy-8">-</span><span class="cmmi-8">t</span><sup><span class="cmr-6">2</span></sup><span class="cmmi-8">∕</span><span class="cmr-8">2</span></sup></td>                                          <td class="align-label"><a id="x1-3004r5"></a>(5)             </td></tr></tbody></table>
+<!--l. 149--><p class="indent">   It turns out that the choice of kernel is not important (other than in
+determining the smoothness characteristics of the density estimate), but the
+bandwidth is. Picking the wrong bandwidth may lead to density estimates
+that are either over- or undersmoothed (Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-30062">2<!--tex4ht:ref: fig:epanechnikov --></a>). The bandwidth can
+either be constant (‘kernel density estimation’), or vary according to the
+local density (‘adaptive kernel density estimation’). If the distribution is
+unimodal and smooth, the optimal bandwidth may be calculated analytically
+(<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsilverman1986">Silverman</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsilverman1986">1986</a>):
+   </p><table class="equation"><tbody><tr><td><a id="x1-3005r6"></a>
+
+   <center class="math-display">
+<img src="./On the visualisation of detrital age distributions_files/PDPvsKDE5x.png" alt="h = 1.06σn -1∕5
+" class="math-display"></center></td><td class="equation-label">(6)</td></tr></tbody></table>
+<!--l. 162--><p class="nopar">
+<!--l. 164--></p><p class="indent">   where <span class="cmmi-12">σ </span>is the standard deviation of the data set. Most detrital age
+distributions, however, are not smooth or unimodal, and Equation <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-3005r6">6<!--tex4ht:ref: eq:normref --></a> is therefore
+rarely appropriate, yielding oversmoothed density estimates. Adaptive kernel
+density estimates vary the bandwidth according to the local density. This means
+that in areas where data density is sparse, a large bandwidth is used, and
+the density estimate is smooth. But where lots of data are available, a
+narrower bandwidth is used, allowing the KDE to provide a high resolution
+estimate in those parts of the distribution. A large number of methods
+are available for the selection of the adaptive bandwidth. These include
+‘balloon estimators’ (<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xloftsgaarden1965">Loftsgaarden and Quesenberry</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xloftsgaarden1965">1965</a>), in which the
+bandwidth is made proportional to the density at the evaluation point (‘x’
+in Equation <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-3001r2">2<!--tex4ht:ref: eq:kde --></a>), and ‘sample-point estimators’ (<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xbreiman1977">Breiman et&nbsp;al.</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xbreiman1977">1977</a>),
+which vary the bandwidth based on the data points (‘x<sub><span class="cmmi-8">i</span></sub>’ in Equation
+<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-3001r2">2<!--tex4ht:ref: eq:kde --></a>).
+<!--l. 181--></p><p class="indent">   </p><hr class="figure"><div class="figure">
+
+<a id="x1-30062"></a>
+
+<!--l. 182--><p class="noindent"><img src="./On the visualisation of detrital age distributions_files/PDPvsKDE6x.png" alt="PIC" class="graphics" width="390.0pt" height="231.00049pt"><!--tex4ht:graphics  
+name="PDPvsKDE6x.png" src="epanechnikov.pdf"  
+-->
+<br> </p><div class="caption"><span class="id">Figure&nbsp;2: </span><span class="content">The Normal distribution is just one of many possible ‘kernels’. The
+three columns of this figure show that the choice of kernel has a relatively
+minor effect on the shape of the KDE of 145 concordant detrital zircon U-Pb
+ages from Hong Kong. The bandwidth h is far more important than the choice
+of kernel. The KDEs on the middle row use the optimal bandwidth calculated
+according to <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xbotev2010">Botev et&nbsp;al.</a>&nbsp;(<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xbotev2010">2010</a>). Choosing a different bandwidth can lead to
+estimates that are either oversmoothed (top row) or undersmoothed (bottom
+row).</span></div><!--tex4ht:label?: x1-30062 -->
+
+<!--l. 193--><p class="indent">   </p></div><hr class="endfigure">
+   <h4 class="subsectionHead"><span class="titlemark">2.2.  </span> <a id="x1-40002.2"></a>Probability Density Plots</h4>
+<!--l. 198--><p class="noindent">KDEs are commonly used in many branches of Science, but not in the context of
+detrital geochronology. Instead, a similar-looking, but fundamentally different tool
+named ‘Probability Density Plot’ (PDP, Ludwig, 2003, also called Probability
+Density Distribution by Sircombe, 2004), has gained significant popularity. The
+PDP was first proposed by <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xhurford1984">Hurford et&nbsp;al.</a>&nbsp;(<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xhurford1984">1984</a>), in an attempt to account for
+the variable analytical precision (a.k.a. ‘heteroscedasticity’) of (detrital fission
+track) data. Just like the KDE, the PDP is also produced by stacking a Normal
+distribution on top of each measurement whose bandwidth, however, is not
+determined by the density, but by the analytical precision (Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-20011">1<!--tex4ht:ref: fig:KDEvsPDP --></a>.b), so as to
+reduce the importance of imprecise measurements and to emphasize the precise
+measurements. Although this may seem like a sensible strategy at first glance, it
+may actually degrade results in certain situations, as illustrated with the following
+two synthetic examples.
+<!--l. 215--></p><p class="indent">
+      </p><ol class="enumerate1">
+      <li class="enumerate" id="x1-4002x1">Consider  a  bimodal  distribution  of  ‘true  ages’  (i.e.,  the  probability
+      distribution of an exhaustive sample of infinitely precise measurements)
+      where the first peak (500<span class="cmsy-10x-x-120">±</span>50 Ma) contains one third and the second
+      peak (2000<span class="cmsy-10x-x-120">±</span>50 Ma) two thirds of the detrital population (Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-40053">3<!--tex4ht:ref: fig:problems --></a>.a).
+      Suppose that our measurements are infinitely precise. In this case, the
+      KDE of a representative sample of single grain measurements is an
+      unbiased estimator of the true age distribution (Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-40053">3<!--tex4ht:ref: fig:problems --></a>.b). The PDP,
+
+      however, breaks down into a sequence of ‘spikes’ (Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-40053">3<!--tex4ht:ref: fig:problems --></a>.c).
+      </li>
+      <li class="enumerate" id="x1-4004x2">In reality, geochronological measurements are always convoluted with
+      analytical uncertainty, making it very hard to recover the true age
+      distribution (<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xcarroll1988">Carroll and Hall</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xcarroll1988">1988</a>). A more realistic aim of detrital
+      studies  is  to  estimate  the  ‘measurement  distribution’,  which  is  a
+      smoothed version of the true age distribution. As a second example,
+      suppose that the age measurements of the aforementioned synthetic
+      population are heteroscedastic, with the two modes having analytical
+      uncertainties  of  50Ma  and  200Ma,  respectively.  As  a  result  of  the
+      heteroscedasticity,  the  second  mode  will  be  smoothed  to  a  greater
+      extent  than  the  first,  resulting  in  a  reversal  of  the  apparent  peak
+      heights (Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-40053">3<!--tex4ht:ref: fig:problems --></a>.d). Once again, the KDE converges to the correct
+      solution  with  increasing  number  of  age  measurements  (Figure  <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-40053">3<!--tex4ht:ref: fig:problems --></a>.e).
+      The  PDP,  however,  oversmooths  the  measurement  distribution  and
+      gives the wrong answer, even after 10,000 measurements (Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-40053">3<!--tex4ht:ref: fig:problems --></a>.f).
+      This is because the PDP ‘punishes’ the imprecise ages twice (once by
+      sampling/measuring, and once by smoothing). The key point here is
+      that it is not necessary to explicitly account for the analytical precision
+      in the density estimation because Nature, and the analytical process
+      itself, have already taken care of this.
+      </li></ol>
+<!--l. 250--><p class="indent">   Although cumulative distributions are an easy and effective way to circumvent
+the double-smoothing problem (<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xvermeesch2007a">Vermeesch</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xvermeesch2007a">2007</a>), probability density estimates
+are often easier to visually interpret and are therefore preferred by many workers.
+
+This paper proposes that the KDE be used for this purpose instead of the PDP
+(or variants thereof, such as those proposed by&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xbrandon1996">Brandon</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xbrandon1996">1996</a>). Part of the
+reason why PDPs have become so popular is that they have been implemented in
+user-friendly software packages such as <span class="cmtt-12">Isoplot </span>(<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xludwig2003">Ludwig</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xludwig2003">2003</a>) and <span class="cmtt-12">AgeDisplay</span>
+(<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsircombe2004b">Sircombe</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsircombe2004b">2004</a>). To aid in the adoption of the KDE by the geochronological
+community, a Java-based data visualisation tool called <span class="cmtt-12">DensityPlotter </span>was
+developed.
+<!--l. 263--></p><p class="indent">   </p><hr class="figure"><div class="figure">
+
+<a id="x1-40053"></a>
+
+<!--l. 264--><p class="noindent"><img src="./On the visualisation of detrital age distributions_files/PDPvsKDE7x.png" alt="PIC" class="graphics" width="390.0pt" height="207.68048pt"><!--tex4ht:graphics  
+name="PDPvsKDE7x.png" src="problems.pdf"  
+-->
+<br> </p><div class="caption"><span class="id">Figure&nbsp;3: </span><span class="content">Illustration of two problems with PDPs. The first row of this
+figure shows how the PDP (black curves) breaks down when data quality
+(i.e.,  analytical  precision)  is  high.  Left  (a):  a  synthetic  example  of  a
+bimodal probability density function (PDF, green) of ‘true ages’, i.e. the
+age distribution which one would observe by measuring an infinite number
+of randomly sampled zircon U-Pb ages with infinite precision. Middle (b):
+the  KDE  of  a  sample  of  117  randomly  selected  measurements  from  this
+distribution is an unbiased estimator of the PDF. Right (c): the PDP of
+the same measurements is a nonsensical set of discrete spikes. The bottom
+row  of  the  figure  makes  the  point  that  the  PDP  is  biased  when  data
+quantity  (i.e.,  sample  size)  is  high.  Left  (d):  the  probability  distribution
+of the measurements with finite analytical precision (blue) is a smoothed
+version of the PDF of the ‘true ages’ shown in (a). In this example, the
+extent of the smoothing is greater for the second mode, due to the lower
+
+analytical  precision  of  the  latter.  Middle  (e):  the  KDE  converges  to  the
+true  measurement  distribution  with  increasing  sample  size  n.  Right  (f):
+The PDP is a biased estimator of the measurement distribution because it
+‘double-smooths’ the imprecise measurements. Bias is therefore worst for the
+second mode.</span></div><!--tex4ht:label?: x1-40053 -->
+
+<!--l. 286--><p class="indent">   </p></div><hr class="endfigure">
+   <h3 class="sectionHead"><span class="titlemark">3.  </span> <a id="x1-50003"></a>DensityPlotter</h3>
+<!--l. 292--><p class="noindent"><span class="cmtt-12">DensityPlotter </span>is a computer program developed with the aim to facilitate the
+adoption of the KDE by the geochronological community. It is based on
+<span class="cmtt-12">RadialPlotter </span>which, as the name suggests, implements Rex Galbraith’s radial
+plots for the fission track and luminescence communities (<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xvermeesch2009c">Vermeesch</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xvermeesch2009c">2009</a>).
+Both <span class="cmtt-12">RadialPlotter </span>and <span class="cmtt-12">DensityPlotter </span>were programmed in Java and
+are therefore perfectly platform independent. <span class="cmtt-12">DensityPlotter </span>can be
+downloaded from <span class="cmtt-12">http://densityplotter.london-geochron.com</span>. To
+calculate the optimal KDE bandwidth, the program implements an algorithm
+based on the diffusion equation, which can be shown to be both fast and
+accurate (<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xbotev2010">Botev et&nbsp;al.</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xbotev2010">2010</a>). In addition to KDEs (and radial plots),
+<span class="cmtt-12">DensityPlotter </span>also provides functionality to plot histograms and PDPs, as well
+as basic mixture models (<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsambridge1994">Sambridge and Compston</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xsambridge1994">1994</a>;&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgalbraith1990b">Galbraith
+and Green</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgalbraith1990b">1990</a>). Data can be copied and pasted to-and-from Microsoft
+Excel and saved in a simple comma-separated variable (<span class="cmtt-12">.csv</span>) format. An
+example of such an input file is provided on the website. The graphical
+output can be saved either as bitmap or vector images, in a <span class="cmtt-12">.png </span>or <span class="cmtt-12">.pdf</span>
+format, respectively. Although <span class="cmtt-12">DensityPlotter </span>was designed to produce
+publication-ready figures and includes many options to customise the
+look and feel of the density estimates, the pdf file can also be further
+edited in vector-graphics applications such as Illustrator, CorelDRAW,
+or Inkscape. Because the analytical precision of many geochronological
+
+datasets is proportional to the age, the relative errors generally show less
+grain-to-grain variability than the absolute errors. To take advantage
+of this, <span class="cmtt-12">DensityPlotter </span>includes an option to log-transform the data
+(<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xbrandon1996">Brandon</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xbrandon1996">1996</a>). The algorithm used for the mixture modelling is a hybrid one
+using both deterministic parts (taken from&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgalbraith1990b">Galbraith and Green</a>,&nbsp;<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#Xgalbraith1990b">1990</a>) and
+Markov Chain Monte Carlo (MCMC) ingredients to maximise robustness
+and reproducibility. The reader is referred to the Help pages for further
+implementation details about the program. For access to the source code, see the
+website.
+<!--l. 328--></p><p class="noindent">
+   </p><h3 class="sectionHead"><span class="titlemark">4.  </span> <a id="x1-60004"></a>A concluding example</h3>
+<!--l. 330--><p class="noindent">This paper showed that the PDP lacks the firm theoretical basis of the KDE. The
+former produces noisy results when applied to high precision data, and yields
+oversmoothed density estimates when analytical precision is low and/or sample
+size is large. The question then arises why the PDP has become so popular in
+geochronology in the first place. To answer this question, consider the dataset of
+zircon U-Pb ages from a Mesozoic sandstone from Hong Kong shown in Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-60014">4<!--tex4ht:ref: fig:densityplotter --></a>
+and posted on the <span class="cmtt-12">DensityPlotter </span>website. Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-60014">4<!--tex4ht:ref: fig:densityplotter --></a>.a shows the density
+estimates of the full dataset of 145 concordant U-Pb ages, while Figure
+<a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-60014">4<!--tex4ht:ref: fig:densityplotter --></a>.b shows a subset of 35 randomly selected ages from the same sample.
+The KDE (blue, filled) of the full dataset looks similar to that of the
+subsample, featuring a first major peak at <span class="cmsy-10x-x-120">~</span>1000 Ma and a second mode
+at <span class="cmsy-10x-x-120">~</span>2500 Ma. The PDPs (black, empty) of the two datasets, however,
+
+have quite a different appearance. Although the PDP of the full dataset
+is undeniably undersmoothed in comparison with the KDE, it does a
+decent job at capturing both of the major peaks, as well as most of the
+smaller scale features. The PDP of the subsample, however, has broken
+down into an assemblage of spikes bearing little or no resemblance to the
+KDE. This PDP may still serve a purpose as a way to visualise the data.
+Unfortunately PDPs are seldom used in this way. Because of their very name,
+they are erroneously used and interpreted as estimators of probability
+density.<br class="newline">
+<!--l. 355--></p><p class="indent">   </p><hr class="figure"><div class="figure">
+
+<a id="x1-60014"></a>
+
+<!--l. 356--><p class="noindent"><img src="./On the visualisation of detrital age distributions_files/PDPvsKDE8x.png" alt="PIC" class="graphics" width="272.99881pt" height="359.55472pt"><!--tex4ht:graphics  
+name="PDPvsKDE8x.png" src="HK13473.pdf"  
+-->
+<br> </p><div class="caption"><span class="id">Figure&nbsp;4: </span><span class="content">KDE (blue shaded area), PDP (black line), and histogram (light
+grey rectangles) of (a) the entire Hong Kong dataset of Figure <a href="http://www.ucl.ac.uk/~ucfbpve/papers/VermeeschChemGeol2012/#x1-30062">2<!--tex4ht:ref: fig:epanechnikov --></a> and (b) a
+random subset of 35 ages from the same sample. In both cases, the PDP
+suffers from undersmoothing. Both KDEs adequately capture the bimodality
+of the distribution, and so does the PDP of the full dataset. The PDP of the
+subset, however, breaks down into a number of spikes marking the individual
+age measurements, while obscuring the underlying probability distribution.</span></div><!--tex4ht:label?: x1-60014 -->
+
+<!--l. 367--><p class="indent">   </p></div><hr class="endfigure">
+<!--l. 369--><p class="indent">   In order for a PDP to match the corresponding KDE and be useful as a
+probability density estimator, the analytical precision of the ages would have to
+equal the bandwidth of the KDE. For this to happen, the underlying age
+distribution would have to be made of a number of peaks which are slightly
+wider than the (2<span class="cmmi-12">σ</span>) measurement errors. In statistical terms, the variance
+of the different age components of the detrital population would have
+to be twice the variance of the age measurements, so that the observed
+scatter of the age measurements around the different age components
+would be overdispersed with respect to the formal analytical precision
+by a factor of <img src="./On the visualisation of detrital age distributions_files/PDPvsKDE9x.png" alt="√ --
+  2" class="sqrt">. It appears that this condition is approximately and
+fortuitously fulfilled by typical U-Pb datasets featuring <span class="cmsy-10x-x-120">~</span>100 ages of 2-5%
+analytical precision. The ‘reasonable’ appearance of many published PDPs
+is therefore caused by chance and not by design, and this is the likely
+explanation for their enduring popularity in the geological literature. Despite
+the fact that PDPs may be considered ‘good enough’ as a visual aid in
+many situations, in other cases they may be noninformative at best, and
+misleading at worst. The KDE is a valid alternative with solid theoretical
+underpinnings which combines the best features of the PDP (namely a continuous
+curve that is easy to interpret) without its failings when data quality
+or quantity are high. It is hoped that <span class="cmtt-12">DensityPlotter </span>will aid in the
+adoption of the KDE by the Earth Sciences community, and the user is
+invited to contact the author with remarks or requests for additional
+features.
+
+   </p><h3 class="likesectionHead"><a id="x1-70004"></a>Acknowledgments</h3>
+<!--l. 397--><p class="noindent">The author wishes to thank Andy Carter for providing the Hong Kong
+dataset and Rex Galbraith for proofreading the manuscript and expert
+advice.
+<!--l. 401--></p><p class="noindent">
+   </p><h3 class="likesectionHead"><a id="x1-80004"></a>References</h3>
+<!--l. 401--><p class="noindent">
+  </p><div class="thebibliography">
+  <p class="bibitem"><span class="biblabel">
+<a id="Xbotev2010"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Botev,  Z.&nbsp;I.,  Grotowski,  J.&nbsp;F.,  Kroese,  D.&nbsp;P.,  2010.  Kernel  density
+  estimation via diffusion. Annals of Statistics 38, 2916–2957.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xbrandon1996"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Brandon, M., 1996. Probability density plot for fission-track grain-age
+  samples. Radiation Measurements 26&nbsp;(5), 663 – 676.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xbreiman1977"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Breiman, L., Meisel, W., Purcell, E., 1977. Variable kernel estimates of
+  multivariate densities. Technometrics 19&nbsp;(2), pp. 135–144.
+  </p>
+
+  <p class="bibitem"><span class="biblabel">
+<a id="Xcarroll1988"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Carroll,  R.&nbsp;J.,  Hall,  P.,  1988.  Optimal  rates  of  convergence  for
+  deconvolving a density. Journal of the American Statistical Association
+  83&nbsp;(404), 1184–1186.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xdevroye1987"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Devroye, L., 1987. A course in density estimation. Birkhauser Boston
+  Inc., Cambridge, MA, USA.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xgalbraith1998"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Galbraith, R., 1998. The trouble with “probability density” plots of fission
+  track ages. Radiation Measurements 29, 125–131.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xgalbraith1990a"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Galbraith, R.&nbsp;F., 1990. The radial plot: graphical assessment of spread
+  in ages. Nuclear Tracks and Radiation Measurements 17, 207–214.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xgalbraith2010"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Galbraith, R.&nbsp;F., 2010. On plotting OSL equivalent doses. Ancient TL
+  28, 1–10.
+  </p>
+
+  <p class="bibitem"><span class="biblabel">
+<a id="Xgalbraith1990b"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Galbraith, R.&nbsp;F., Green, P.&nbsp;F., 1990. Estimating the component ages in
+  a finite mixture. Nuclear Tracks and Radiation Measurements 17, 197–206.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xgarzanti2009"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Garzanti,  E.,  Andó,  S.,  Vezzoli,  G.,  2009.  Grain-size  dependence  of
+  sediment composition and environmental bias in provenance studies. Earth
+  and Planetary Science Letters 277, 422–432.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xhurford1984"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Hurford, A., Fitch, F., Clarke, A., 1984. Resolution of the age structure
+  of the detrital zircon populations of two Lower Cretaceous sandstones from
+  the Weald of England by fission track dating. Geological Magazine 121,
+  269–396.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xloftsgaarden1965"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Loftsgaarden,  D.&nbsp;O.,  Quesenberry,  C.&nbsp;P.,  1965.  A  Nonparametric
+  Estimate of a Multivariate Density Function. The Annals of Mathematical
+  Statistics 36&nbsp;(3), 1049–1051.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xludwig2003"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Ludwig, K., 2003. Isoplot 3.00 – a user’s manual. Berkeley Geochronology
+  Center Special Publication.
+
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xsambridge1994"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Sambridge,   M.&nbsp;S.,   Compston,   W.,   1994.   Mixture   modeling   of
+  multi-component data sets with application to ion-probe zircon ages. Earth
+  and Planetary Science Letters 128, 373–390.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xsilverman1986"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Silverman, B., 1986. Density Estimation for Statistics and Data Analysis.
+  Chapman and Hall, London.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xsircombe2004b"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Sircombe, K.&nbsp;N., 2004. AgeDisplay: an EXCEL workbook to evaluate
+  and  display  univariate  geochronological  data  using  binned  frequency
+  histograms   and   probability   density   distributions.   Computers   and
+  Geosciences 30, 21–31.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xvermeesch2007a"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>
+  Vermeesch, P., 2007. Quantitative geomorphology of the White Mountains
+  (California) using detrital apatite fission track thermochronology. Journal
+  of Geophysical Research (Earth Surface) 112&nbsp;(F11), 3004.
+  </p>
+  <p class="bibitem"><span class="biblabel">
+<a id="Xvermeesch2009c"></a><span class="bibsp">&nbsp;&nbsp;&nbsp;</span></span>Vermeesch, P., 2009. Radialplotter: A java application for fission track,
+
+  luminescence  and  other  radial  plots.  Radiation  Measurements  44&nbsp;(4),
+  409–410.
+</p>
+  </div>
+</td></tr></tbody></table>    
+ 
+
+
+
+</body></html>
