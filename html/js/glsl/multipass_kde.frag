@@ -14,7 +14,7 @@ uniform float uMinIndexValue;
 uniform float uMaxIndexValue;
 uniform float uMinEntryValue;
 uniform float uMaxEntryValue;
-uniform float uUsePoints;
+uniform float uUseStreaming;
 uniform float uNumBins;
 uniform float uWindowSize;
 uniform float uNumPoints;
@@ -48,7 +48,7 @@ void main(void) {
 
   float count;
   count = texture2D(uSamplerCount, coord2D).r;
-  if(uIsFirstPass > 0.0 && uUsePoints <= 0.0)
+  if(uIsFirstPass > 0.0 && uUseStreaming <= 0.0)
     count = count * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
   
@@ -79,7 +79,7 @@ void main(void) {
 
       float counti  = texture2D(uSamplerCount, coord2D).g;
 
-      if(uIsFirstPass > 0.0 && uUsePoints <= 0.0)
+      if(uIsFirstPass > 0.0 && uUseStreaming <= 0.0)
         counti = counti * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
       //if(getValue(coord2D).r * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue == 2.0)

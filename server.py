@@ -16,19 +16,27 @@ class ScatterPage:
   def index(self, datapath = None):
     return open(os.path.join(HTML_DIR, u'index.html'))
 
-  # @cherrypy.expose
-  # def info(self):
+  @cherrypy.expose
+  def getInfo(self, datapath):
 
-  #   cherrypy.response.headers['Content-Type'] = "application/json;"
+    cherrypy.response.headers['Content-Type'] = "application/json;"
 
-  #   data = {}
-  #   data['dim1'] = 16
-  #   data['dim2'] = 16
+    f = open(datapath+'/datatiles/info.txt', 'r')
+    numentries = int(f.readline().split(':')[1])
+    numdim = int(f.readline().split(':')[1])
+    #min = int(f.readline().split(':')[1])
+    #max = int(f.readline().split(':')[1])
+    #hasgeoinfo = int(f.readline().split(':')[1])
 
-  #   return json.dumps(data)
+    data = {}
+    data['numdim'] = numdim
+    data['numentries'] = numentries
+    #data['hasgeoinfo'] = hasgeoinfo
+
+    return json.dumps(data)
 
   @cherrypy.expose
-  def getPoint(self, datapath, filepath, numbinscatter, i, j, entry, numentries):
+  def getPoint(self, datapath, numbinscatter, i, j, k, entry, numentries):
 
     entry = int(entry)
     numentries = int(numentries)
@@ -44,11 +52,10 @@ class ScatterPage:
     minj = float("inf")
     maxj = - float("inf")
 
-    f = open(filepath, 'r')
+    f = open(datapath+'/data', 'r')
     entrycount = 0
     for count in range(0, entry+numentries):
       line = f.readline();
-      print line
       if(count >= entry):
         data[count] = {};
         data[count]['i'] = float(line.split(';')[i])
@@ -70,8 +77,6 @@ class ScatterPage:
     data['maxi'] = maxi
     data['maxj'] = maxj
     data['numentries'] = entrycount
-    print data
-
 
     return json.dumps(data)
 
@@ -90,16 +95,16 @@ class ScatterPage:
 
 
   @cherrypy.expose
-  def getCountDataTile(self, datapath, numbinscatter, i, j):
+  def getCountDataTile(self, datapath, numbinscatter, i, j, k):
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
     data = {}
 
-    f = open(datapath+'/info.txt', 'r')
+    f = open(datapath+'/datatiles/info.txt', 'r')
     numentries = int(f.readline().split(':')[1])
     numdim = int(f.readline().split(':')[1])
 
-    f = open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k0.info.txt', 'r')
+    f = open(datapath+'/datatiles/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k0.info.txt', 'r')
     minCountValue = float(f.readline().split(':')[1])
     maxCountValue = float(f.readline().split(':')[1])
     minIndexValue = float(f.readline().split(':')[1])
@@ -108,7 +113,7 @@ class ScatterPage:
     maxEntriesValue = float(f.readline().split(':')[1])
 
     buffer = StringIO.StringIO()
-    img = Image.open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'.count.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+    img = Image.open(datapath+'/datatiles/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'.count.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
     width = int(img.size[0])
     height = int(img.size[1])
     img.save(buffer, format='PNG')
@@ -116,7 +121,9 @@ class ScatterPage:
 
     index = str(i)+' '+str(j)
     data['type'] = 'count'
-    data['index'] = index
+    data['dim1'] = i
+    data['dim2'] = j
+    data['dim3'] = k
     data['data'] = base64.b64encode(buffer.getvalue())
     data['width'] = width
     data['height'] = height
@@ -124,8 +131,6 @@ class ScatterPage:
     data['numentries'] = numentries
     data['numdim'] = numdim
     data['numbin'] = numbinscatter
-    data['dim0'] = i
-    data['dim1'] = j
     data['minvalue'] = minCountValue
     data['maxvalue'] = maxCountValue
 
@@ -134,16 +139,16 @@ class ScatterPage:
 
 
   @cherrypy.expose
-  def getIndexDataTile(self, datapath, numbinscatter, i, j):
+  def getIndexDataTile(self, datapath, numbinscatter, i, j, k):
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
     data = {}
 
-    f = open(datapath+'/info.txt', 'r')
+    f = open(datapath+'/datatiles/info.txt', 'r')
     numentries = int(f.readline().split(':')[1])
     numdim = int(f.readline().split(':')[1])
 
-    f = open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k0.info.txt', 'r')
+    f = open(datapath+'/datatiles/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k0.info.txt', 'r')
     minCountValue = float(f.readline().split(':')[1])
     maxCountValue = float(f.readline().split(':')[1])
     minIndexValue = float(f.readline().split(':')[1])
@@ -152,7 +157,7 @@ class ScatterPage:
     maxEntriesValue = float(f.readline().split(':')[1])
 
     buffer = StringIO.StringIO()
-    img = Image.open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'.index.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+    img = Image.open(datapath+'/datatiles/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'.index.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
     width = int(img.size[0])
     height = int(img.size[1])
     img.save(buffer, format='PNG')
@@ -160,7 +165,9 @@ class ScatterPage:
 
     index = str(i)+' '+str(j)
     data['type'] = 'index'
-    data['index'] = index
+    data['dim1'] = i
+    data['dim2'] = j
+    data['dim3'] = k
     data['data'] = base64.b64encode(buffer.getvalue())
     data['width'] = width
     data['height'] = height
@@ -168,8 +175,6 @@ class ScatterPage:
     data['numentries'] = numentries
     data['numdim'] = numdim
     data['numbin'] = numbinscatter
-    data['dim0'] = i
-    data['dim1'] = j
     data['minvalue'] = minIndexValue
     data['maxvalue'] = maxIndexValue
 
@@ -179,14 +184,20 @@ class ScatterPage:
   @cherrypy.expose
   def getEntryDataTile(self, datapath, numbinscatter, i, j, k):
 
+    data = {}
+    data['dim1'] = i
+    data['dim2'] = j
+    data['dim3'] = k
+
+
     if(k == 'density'):
       k = 0
 
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
-    data = {}
+    
 
-    f = open(datapath+'/info.txt', 'r')
+    f = open(datapath+'/datatiles/info.txt', 'r')
     numentries = int(f.readline().split(':')[1])
     numdim = int(f.readline().split(':')[1])
     auxmin = float(f.readline().split(':')[1])
@@ -201,7 +212,7 @@ class ScatterPage:
     else:
       data['hasgeoinfo'] = 0
 
-    f = open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k'+str(k)+'.info.txt', 'r')
+    f = open(datapath+'/datatiles/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k'+str(k)+'.info.txt', 'r')
     minCountValue = float(f.readline().split(':')[1])
     maxCountValue = float(f.readline().split(':')[1])
     minIndexValue = float(f.readline().split(':')[1])
@@ -211,7 +222,7 @@ class ScatterPage:
 
 
     buffer = StringIO.StringIO()
-    img = Image.open(datapath+'/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k'+str(k)+'.entry.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
+    img = Image.open(datapath+'/datatiles/b'+str(numbinscatter)+'_i'+str(i)+'_j'+str(j)+'_k'+str(k)+'.entry.png') #, high=numpy.max(tile), low=numpy.min(tile), mode='P'
     width = int(img.size[0])
     height = int(img.size[1])
     img.save(buffer, format='PNG')
@@ -219,7 +230,6 @@ class ScatterPage:
 
     index = str(i)+' '+str(j)+' '+str(k)
     data['type'] = 'entry'
-    data['index'] = index
     data['data'] = base64.b64encode(buffer.getvalue())
     data['width'] = width
     data['height'] = height
@@ -227,8 +237,6 @@ class ScatterPage:
     data['numentries'] = numentries
     data['numdim'] = numdim
     data['numbin'] = numbinscatter
-    data['dim0'] = i
-    data['dim1'] = j
     data['minvalue'] = minEntriesValue
     data['maxvalue'] = maxEntriesValue
 
