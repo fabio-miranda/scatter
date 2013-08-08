@@ -259,34 +259,50 @@ ScatterGL.prototype.updateKDE = function(pass, numgroups, width, height){
   this.gl.viewport(0, 0, this.numbin, this.numbin);
   //this.gl.viewport(0, 0, width, height);
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
-  this.gl.uniform1f(this.multipass_kdeShader.minCountValue, this.datatiles['count'].minvalue);
-  this.gl.uniform1f(this.multipass_kdeShader.maxCountValue, this.datatiles['count'].maxvalue);
-  this.gl.uniform1f(this.multipass_kdeShader.minIndexValue, this.datatiles['index'].minvalue);
-  this.gl.uniform1f(this.multipass_kdeShader.maxIndexValue, this.datatiles['index'].maxvalue);
-  this.gl.uniform1f(this.multipass_kdeShader.minEntryValue, this.datatiles['entry'].minvalue);
-  this.gl.uniform1f(this.multipass_kdeShader.maxEntryValue, this.datatiles['entry'].maxvalue);
   this.gl.uniform1f(this.multipass_kdeShader.numBins, this.numbin);
 
-  if(this.useStreaming > 0)
+  if(this.useStreaming > 0){
     this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.points.numrasterpoints);
-  else
+    this.gl.uniform1f(this.multipass_kdeShader.minCountValue, 0);
+    this.gl.uniform1f(this.multipass_kdeShader.maxCountValue, 1);
+    this.gl.uniform1f(this.multipass_kdeShader.minIndexValue, 0);
+    this.gl.uniform1f(this.multipass_kdeShader.maxIndexValue, 1);
+    this.gl.uniform1f(this.multipass_kdeShader.minEntryValue, 0);
+    this.gl.uniform1f(this.multipass_kdeShader.maxEntryValue, 1);
+    this.gl.uniform1f(this.multipass_kdeShader.entryDataTileWidth, 0);
+    this.gl.uniform1f(this.multipass_kdeShader.passValue, pass);
+  }
+  else{
     this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.datatiles['count'].numpoints);
+    this.gl.uniform1f(this.multipass_kdeShader.minCountValue, this.datatiles['count'].minvalue);
+    this.gl.uniform1f(this.multipass_kdeShader.maxCountValue, this.datatiles['count'].maxvalue);
+    this.gl.uniform1f(this.multipass_kdeShader.minIndexValue, this.datatiles['index'].minvalue);
+    this.gl.uniform1f(this.multipass_kdeShader.maxIndexValue, this.datatiles['index'].maxvalue);
+    this.gl.uniform1f(this.multipass_kdeShader.minEntryValue, this.datatiles['entry'].minvalue);
+    this.gl.uniform1f(this.multipass_kdeShader.maxEntryValue, this.datatiles['entry'].maxvalue);
+    this.gl.uniform1f(this.multipass_kdeShader.entryDataTileWidth, this.datatiles['entry'].imgsize);
+    this.gl.uniform1f(this.multipass_kdeShader.passValue, this.datatiles['entry'].minvalue+pass);
+  }
 
   this.gl.uniform1f(this.multipass_kdeShader.bandwidth, this.bandwidth);
   this.gl.uniform1f(this.multipass_kdeShader.windowSize, this.windowSize);
   this.gl.uniform1f(this.multipass_kdeShader.isFirstPass, 1.0);
   this.gl.uniform1f(this.multipass_kdeShader.useStreaming, this.useStreaming);
   this.gl.uniform1f(this.multipass_kdeShader.useDensity, this.useDensity);
-  this.gl.uniform1f(this.multipass_kdeShader.entryDataTileWidth, this.datatiles['entry'].imgsize);
-  this.gl.uniform1f(this.multipass_kdeShader.passValue, this.datatiles['entry'].minvalue+pass);
   this.gl.uniform1f(this.multipass_kdeShader.numPassValues, numgroups);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
-  var texcount;
-  if(this.useStreaming)
+  var texcount, texindex, texentry;
+  if(this.useStreaming > 0){
     texcount = this.fbotexcount;
-  else
+    texindex = null;
+    texentry = null;
+  }
+  else{
     texcount = this.datatiles['count'].texture;
+    texindex = this.datatiles['index'].texture;
+    texentry = this.datatiles['entry'].texture;
+  }
 
   this.scatterquad.draw(
     this.gl,
@@ -295,9 +311,8 @@ ScatterGL.prototype.updateKDE = function(pass, numgroups, width, height){
     this.pMatrix,
     texcount,
     this.colorscaletex,
-    this.datatiles['index'].texture,
-    this.datatiles['entry'].texture,
-    null
+    texindex,
+    texentry
   );
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
   //return;
@@ -317,8 +332,8 @@ ScatterGL.prototype.updateKDE = function(pass, numgroups, width, height){
     this.pMatrix,
     this.fbotex1,
     this.colorscaletex,
-    this.datatiles['index'].texture,
-    this.datatiles['entry'].texture,
+    texindex,
+    texentry,
     this.fbotexfinal
   );
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
@@ -588,9 +603,13 @@ ScatterGL.prototype.updateShade = function(pass, numgroups){
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
   this.gl.uniform1f(this.shadeShader.useDensity, this.useDensity);
   this.gl.uniform1f(this.shadeShader.numBins, this.numbin);
-  this.gl.uniform1f(this.shadeShader.passValue, this.datatiles['entry'].minvalue+pass);
   this.gl.uniform1f(this.shadeShader.numPassValues, numgroups);
   this.gl.uniform1f(this.shadeShader.contourWidth, this.contourWidth);
+
+  if(this.useStreaming > 0)
+    this.gl.uniform1f(this.shadeShader.passValue, pass);
+  else
+    this.gl.uniform1f(this.shadeShader.passValue, this.datatiles['entry'].minvalue+pass);
 
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
@@ -664,6 +683,7 @@ ScatterGL.prototype.updateTexture = function(){
   //render
   var numgroups;
   var startgroup;
+  console.log(this.useDensity);
   if(this.useDensity > 0 || this.useStreaming > 0)
     numgroups = 1;
   else

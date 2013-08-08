@@ -56,10 +56,13 @@ class ScatterPage:
     entrycount = 0
     for count in range(0, entry+numentries):
       line = f.readline();
+      if(len(line) == 0):
+        #eof, return to beginning
+        f.seek(0)
       if(count >= entry):
         data[count] = {};
-        data[count]['i'] = float(line.split(';')[i])
-        data[count]['j'] = float(line.split(';')[j])
+        data[count]['i'] = float(line.split(';')[j])
+        data[count]['j'] = float(line.split(';')[i])
 
         if(data[count]['i'] > maxi):
           maxi = data[count]['i']

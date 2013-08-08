@@ -5,12 +5,16 @@ var scattermatrix;
 var map = null;
 var canvaslayer = null;
 var datapath;
-var filepath;
 var info;
 var colorscale;
 var canvas;
-var useKDE = true;
+
+var useMap = false;
 var useStreaming = false;
+var datapath;
+var currententry;
+var numentries;
+var delay;
 
 function getQueryVariable(variable) {
   var query = window.location.search.substring(1);
@@ -29,10 +33,6 @@ function cb_receiveInfo(data){
   var numdim = data['numdim'];
   var numentries = data['numentries'];
   //var hasgeoinfo = data['hasgeoinfo'];
-
-  datapath = getQueryVariable('datapath');
-  useMap = getQueryVariable('map');
-  useStreaming = getQueryVariable('streaming');
 
   if(useMap){
     initMap();
@@ -155,12 +155,13 @@ function requestData(dim1, dim2, dim3){
 function cb_receivePoint(data){
 
   scattermatrix.setTexturesSize($('#numbinscatter').val());
+  scattermatrix.useDensity = 1; //TODO: change that!
 
   scattermatrix.points.reset();
 
-  for(var i=0; i<data['numentries']; i++){
-    var x = (data[i]['i'] - data['mini']) / (data['maxi'] - data['mini']);
-    var y = (data[i]['j'] - data['minj']) / (data['maxj'] - data['minj']);
+  for(pos in data){
+    var x = (data[pos]['i'] - data['mini']) / (data['maxi'] - data['mini']);
+    var y = (data[pos]['j'] - data['minj']) / (data['maxj'] - data['minj']);
     scattermatrix.points.addPoint(x, y);
   }
   
@@ -193,11 +194,17 @@ function requestPoints(dim1, dim2, dim3){
           'i' : dim1,
           'j' : dim2,
           'k' : dim3,
-          'entry' : 0,
-          'numentries' : 150 
+          'entry' : currententry,
+          'numentries' : numentries
         },
       cb_receivePoint
     );
+
+  if(delay){
+    currententry+=numentries;
+    //https://developer.mozilla.org/en-US/docs/Web/API/window.setTimeout?redirectlocale=en-US&redirectslug=DOM%2Fwindow.setTimeout
+    setTimeout(requestPoints, delay, dim1, dim2, dim3);
+  }
 }
 
 function cb_receiveDataTile(datatile){
@@ -207,7 +214,7 @@ function cb_receiveDataTile(datatile){
 
   //var firsttime = eval(datatile['firsttime']);
   var numdim = datatile['numdim'];
-  if(datatile['hasgeoinfo'] > 0 && getQueryVariable('map') != false){
+  if(datatile['hasgeoinfo'] > 0 && useMap != false){
     var latlng0 = new google.maps.LatLng(datatile['lat0'],datatile['lng0']);
     var latlng1 = new google.maps.LatLng(datatile['lat1'],datatile['lng1']);
     scattermatrix.setGeoInfo(latlng0, latlng1);
@@ -285,7 +292,7 @@ function requestDataTiles(dim1, dim2, dim3){
   $.post(
     '/getCountDataTile',
       {
-        'datapath' : getQueryVariable('datapath'),
+        'datapath' : datapath,
         'numbinscatter' : $('#numbinscatter').val(),
         'i' : dim1,
         'j' : dim2,
@@ -298,7 +305,7 @@ function requestDataTiles(dim1, dim2, dim3){
   $.post(
     '/getIndexDataTile',
       {
-        'datapath' : getQueryVariable('datapath'),
+        'datapath' : datapath,
         'numbinscatter' : $('#numbinscatter').val(),
         'i' : dim1,
         'j' : dim2,
@@ -311,7 +318,7 @@ function requestDataTiles(dim1, dim2, dim3){
   $.post(
     '/getEntryDataTile',
       {
-        'datapath' : getQueryVariable('datapath'),
+        'datapath' : datapath,
         'numbinscatter' : $('#numbinscatter').val(),
         'i' : dim1,
         'j' : dim2,
@@ -356,7 +363,7 @@ function adddimension(){
     var dim3 = $('#dropdownmenu_dim3_0').val();
 
     scattermatrix.reset();
-    requestData();
+    requestData(dim1, dim2, dim3);
     update(map, canvaslayer);
   };
 
@@ -590,10 +597,20 @@ function initMap(){
 
 function initialize(){
 
+  datapath = getQueryVariable('datapath');
+  useMap = getQueryVariable('map');
+  useStreaming = getQueryVariable('streaming');
+  currententry = parseInt(getQueryVariable('entry'));
+  numentries = parseInt(getQueryVariable('numentries'));
+  if(getQueryVariable('delay'))
+    delay = parseInt(getQueryVariable('delay'))
+  else
+    delay = false;
+
   $.post(
       '/getInfo',
         {
-          'datapath' : getQueryVariable('datapath')
+          'datapath' : datapath
         },
       cb_receiveInfo
     );
