@@ -774,8 +774,11 @@ ScatterGL.prototype.drawTexture = function(map, canvaslayer){
   }
   else{
     mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
-    this.gl.uniform2f(this.simpleShader.scale, 1.0-this.zoomLevel, 1.0-this.zoomLevel);
-    this.gl.uniform2f(this.simpleShader.translation, this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight);
+
+    if(this.useStreaming == false){
+      this.gl.uniform2f(this.simpleShader.scale, 1.0-this.zoomLevel, 1.0-this.zoomLevel);
+      this.gl.uniform2f(this.simpleShader.translation, this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight);
+    }
   }
   
   this.finalquad.draw(
@@ -819,6 +822,11 @@ ScatterGL.prototype.drawPoints = function(){
 
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
+  //console.log(this.translation[0]);
+
+  mat4.translate(this.mvMatrix, this.mvMatrix, [this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight, 0]);
+  mat4.scale(this.mvMatrix, this.mvMatrix, [1.0+this.zoomLevel, 1.0+this.zoomLevel, 0]);
+
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbocount);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   this.points.draw(this.gl, this.pointShader, this.mvMatrix, this.pMatrix);
@@ -826,7 +834,7 @@ ScatterGL.prototype.drawPoints = function(){
 
   this.gl.useProgram(null);
 
-  this.gl.disable(this.gl.BLEND);
+  //this.gl.disable(this.gl.BLEND);
 
   //return;
 
@@ -1237,6 +1245,7 @@ ScatterGL.prototype.mousedown = function(evt){
 
   this.drawTexture();
   if(this.histogram != null) this.histogram.draw(this.getSelection());
+  if(this.useStreaming) this.drawPoints();
 }
 
 ScatterGL.prototype.mouseup = function(evt){
@@ -1252,6 +1261,7 @@ ScatterGL.prototype.mouseup = function(evt){
   
   this.drawTexture();
   if(this.histogram != null) this.histogram.draw(this.getSelection());
+  if(this.useStreaming) this.drawPoints();
 }
 
 ScatterGL.prototype.mousemove = function(evt){
@@ -1268,7 +1278,7 @@ ScatterGL.prototype.mousemove = function(evt){
 
   this.drawTexture();
   if(this.histogram != null) this.histogram.draw(this.getSelection());
-
+  if(this.useStreaming) this.drawPoints();
 }
 
 
