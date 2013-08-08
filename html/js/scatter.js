@@ -157,6 +157,13 @@ function cb_receivePoint(data){
   scattermatrix.setTexturesSize($('#numbinscatter').val());
   scattermatrix.useDensity = 1; //TODO: change that!
 
+  if(useMap != false){
+    var latlng0 = new google.maps.LatLng(data['minj'],data['mini']);
+    var latlng1 = new google.maps.LatLng(data['maxj'],data['maxi']);
+    scattermatrix.setGeoInfo(latlng0, latlng1);
+    map.fitBounds(new google.maps.LatLngBounds(latlng0, latlng1));
+  }
+
   scattermatrix.points.reset();
 
   for(pos in data){
