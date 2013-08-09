@@ -28,6 +28,8 @@ void main(void) {
     //Density uses rgb to calculate the df. Groups use alpha.
     //Set the density alpha to 0 so it doesnt affect the df calculation
     newcolor.a = 0.0;
+
+    //gl_FragColor = vec4(1, 0, 0, 1);
 		
   }
   else{

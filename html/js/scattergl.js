@@ -683,7 +683,7 @@ ScatterGL.prototype.updateTexture = function(){
   //render
   var numgroups;
   var startgroup;
-  console.log(this.useDensity);
+  //console.log(this.useDensity);
   if(this.useDensity > 0 || this.useStreaming > 0)
     numgroups = 1;
   else
@@ -748,29 +748,30 @@ ScatterGL.prototype.drawTexture = function(map, canvaslayer){
   this.gl.uniform2f(this.simpleShader.translation, 0, 0);
 
 
-  if(map != null && canvaslayer != null && map.getProjection() != null){
-
+  if(this.useStreaming == false && map != null && canvaslayer != null && map.getProjection() != null){
+    
     var mapProjection = map.getProjection();
 
     mat4.copy(this.pMatrix, [2/width, 0, 0, 0, 0, -2/height, 0, 0, 0, 0, 0, 0, -1, 1, 0, 1]);
 
-    var scale = Math.pow(2, map.zoom);
+    var scale = Math.pow(2, map.zoom) ;
 
     var offset = mapProjection.fromLatLngToPoint(canvaslayer.getTopLeft());
     var pos0 = mapProjection.fromLatLngToPoint(this.latlng[0]);
     var pos1 = mapProjection.fromLatLngToPoint(this.latlng[1]);
 
+    console.log(offset);
 
-    mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 0]);
+
+    mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 1]);
     mat4.translate(this.pMatrix, this.pMatrix, [-offset.x, -offset.y, 0.0]);
 
     mat4.translate(this.mvMatrix, this.mvMatrix, [pos0.x, pos0.y, 0]);
     mat4.scale(this.mvMatrix, this.mvMatrix, [pos1.x-pos0.x,pos1.y-pos0.y,1]);
-
-
-    this.zoomLevel = 0;
-    this.translation[0] = 0;
-    this.translation[1] = 0;
+  
+    //this.zoomLevel = 0;
+    //this.translation[0] = 0;
+    //this.translation[1] = 0;
   }
   else{
     mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
@@ -805,7 +806,7 @@ ScatterGL.prototype.drawTexture = function(map, canvaslayer){
   */
 }
 
-ScatterGL.prototype.drawPoints = function(){
+ScatterGL.prototype.drawPoints = function(map, canvaslayer){
   //this.drawTexture();
   //return;
   this.gl.enable(this.gl.BLEND);
@@ -818,14 +819,41 @@ ScatterGL.prototype.drawPoints = function(){
 
   this.gl.useProgram(this.pointShader);
   this.gl.viewport(0, 0, this.numbin, this.numbin);
-  console.log(this.numbin);
-
-  mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+  //console.log(this.numbin);
 
   //console.log(this.translation[0]);
 
-  mat4.translate(this.mvMatrix, this.mvMatrix, [this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight, 0]);
-  mat4.scale(this.mvMatrix, this.mvMatrix, [1.0+this.zoomLevel, 1.0+this.zoomLevel, 0]);
+  //mat4.translate(this.mvMatrix, this.mvMatrix, [this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight, 0]);
+  //mat4.scale(this.mvMatrix, this.mvMatrix, [scale, scale, 0]);
+
+  if(map != null && canvaslayer != null && map.getProjection() != null){
+    var mapProjection = map.getProjection();
+
+    mat4.copy(this.pMatrix, [2/width, 0, 0, 0, 0, -2/height, 0, 0, 0, 0, 0, 0, -1, 1, 0, 1]);
+
+    var scale = Math.pow(2, map.zoom);
+
+    var offset = mapProjection.fromLatLngToPoint(canvaslayer.getTopLeft());
+    var pos0 = mapProjection.fromLatLngToPoint(this.latlng[0]);
+    var pos1 = mapProjection.fromLatLngToPoint(this.latlng[1]);
+
+
+    mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 0]);
+    mat4.translate(this.pMatrix, this.pMatrix, [-offset.x, -offset.y, 0.0]);
+
+    mat4.translate(this.mvMatrix, this.mvMatrix, [pos0.x, pos0.y, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [pos1.x-pos0.x,pos1.y-pos0.y,1]);
+  }
+  else{
+    mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+
+    mat4.translate(this.mvMatrix, this.mvMatrix, [this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [1.0+this.zoomLevel, 1.0+this.zoomLevel, 0]);
+  }
+
+
+
+  //
 
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbocount);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -839,7 +867,7 @@ ScatterGL.prototype.drawPoints = function(){
   //return;
 
   this.updateTexture();
-  this.drawTexture();
+  this.drawTexture(map, canvaslayer);
 }
 
 
