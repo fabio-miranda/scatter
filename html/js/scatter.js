@@ -31,8 +31,11 @@ function getQueryVariable(variable) {
 function cb_receiveInfo(data){
 
   var numdim = data['numdim'];
-  var numentries = data['numentries'];
+  var totalentries = data['numentries'];
   //var hasgeoinfo = data['hasgeoinfo'];
+
+  if(numentries<=0)
+    numentries = totalentries;
 
   if(useMap){
     initMap();
@@ -636,8 +639,18 @@ function initialize(){
   datapath = getQueryVariable('datapath');
   useMap = getQueryVariable('map');
   useStreaming = getQueryVariable('streaming');
-  currententry = parseInt(getQueryVariable('entry'));
-  numentries = parseInt(getQueryVariable('numentries'));
+
+  if(getQueryVariable('entry'))
+    currententry=parseInt(getQueryVariable('entry'));
+  else
+    currententry=-1;
+
+
+  if(getQueryVariable('numentries'))
+    numentries=parseInt(getQueryVariable('numentries'));
+  else
+    numentries=-1;
+
   if(getQueryVariable('delay'))
     delay = parseInt(getQueryVariable('delay'))
   else
