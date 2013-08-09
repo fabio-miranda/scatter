@@ -145,6 +145,7 @@ function cb_receiveInfo(data){
   changeKDEType();
   changeTransparency();
   changeOutliers();
+  setContourWidth(0);
 
 }
 
@@ -540,6 +541,7 @@ function setOutliersSize(value){
 }
 
 function setContourWidth(value){
+  $('#div_contourwidthslider').slider('value', value);
   scattermatrix.setContourWidth(value);
   update(map, canvaslayer);
 }

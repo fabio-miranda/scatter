@@ -72,6 +72,11 @@ input_column_types = ["double" for column in range(inputs.shape[1])]
   #connection.send_table_rows(mwid, "inputs", [row])
 #connection.finish_table(mwid, "inputs")
 
+#data file
+
+datafile = open('./data/timeseries/data', 'w')
+numentries = 0
+currentclass = 0
 # Start a new timeseries set artifact "output-x" for each output variable ...
 for output_variable in range(options.output_variable_count):
   artifact_name = "output-{}".format(output_variable)
@@ -92,14 +97,18 @@ for output_variable in range(options.output_variable_count):
       values += numpy.sin(times * k) / k
 
     #print values
-    #save to file
-    print 'writing to: '+'./data/timeseries/'+str(timeseries)
-    f = open('./data/timeseries/'+str(timeseries), 'w')
+    #save to separate file
+    print 'writing to: '+'./data/timeseries/'+str(currentclass)
+    separatefile = open('./data/timeseries/'+str(currentclass), 'w')
     count = 0
     for value in values:
     	#print value
-    	f.write(str(count)+';'+str(value)+'\n')
+    	separatefile.write(str(count)+';'+str(value)+'\n')
+    	datafile.write(str(count)+';'+str(value)+';'+str(currentclass)+'\n')
     	count+=1
+    	numentries+=1
+
+    currentclass+=1
 
     # Upload the timeseries data, breaking it into "bundles" so our HTTP requests don't get too large.
     #for i in range(0, len(ids), options.sample_bundling):
@@ -107,6 +116,15 @@ for output_variable in range(options.output_variable_count):
 
   # Signal Slycat that we're done uploading this artifact.
   #connection.finish_timeseries(mwid, artifact_name)
+
+#info file
+print 'writing everything to: '+'./data/timeseries/data'
+infofile = open('./data/timeseries/info.txt', 'w')
+infofile.write('numentries: '+str(numentries)+'\n')
+infofile.write('numdim: 3\n') #third dim is class
+infofile.write('min: 0\n') #not used
+infofile.write('max: 1\n') #not used
+infofile.write('hasgeoinfo: 0\n')
 
 # Store the remaining parameters ...
 #connection.set_parameter(mwid, "output-count", options.output_variable_count)
