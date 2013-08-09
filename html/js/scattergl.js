@@ -33,7 +33,7 @@ SelectionQuad.prototype.updateBB = function(){
 }
 
 
-function ScatterGL(canvas, numdim, numentries, useStreaming){
+function ScatterGL(canvas, numdim, numentries, useStreaming, isLine){
   this.canvas = canvas;
   this.gl = null;
   this.numdim = numdim;
@@ -46,6 +46,7 @@ function ScatterGL(canvas, numdim, numentries, useStreaming){
   this.devicePixelRatio = 1;
   this.bandwidth = 0.01;
   this.contourWidth = 0.5;
+  this.alphaMultiplier = 1.0;
   this.kdetype = 'kde';
   this.drawReady = false;
   this.drawOutliers = false;
@@ -85,9 +86,16 @@ function ScatterGL(canvas, numdim, numentries, useStreaming){
 
   this.finalquad = new quad(this.gl, true);
 
-  this.points = new points(this.gl);
-
   this.selection = new SelectionQuad(this.gl);
+
+  if(isLine){
+    this.isLine = 1.0;
+    this.primitives = new lines(this.gl);
+  }
+  else{
+    this.isLine = 0.0;
+    this.primitives = new points(this.gl);
+  }
 }
 
 ScatterGL.prototype.reset = function(){
@@ -162,6 +170,14 @@ ScatterGL.prototype.changeBandwidth = function(bandwidth){
 ScatterGL.prototype.setContourWidth = function(contourWidth){
 
   this.contourWidth = contourWidth;
+
+  this.updateTexture();
+
+}
+
+ScatterGL.prototype.setAlphaMultiplier = function(alphaMultiplier){
+  console.log(alphaMultiplier);
+  this.alphaMultiplier = alphaMultiplier;
 
   this.updateTexture();
 
@@ -262,7 +278,7 @@ ScatterGL.prototype.updateKDE = function(pass, numgroups, width, height){
   this.gl.uniform1f(this.multipass_kdeShader.numBins, this.numbin);
 
   if(this.useStreaming > 0){
-    this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.points.numrasterpoints);
+    this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.primitives.numrasterpoints);
     this.gl.uniform1f(this.multipass_kdeShader.minCountValue, 0);
     this.gl.uniform1f(this.multipass_kdeShader.maxCountValue, 1);
     this.gl.uniform1f(this.multipass_kdeShader.minIndexValue, 0);
@@ -605,6 +621,7 @@ ScatterGL.prototype.updateShade = function(pass, numgroups){
   this.gl.uniform1f(this.shadeShader.numBins, this.numbin);
   this.gl.uniform1f(this.shadeShader.numPassValues, numgroups);
   this.gl.uniform1f(this.shadeShader.contourWidth, this.contourWidth);
+  this.gl.uniform1f(this.shadeShader.alphaMultiplier, this.alphaMultiplier);
 
   if(this.useStreaming > 0)
     this.gl.uniform1f(this.shadeShader.passValue, pass);
@@ -853,13 +870,13 @@ ScatterGL.prototype.drawPoints = function(map, canvaslayer){
 
 
 
-  //
-
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbocount);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-  this.points.draw(this.gl, this.pointShader, this.mvMatrix, this.pMatrix);
+  
+  for(group in this.primitives.array)
+    this.primitives.draw(this.gl, this.pointShader, this.mvMatrix, this.pMatrix, group);
+    
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
-
   this.gl.useProgram(null);
 
   //this.gl.disable(this.gl.BLEND);
@@ -1211,6 +1228,7 @@ ScatterGL.prototype.initShaders = function(){
   this.shadeShader.passValue = this.gl.getUniformLocation(this.shadeShader, "uPassValue");
   this.shadeShader.numPassValues = this.gl.getUniformLocation(this.shadeShader, "uNumPassValues");
   this.shadeShader.contourWidth = this.gl.getUniformLocation(this.shadeShader, "uContourWidth");
+  this.shadeShader.alphaMultiplier = this.gl.getUniformLocation(this.shadeShader, "uAlphaMultiplier");
   //this.shadeShader.contour = this.gl.getUniformLocation(this.shadeShader, "uContour");
 
 

@@ -111,7 +111,7 @@ function points(gl){
 
 }
 
-points.prototype.addPoint = function(x, y){
+points.prototype.add = function(x, y, group){
   
   this.array.push(x);
   this.array.push(y);
@@ -123,16 +123,6 @@ points.prototype.reset = function(x, y){
   
   this.array.length = 0;
   this.numrasterpoints=0;
-}
-
-points.prototype.addLine = function(x0, y0, x1, y1){
-  this.array.push(x0);
-  this.array.push(y0);
-  this.array.push(x1);
-  this.array.push(y1);
-
-  this.numrasterpoints += distance(x0, y0, x1, y1);
-
 }
 
 
@@ -154,6 +144,74 @@ points.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix){
   gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
   gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
   gl.drawArrays(gl.POINTS, 0, numpoints);
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  gl.disableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+}
+
+function lines(gl){
+
+  this.array = {};
+  this.linesBuffer = null;
+  this.color = null;
+
+  this.linesBuffer = gl.createBuffer();
+  this.linesBuffer.itemSize = 2;
+
+  this.numrasterpoints = 0;
+
+}
+
+lines.prototype.reset = function(x, y){
+
+  for(group in this.array){
+    this.array[group].length = 0;
+    delete this.array[group];
+  }
+  
+  this.array = {};
+  this.numrasterpoints=0;
+}
+
+lines.prototype.add = function(x0, y0, group){
+
+  if(this.array[group] == null)
+    this.array[group] = [];
+
+  console.log(group);
+
+  this.array[group].push(x0);
+  this.array[group].push(y0);
+  //this.array.push(x1);
+  //this.array.push(y1);
+
+  //this.numrasterpoints += distance(x0, y0, x1, y1);
+  this.numrasterpoints+=1;
+
+}
+
+
+lines.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, group){
+
+  if(this.array[group] == null)
+    return;
+
+  //TODO: optimize? Do we really need to call bufferData for every point inserted?
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.linesBuffer);
+  var numlines = this.array[group].length / 2;
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.array[group]), gl.DYNAMIC_DRAW);
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  //TODO: do this every frame?
+  gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.linesBuffer);
+  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.linesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+
+  gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+  gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+  gl.drawArrays(gl.LINE_STRIP, 0, numlines);
 
   //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
   gl.disableVertexAttribArray(shaderProgram.vertexPositionAttribute);

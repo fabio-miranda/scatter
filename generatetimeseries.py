@@ -98,13 +98,13 @@ for output_variable in range(options.output_variable_count):
 
     #print values
     #save to separate file
-    print 'writing to: '+'./data/timeseries/'+str(currentclass)
-    separatefile = open('./data/timeseries/'+str(currentclass), 'w')
+    #print 'writing to: '+'./data/timeseries/'+str(currentclass)
+    #separatefile = open('./data/timeseries/'+str(currentclass), 'w')
     count = 0
     for value in values:
     	#print value
-    	separatefile.write(str(count)+';'+str(value)+'\n')
-    	datafile.write(str(count)+';'+str(value)+';'+str(currentclass)+'\n')
+    	#separatefile.write(str(count)+';'+str(value)+'\n')
+    	datafile.write(str(currentclass)+';'+str(count)+';'+str(value)+'\n')
     	count+=1
     	numentries+=1
 
@@ -124,6 +124,7 @@ infofile.write('numentries: '+str(numentries)+'\n')
 infofile.write('numdim: 3\n') #third dim is class
 infofile.write('min: 0\n') #not used
 infofile.write('max: 1\n') #not used
+infofile.write('isline: 1\n')
 infofile.write('hasgeoinfo: 0\n')
 
 # Store the remaining parameters ...

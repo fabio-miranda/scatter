@@ -21,17 +21,19 @@ class ScatterPage:
 
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
-    f = open(datapath+'/datatiles/info.txt', 'r')
+    f = open(datapath+'/info.txt', 'r')
     numentries = int(f.readline().split(':')[1])
     numdim = int(f.readline().split(':')[1])
-    #min = int(f.readline().split(':')[1])
-    #max = int(f.readline().split(':')[1])
-    #hasgeoinfo = int(f.readline().split(':')[1])
+    min = float(f.readline().split(':')[1])
+    max = float(f.readline().split(':')[1])
+    isline = int(f.readline().split(':')[1])
+    hasgeoinfo = int(f.readline().split(':')[1])
 
     data = {}
     data['numdim'] = numdim
     data['numentries'] = numentries
-    #data['hasgeoinfo'] = hasgeoinfo
+    data['hasgeoinfo'] = hasgeoinfo
+    data['isline'] = isline
 
     return json.dumps(data)
 
@@ -43,6 +45,11 @@ class ScatterPage:
     i = int(i)
     j = int(j)
 
+    if(k == 'density'):
+      k = 0
+    else:
+      k = int(k);
+
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
     data = {}
@@ -51,6 +58,10 @@ class ScatterPage:
     maxi = - float("inf")
     minj = float("inf")
     maxj = - float("inf")
+    mink = float("inf")
+    maxk = - float("inf")
+
+    data['points'] = {}
 
     f = open(datapath+'/data', 'r')
     entrycount = 0
@@ -60,25 +71,33 @@ class ScatterPage:
         #eof, return to beginning
         f.seek(0)
       if(count >= entry):
-        data[count] = {};
-        data[count]['i'] = float(line.split(';')[j])
-        data[count]['j'] = float(line.split(';')[i])
+        data['points'][count] = {};
+        data['points'][count]['i'] = float(line.split(';')[j])
+        data['points'][count]['j'] = float(line.split(';')[i])
+        data['points'][count]['k'] = float(line.split(';')[k])
 
-        if(data[count]['i'] > maxi):
-          maxi = data[count]['i']
-        if(data[count]['j'] > maxj):
-          maxj = data[count]['j']
-        if(data[count]['i'] < mini):
-          mini = data[count]['i']
-        if(data[count]['j'] < minj):
-          minj = data[count]['j']
+        if(data['points'][count]['i'] > maxi):
+          maxi = data['points'][count]['i']
+        if(data['points'][count]['j'] > maxj):
+          maxj = data['points'][count]['j']
+        if(data['points'][count]['k'] > maxk):
+          maxk = data['points'][count]['k']
+        if(data['points'][count]['i'] < mini):
+          mini = data['points'][count]['i']
+        if(data['points'][count]['j'] < minj):
+          minj = data['points'][count]['j']
+        if(data['points'][count]['k'] < mink):
+          mink = data['points'][count]['k']
+
         entrycount+=1
 
 
     data['mini'] = mini
     data['minj'] = minj
+    data['mink'] = mink
     data['maxi'] = maxi
     data['maxj'] = maxj
+    data['maxk'] = maxk
     data['numentries'] = entrycount
 
     return json.dumps(data)

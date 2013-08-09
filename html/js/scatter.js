@@ -11,6 +11,7 @@ var canvas;
 
 var useMap = false;
 var useStreaming = false;
+var isline = false;
 var datapath;
 var currententry;
 var numentries;
@@ -32,7 +33,8 @@ function cb_receiveInfo(data){
 
   var numdim = data['numdim'];
   var totalentries = data['numentries'];
-  //var hasgeoinfo = data['hasgeoinfo'];
+  var hasgeoinfo = data['hasgeoinfo'];
+  var isline = data['isline'];
 
   if(numentries<=0)
     numentries = totalentries;
@@ -101,8 +103,19 @@ function cb_receiveInfo(data){
     }
   });
 
+  $( "#div_alphaslider" ).slider({
+    min: 0.0,
+    max: 2.0,
+    value: 1.0,
+    step: 0.001,
+    slide: function( event, ui ) {
+      //changeColorScale();
+      setAlphaMultiplier(ui.value);
+    }
+  });
+
   //scattermatrix = new ScatterGL(document.getElementById('scatterplotmatrix'));
-  scattermatrix = new ScatterGL(canvas, numdim, numentries, useStreaming);
+  scattermatrix = new ScatterGL(canvas, numdim, numentries, useStreaming, isline);
   colorscale = new ColorScale(document.getElementById('colorscale'));
   initColorScale();
 
@@ -135,7 +148,7 @@ function cb_receiveInfo(data){
     dim1 = getQueryVariable('dim1');
   if(getQueryVariable('dim2') != false)
     dim2 = getQueryVariable('dim2');
-  
+
   requestData(dim0, dim1, dim2);
 
   adddimension();
@@ -197,12 +210,15 @@ function cb_receivePoint(data){
     map.fitBounds(bounds);
   }
 
-  scattermatrix.points.reset();
+  scattermatrix.primitives.reset();
 
-  for(pos in data){
-    var x = (data[pos]['i'] - data['mini']) / (data['maxi'] - data['mini']);
-    var y = (data[pos]['j'] - data['minj']) / (data['maxj'] - data['minj']);
-    scattermatrix.points.addPoint(x, y);
+  console.log(data);
+
+  for(pos in data['points']){
+    var x = (data['points'][pos]['i'] - data['mini']) / (data['maxi'] - data['mini']);
+    var y = (data['points'][pos]['j'] - data['minj']) / (data['maxj'] - data['minj']);
+    var group = data['points'][pos]['k'];
+    scattermatrix.primitives.add(x, y, group);
   }
   
 
@@ -459,6 +475,8 @@ function changeColorScale(){
   var alphaType = $('#alphaType').prop('value');
   var kdetype = $('#kdetype').prop('value');
 
+  console.log($('#div_alphaslider').slider('value'));
+
   var isColorLinear = false;
   var isAlphaLinear = false;
   if(colorType == 'color_linear')
@@ -466,10 +484,7 @@ function changeColorScale(){
   if(alphaType == 'alpha_linear')
     isAlphaLinear = true;
 
-  var fixedAlpha = null;
-  if(alphaType == 'alpha_05')
-    fixedAlpha = 0.8;
-  else if(alphaType == 'alpha_10')
+  if(alphaType == 'alpha_fixed')
     fixedAlpha = 1.0;
   
   if(colorbrewer[color][dataclasses] != null){
@@ -543,6 +558,12 @@ function setOutliersSize(value){
 function setContourWidth(value){
   $('#div_contourwidthslider').slider('value', value);
   scattermatrix.setContourWidth(value);
+  update(map, canvaslayer);
+}
+
+function setAlphaMultiplier(value){
+  $('#div_alphaslider').slider('value', value);
+  scattermatrix.setAlphaMultiplier(value);
   update(map, canvaslayer);
 }
 
@@ -645,13 +666,13 @@ function initialize(){
   if(getQueryVariable('entry'))
     currententry=parseInt(getQueryVariable('entry'));
   else
-    currententry=-1;
+    currententry=0;
 
 
   if(getQueryVariable('numentries'))
     numentries=parseInt(getQueryVariable('numentries'));
   else
-    numentries=-1;
+    numentries=0;
 
   if(getQueryVariable('delay'))
     delay = parseInt(getQueryVariable('delay'))

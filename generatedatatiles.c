@@ -465,23 +465,23 @@ int generateTiles(char* outputdir, int numentries, int numdim,
   if(dimk == 0){
     //save count data tile to image
     char filenamepng1[100];
-    snprintf(filenamepng1, 100, "%s/b%d_i%d_j%d.count.png", outputdir, numbin, dimi, dimj);
+    snprintf(filenamepng1, 100, "%s/datatiles/b%d_i%d_j%d.count.png", outputdir, numbin, dimi, dimj);
     writeImage(filenamepng1, imgsize, imgsize, minCountValue, maxCountValue, buffCount, 1);
 
     //save index data tile to image
     char filenamepng2[100];
-    snprintf(filenamepng2, 100, "%s/b%d_i%d_j%d.index.png", outputdir, numbin, dimi, dimj);
+    snprintf(filenamepng2, 100, "%s/datatiles/b%d_i%d_j%d.index.png", outputdir, numbin, dimi, dimj);
     writeImage(filenamepng2, imgsize, imgsize, minIndexValue, maxIndexValue, buffIndex, 1); //3
   }
 
   //save entry data tile to image
   char filenamepng3[100];
-  snprintf(filenamepng3, 100, "%s/b%d_i%d_j%d_k%d.entry.png", outputdir, numbin, dimi, dimj, dimk);
+  snprintf(filenamepng3, 100, "%s/datatiles/b%d_i%d_j%d_k%d.entry.png", outputdir, numbin, dimi, dimj, dimk);
   writeImage(filenamepng3, 512, 512, minEntriesValue, maxEntriesValue, buffEntries, 1);
 
   //save info
   char filenametxt[100];
-  snprintf(filenametxt, 100, "%s/b%d_i%d_j%d_k%d.info.txt", outputdir, numbin, dimi, dimj, dimk);
+  snprintf(filenametxt, 100, "%s/datatiles/b%d_i%d_j%d_k%d.info.txt", outputdir, numbin, dimi, dimj, dimk);
   
   FILE* file = fopen(filenametxt,"w+");
   //fprintf(file,"numdim: %d\n",numdim);
@@ -731,6 +731,7 @@ int main(int argc, char* argv[]){
     //fprintf(file,"%d\n",dimperimage); //dimperimage (histogram)
     fprintf(file,"min: %f\n",0.0f);
     fprintf(file,"max: %f\n",1.0f);
+    fprintf(file,"isline: 0");
     if(geoinfo){
       fprintf(file,"hasgeoinfo: 1\n");
       fprintf(file,"lat0: %f\n",minvalues[0]);
