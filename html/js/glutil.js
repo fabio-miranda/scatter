@@ -193,9 +193,9 @@ lines.prototype.add = function(x0, y0, group){
 
   var length = this.array[group].length;
   if(length > 2){
-    //this.numrasterpoints += distance(x0, y0, this.array[group][length-3], this.array[group][length-2]);
+    this.numrasterpoints += distance(x0, y0, this.array[group][length-4], this.array[group][length-3]);
   }
-  this.numrasterpoints+=0.01;
+  //this.numrasterpoints+=0.01;
 
 }
 

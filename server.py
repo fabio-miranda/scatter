@@ -68,13 +68,14 @@ class ScatterPage:
         f.seek(0)
       if(count >= entry):
         data['points'][count] = {};
-        data['points'][count]['i'] = float(line.split(';')[j])
-        data['points'][count]['j'] = float(line.split(';')[i])
+        tokens = line.split(';')
+        data['points'][count]['i'] = float(tokens[j])
+        data['points'][count]['j'] = float(tokens[i])
 
-        if(k == 'density'):
+        if(k == 'density' and len(tokens) <= 2):
           data['points'][count]['k'] = 0
         else:
-          data['points'][count]['k'] = float(line.split(';')[k])
+          data['points'][count]['k'] = float(tokens[0])
 
         if(data['points'][count]['i'] > maxi):
           maxi = data['points'][count]['i']

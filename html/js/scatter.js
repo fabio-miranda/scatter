@@ -212,7 +212,7 @@ function cb_receivePoint(data){
 
   scattermatrix.primitives.reset();
 
-  console.log(data);
+  //console.log(data);
 
   for(pos in data['points']){
     var x = (data['points'][pos]['i'] - data['mini']) / (data['maxi'] - data['mini']);
