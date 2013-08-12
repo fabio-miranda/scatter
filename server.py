@@ -45,10 +45,6 @@ class ScatterPage:
     i = int(i)
     j = int(j)
 
-    if(k == 'density'):
-      k = 0
-    else:
-      k = int(k);
 
     cherrypy.response.headers['Content-Type'] = "application/json;"
 
@@ -74,7 +70,11 @@ class ScatterPage:
         data['points'][count] = {};
         data['points'][count]['i'] = float(line.split(';')[j])
         data['points'][count]['j'] = float(line.split(';')[i])
-        data['points'][count]['k'] = float(line.split(';')[k])
+
+        if(k == 'density'):
+          data['points'][count]['k'] = 0
+        else:
+          data['points'][count]['k'] = float(line.split(';')[k])
 
         if(data['points'][count]['i'] > maxi):
           maxi = data['points'][count]['i']
@@ -224,6 +224,7 @@ class ScatterPage:
     numdim = int(f.readline().split(':')[1])
     auxmin = float(f.readline().split(':')[1])
     auxmax = float(f.readline().split(':')[1])
+    isline = int(f.readline().split(':')[1])
     hasgeoinfo = float(f.readline().split(':')[1])
     if(hasgeoinfo > 0):
       data['hasgeoinfo'] = 1

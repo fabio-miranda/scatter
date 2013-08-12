@@ -100,7 +100,7 @@ function distance(x0, y0, x1, y1){
 
 function points(gl){
 
-  this.array = [];
+  this.array = {};
   this.pointsBuffer = null;
   this.color = null;
 
@@ -112,26 +112,34 @@ function points(gl){
 }
 
 points.prototype.add = function(x, y, group){
-  
-  this.array.push(x);
-  this.array.push(y);
 
-  this.numrasterpoints++;
+  if(this.array[group] == null)
+    this.array[group] = [];
+  
+  this.array[group].push(x);
+  this.array[group].push(y);
+
+  this.numrasterpoints+=1.0;
 }
 
-points.prototype.reset = function(x, y){
+points.prototype.reset = function(){
+
+  for(group in this.array){
+    this.array[group].length = 0;
+    delete this.array[group];
+  }
   
-  this.array.length = 0;
+  this.array = {};
   this.numrasterpoints=0;
 }
 
 
-points.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix){
+points.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, group){
 
   //TODO: optimize? Do we really need to call bufferData for every point inserted?
   gl.bindBuffer(gl.ARRAY_BUFFER, this.pointsBuffer);
-  var numpoints = this.array.length / 2;
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.array), gl.DYNAMIC_DRAW);
+  var numpoints = this.array[group].length / 2;
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.array[group]), gl.DYNAMIC_DRAW);
 
   //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
   //TODO: do this every frame?
@@ -178,15 +186,16 @@ lines.prototype.add = function(x0, y0, group){
   if(this.array[group] == null)
     this.array[group] = [];
 
-  console.log(group);
-
   this.array[group].push(x0);
   this.array[group].push(y0);
   //this.array.push(x1);
   //this.array.push(y1);
 
-  //this.numrasterpoints += distance(x0, y0, x1, y1);
-  this.numrasterpoints+=1;
+  var length = this.array[group].length;
+  if(length > 2){
+    //this.numrasterpoints += distance(x0, y0, this.array[group][length-3], this.array[group][length-2]);
+  }
+  this.numrasterpoints+=0.01;
 
 }
 
