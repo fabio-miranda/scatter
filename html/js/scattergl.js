@@ -186,10 +186,12 @@ ScatterGL.prototype.setAlphaMultiplier = function(alphaMultiplier){
 
 ScatterGL.prototype.changeZoom = function(delta){
   this.zoomLevel += delta;
+  this.flagUpdateTexture = true;
 }
 
 ScatterGL.prototype.setZoom = function(zoomLevel){
   this.zoomLevel = zoomLevel;
+  this.flagUpdateTexture = true;
 }
 
 ScatterGL.prototype.changeKDEType = function(kdetype){
