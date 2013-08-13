@@ -55,6 +55,7 @@ function ScatterGL(canvas, numdim, numentries, useStreaming, isLine){
   this.outliersSize = 4.0;
   this.translation = [0.0,0.0];
   this.latlng = null;
+  this.flagUpdateTexture = false;
   if(useStreaming)
     this.useStreaming = 1.0;
   else
@@ -118,7 +119,7 @@ ScatterGL.prototype.setDataTile = function(type, image, imgsize, numpoints, numd
     delete this.datatiles[type];
   this.datatiles[type] = new Datatile(this.gl, image, imgsize, numpoints, numdim, dim1, dim2, dim3, numbin, minvalue, maxvalue);
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 }
 
 ScatterGL.prototype.setTexturesSize = function(numbin){
@@ -147,7 +148,7 @@ ScatterGL.prototype.setColorScale = function(colorscalevalues){
   this.colorscaletex = this.gl.createTexture();
   createTextureFromArray(this.gl, this.gl.NEAREST, colorscalevalues.length/4, 1, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, colorscalevalues, this.colorscaletex);
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 
 }
 
@@ -163,7 +164,7 @@ ScatterGL.prototype.changeBandwidth = function(bandwidth){
 
   this.bandwidth = bandwidth;
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 
 }
 
@@ -171,7 +172,7 @@ ScatterGL.prototype.setContourWidth = function(contourWidth){
 
   this.contourWidth = contourWidth;
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 
 }
 
@@ -179,7 +180,7 @@ ScatterGL.prototype.setAlphaMultiplier = function(alphaMultiplier){
   console.log(alphaMultiplier);
   this.alphaMultiplier = alphaMultiplier;
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 
 }
 
@@ -195,7 +196,7 @@ ScatterGL.prototype.changeKDEType = function(kdetype){
 
   this.kdetype = kdetype;
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 
 }
 
@@ -203,7 +204,7 @@ ScatterGL.prototype.changeOutliers = function(drawOutliers){
 
   this.drawOutliers = drawOutliers;
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 
 }
 
@@ -211,7 +212,7 @@ ScatterGL.prototype.setOutliersThreshold = function(value){
 
   this.outliersThreshold = value;
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 
 }
 
@@ -219,7 +220,7 @@ ScatterGL.prototype.setOutliersSize = function(value){
 
   this.outliersSize = value;
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 
 }
 
@@ -227,7 +228,7 @@ ScatterGL.prototype.changeWindowSize = function(windowSize){
 
   this.windowSize = windowSize;
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 
 }
 
@@ -235,7 +236,7 @@ ScatterGL.prototype.changeMeanSize = function(meanSize){
 
   this.meanSize = meanSize;
 
-  this.updateTexture();
+  this.flagUpdateTexture = true;
 
 }
 
@@ -690,7 +691,7 @@ ScatterGL.prototype.updateShade = function(pass, numgroups){
 
 
 
-ScatterGL.prototype.updateTexture = function(){
+ScatterGL.prototype.update = function(){
 
   if(this.useStreaming == false && (this.datatiles['count'] == null || this.datatiles['index'] == null || this.datatiles['entry'] == null))
     return;
@@ -713,7 +714,7 @@ ScatterGL.prototype.updateTexture = function(){
   if(measureTime)
     now1 = window.performance.now();
 
-  this.drawReady = true;
+  //this.drawReady = true;
 
   //TODO: performance hit?
   clearFBO(this.gl, this.fbofinal);
@@ -760,16 +761,24 @@ ScatterGL.prototype.updateTexture = function(){
     console.log(now2 - now1);
 
   }
+
+  this.flagUpdateTexture = false;
   
 }//
 
 
-ScatterGL.prototype.drawTexture = function(map, canvaslayer){
+ScatterGL.prototype.draw = function(map, canvaslayer){
 
 
   //this.update();
 
-  if(this.drawReady == false) return;
+  //if(this.drawReady == false) return;
+
+  if(this.flagUpdateTexture == true){
+    if(this.useStreaming == true)
+      this.drawPoints(map,canvaslayer);
+    this.update();
+  }
 
   //var width = this.gl.viewportWidth / (this.maxdim + 1);
   //var height = this.gl.viewportHeight / (this.maxdim + 1);
@@ -906,8 +915,8 @@ ScatterGL.prototype.drawPoints = function(map, canvaslayer){
 
   //return;
 
-  this.updateTexture();
-  this.drawTexture(map, canvaslayer);
+  //this.updateTexture();
+  //this.drawTexture(map, canvaslayer);
 }
 
 
@@ -1311,10 +1320,9 @@ ScatterGL.prototype.mousedown = function(evt){
     this.selection.p1 = xy;
     this.selection.updateBB();
   }
-
-  this.drawTexture();
+  this.flagUpdateTexture = true;
   if(this.histogram != null) this.histogram.draw(this.getSelection());
-  if(this.useStreaming) this.drawPoints();
+  this.draw();
 }
 
 ScatterGL.prototype.mouseup = function(evt){
@@ -1327,10 +1335,9 @@ ScatterGL.prototype.mouseup = function(evt){
     this.selection.updateBB();
   }
 
-  
-  this.drawTexture();
+  this.flagUpdateTexture = true;
   if(this.histogram != null) this.histogram.draw(this.getSelection());
-  if(this.useStreaming) this.drawPoints();
+  this.draw();
 }
 
 ScatterGL.prototype.mousemove = function(evt){
@@ -1345,9 +1352,9 @@ ScatterGL.prototype.mousemove = function(evt){
   this.selection.p1 = xy;
   this.selection.updateBB();
 
-  this.drawTexture();
+  this.flagUpdateTexture = true;
   if(this.histogram != null) this.histogram.draw(this.getSelection());
-  if(this.useStreaming) this.drawPoints();
+  this.draw();
 }
 
 

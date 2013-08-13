@@ -222,7 +222,7 @@ function cb_receivePoint(data){
   }
   
 
-  update(map, canvaslayer);
+  draw();
 
   //requestPoints();
 }
@@ -296,7 +296,7 @@ function cb_receiveDataTile(datatile){
       datatile['maxvalue']
     );
 
-    update(map, canvaslayer);
+    draw();
   }
 
 }
@@ -491,19 +491,19 @@ function changeColorScale(){
     colorscale.setValues(colorbrewer[color][dataclasses], isColorLinear, isAlphaLinear, fixedAlpha);
 
     scattermatrix.setColorScale(colorscale.texdata);
-    update();
+    draw();
   }
 
 }
 
 function changeKDEType(){
   scattermatrix.changeKDEType($('#kdetype').prop('value'));
-  update(map, canvaslayer);
+  draw();
 }
 
 function changeTransparency(){
   changeColorScale();
-  update(map, canvaslayer);
+  draw();
 }
 
 function changeDataset(value){
@@ -516,13 +516,13 @@ function changeOutliers(){
     scattermatrix.changeOutliers(true);
   else
     scattermatrix.changeOutliers(false);
-  update(map, canvaslayer);
+  draw();
 }
 
 function changeBandwidth(value){
   scattermatrix.changeBandwidth(value);
 
-  update(map, canvaslayer);
+  draw();
 
   //update slider and input
   $('#bandwidth').attr('value', value);
@@ -535,47 +535,47 @@ function changeZoom(delta){
   if($('#div_zoomslider').slider('value') + delta > 1.0) return;
 
   scattermatrix.changeZoom(delta);
-  update(map, canvaslayer);
+  draw();
   $('#div_zoomslider').slider('value', $('#div_zoomslider').slider('value')+delta);
 }
 
 function setZoom(value){
   scattermatrix.setZoom(value);
-  update(map, canvaslayer);
+  draw();
   $('#div_zoomslider').slider('value', value);
 }
 
 function setOutliersThreshold(value){
   scattermatrix.setOutliersThreshold(value);
-  update(map, canvaslayer);
+  draw();
 }
 
 function setOutliersSize(value){
   scattermatrix.setOutliersSize(value);
-  update(map, canvaslayer);
+  draw();
 }
 
 function setContourWidth(value){
   $('#div_contourwidthslider').slider('value', value);
   scattermatrix.setContourWidth(value);
-  update(map, canvaslayer);
+  draw();
 }
 
 function setAlphaMultiplier(value){
   $('#div_alphaslider').slider('value', value);
   scattermatrix.setAlphaMultiplier(value);
-  update(map, canvaslayer);
+  draw();
 }
 
 
 function changeWindowSize(){
   scattermatrix.changeWindowSize($('#windowsize').prop('value'));
-  update(map, canvaslayer);
+  draw();
 }
 
 function changeMeanSize(){
   scattermatrix.changeMeanSize($('#meansize').prop('value'));
-  update(map, canvaslayer);
+  draw();
 }
 
 function initColorScale(){
@@ -596,18 +596,11 @@ function initColorScale(){
 }
 
 function resize(){
-  if(useStreaming)
-    scattermatrix.drawPoints(map, canvaslayer);
-  else
-    scattermatrix.drawTexture(map, canvaslayer);
+  scattermatrix.draw(map, canvaslayer);
 }
 
-function update(){
-
-  if(useStreaming)
-    scattermatrix.drawPoints(map, canvaslayer);
-  else
-    scattermatrix.drawTexture(map, canvaslayer);
+function draw(){
+  scattermatrix.draw(map, canvaslayer);
 }
 
 function initMap(){
