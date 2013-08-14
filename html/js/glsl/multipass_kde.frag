@@ -59,7 +59,7 @@ void main(void) {
   //float x = coord2D.x;
   float f = 0.0;
   //float W = 0.0;
-  float numpoints = 1.0;
+  float numpoints = 0.0;
   for(int i=0;i<maxloop; i++){
     if(i >= int(uWindowSize)) break;
 
@@ -85,8 +85,8 @@ void main(void) {
       //if(getValue(coord2D).r * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue == 2.0)
         //break;
 
-      float gaus = gauss((float(index) / uNumBins) * oneoverh);
-      float k = counti * gaus; //TODO: consider only count of the same group
+      float gaus = gauss((float(index) / uNumBins) / h);
+      float k = (counti * gaus); //TODO: consider only count of the same group
 
       f += k;
       numpoints+=counti;
@@ -94,7 +94,7 @@ void main(void) {
     }
   }
   
-
+  f = f / h;
   if(uIsFirstPass > 0.0){
     gl_FragColor = vec4(count, f, f, 1.0);
     //gl_FragColor = vec4(count, count, count, 1.0); 
@@ -103,12 +103,12 @@ void main(void) {
   else{
 
     //f = (1.0 / (uNumPoints*h)) * f;
-    f = (1.0 / (uNumPoints*h)) * f;
+    //f = (1.0 / (uNumPoints*h*h)) * f;
     //f = (1.0 / (50.0*h)) * f;
-    f = f/0.3989422804;
-
+    //f = f/0.3989422804;
+    f = f / uNumPoints;
     //f = f / 10.0;
-
+    //f = f / uNumPoints;
     //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     //gl_FragColor = vec4(color.xyz, 1);
     gl_FragColor = vec4(f,f,f,1.0);
