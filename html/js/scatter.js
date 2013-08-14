@@ -420,7 +420,6 @@ function adddimension(){
 
     scattermatrix.reset();
     requestData(dim1, dim2, dim3);
-    update(map, canvaslayer);
   };
 
   var values = new Array(scattermatrix.numdim);

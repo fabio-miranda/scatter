@@ -1,5 +1,19 @@
 
 measureTime = true;
+var now;
+function starttime(gl){
+  now = window.performance.now();
+}
+
+function endtime(gl){
+  //glfinish does not work (equal to glflush)
+  //to make sure everything is done by the time we measure the time, just do a readPixels, instead of glfinish
+  var pixelValues = new Uint8Array(4 * 1);
+  gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
+  
+  var now2 = window.performance.now();
+  console.log(now2 - now);
+}
 
 function SelectionQuad(gl){
   this.quad = new quad(gl, false);
@@ -47,7 +61,7 @@ function ScatterGL(canvas, numdim, numentries, useStreaming, isLine){
   this.bandwidth = 0.01;
   this.contourWidth = 0.5;
   this.alphaMultiplier = 1.0;
-  this.kdetype = 'kde';
+  this.kdetype = 'singlekde';
   this.drawReady = false;
   this.drawOutliers = false;
   this.zoomLevel = 0.0;
@@ -267,6 +281,84 @@ ScatterGL.prototype.getSelection = function(){
   selection.rangej1 = rangej1;
 
   return selection;
+
+}
+
+ScatterGL.prototype.updateSinglePassKDE = function(){
+
+  //draw points
+
+  //send bandwidth as uniform
+
+  //scale point according to bandwidth in vertex shader
+
+  //in fragment shader, calculate gauss value according to fragment distance to point (gl_PointCoord)
+
+  //output the value of f
+
+  //run the shade algorithm
+
+
+  //this.drawTexture();
+  //return;
+  this.gl.disable(this.gl.DEPTH_TEST);
+  this.gl.enable(this.gl.BLEND);
+  this.gl.blendFunc(this.gl.ONE, this.gl.ONE);
+
+  var width = this.canvas.width;
+  var height = this.canvas.height;
+
+  mat4.identity(this.mvMatrix);
+
+  this.gl.useProgram(this.singlepass_kdeShader);
+  this.gl.viewport(0, 0, this.numbin, this.numbin);
+
+  this.gl.uniform1f(this.singlepass_kdeShader.bandwidth, this.bandwidth);
+  this.gl.uniform1f(this.singlepass_kdeShader.numPoints, this.primitives.numrasterpoints)
+
+
+  if(map != null && canvaslayer != null && map.getProjection() != null){
+    var mapProjection = map.getProjection();
+
+    mat4.copy(this.pMatrix, [2/width, 0, 0, 0, 0, -2/height, 0, 0, 0, 0, 0, 0, -1, 1, 0, 1]);
+
+    var scale = Math.pow(2, map.zoom);
+
+    var offset = mapProjection.fromLatLngToPoint(canvaslayer.getTopLeft());
+    var pos0 = mapProjection.fromLatLngToPoint(this.latlng[0]);
+    var pos1 = mapProjection.fromLatLngToPoint(this.latlng[1]);
+
+
+    mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 0]);
+    mat4.translate(this.pMatrix, this.pMatrix, [-offset.x, -offset.y, 0.0]);
+
+    mat4.translate(this.mvMatrix, this.mvMatrix, [pos0.x, pos0.y, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [pos1.x-pos0.x,pos1.y-pos0.y,1]);
+  }
+  else{
+    mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+
+    mat4.translate(this.mvMatrix, this.mvMatrix, [this.translation[0]/width, this.translation[1]/height, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [1.0+this.zoomLevel, 1.0+this.zoomLevel, 0]);
+  }
+
+
+
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbof);
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+  //TODO: make sure this.primitives.array have the GROUPS, not some other variable
+  for(group in this.primitives.array)
+    this.primitives.draw(this.gl, this.singlepass_kdeShader, this.mvMatrix, this.pMatrix, group);
+    
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
+  this.gl.useProgram(null);
+
+  this.gl.disable(this.gl.BLEND);
+
+
+  this.updateShade(0, 1);
+
 
 }
 
@@ -639,6 +731,8 @@ ScatterGL.prototype.updateShade = function(pass, numgroups){
 
   //horizontal pass
   this.gl.viewport(0, 0, this.numbin, this.numbin);
+  mat4.identity(this.mvMatrix);
+  mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
   //this.gl.viewport(i*width, j*height, width, height);
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
   this.gl.uniform1f(this.shadeShader.useDensity, this.useDensity);
@@ -712,10 +806,6 @@ ScatterGL.prototype.update = function(){
   mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
 
-  var now1, now1;
-  if(measureTime)
-    now1 = window.performance.now();
-
   //this.drawReady = true;
 
   //TODO: performance hit?
@@ -753,17 +843,6 @@ ScatterGL.prototype.update = function(){
 
   //this.updateContour(scatter);
 
-  if(measureTime){
-    //glfinish does not work (equal to glflush)
-    //to make sure everything is done by the time we measure the time, just do a readPixels, instead of glfinish
-    var pixelValues = new Uint8Array(4 * 1);
-    this.gl.readPixels(0, 0, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixelValues);
-    
-    var now2 = window.performance.now();
-    console.log(now2 - now1);
-
-  }
-
   this.flagUpdateTexture = false;
   
 }//
@@ -772,11 +851,21 @@ ScatterGL.prototype.update = function(){
 ScatterGL.prototype.draw = function(map, canvaslayer){
 
 
+  if(measureTime)
+    starttime(this.gl);
+
+
   //this.update();
 
   //if(this.drawReady == false) return;
 
-  if(this.flagUpdateTexture == true){
+  if(this.kdetype == 'singlekde'){
+    this.updateSinglePassKDE();
+    mat4.identity(this.mvMatrix);
+    mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+    //return;
+  }
+  else if(this.flagUpdateTexture == true){
     if(this.useStreaming == true)
       this.drawPoints(map,canvaslayer);
     this.update();
@@ -830,6 +919,8 @@ ScatterGL.prototype.draw = function(map, canvaslayer){
       this.gl.uniform2f(this.simpleShader.translation, this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight);
     }
   }
+
+  
   
   this.finalquad.draw(
     this.gl,
@@ -840,6 +931,10 @@ ScatterGL.prototype.draw = function(map, canvaslayer){
   );
 
   this.gl.useProgram(null);
+
+
+  if(measureTime)
+    endtime(this.gl);
 
   //selection
   /*
@@ -1272,6 +1367,41 @@ ScatterGL.prototype.initShaders = function(){
   //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
   this.gl.disableVertexAttribArray(this.shadeShader.vertexPositionAttribute);
   this.gl.disableVertexAttribArray(this.shadeShader.textureCoordAttribute);
+
+  this.gl.useProgram(null);
+
+  //single pass kde
+  var fragmentShader = getShader(this.gl, "./js/glsl/singlepass_kde.frag", true);
+  var vertexShader = getShader(this.gl, "./js/glsl/singlepass_kde.vert", false);
+
+  this.singlepass_kdeShader = this.gl.createProgram();
+  this.gl.attachShader(this.singlepass_kdeShader, vertexShader);
+  this.gl.attachShader(this.singlepass_kdeShader, fragmentShader);
+  this.gl.linkProgram(this.singlepass_kdeShader);
+
+  if (!this.gl.getProgramParameter(this.singlepass_kdeShader, this.gl.LINK_STATUS)) {
+    alert("Could not initialise shaders");
+  }
+
+  this.gl.useProgram(this.singlepass_kdeShader);
+
+  this.singlepass_kdeShader.vertexPositionAttribute = this.gl.getAttribLocation(this.singlepass_kdeShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.singlepass_kdeShader.vertexPositionAttribute);
+
+  this.singlepass_kdeShader.textureCoordAttribute = this.gl.getAttribLocation(this.singlepass_kdeShader, "aTexCoord");
+  this.gl.enableVertexAttribArray(this.singlepass_kdeShader.textureCoordAttribute);
+
+  this.singlepass_kdeShader.bandwidth = this.gl.getUniformLocation(this.singlepass_kdeShader, "uBandwidth");
+  this.singlepass_kdeShader.numPoints = this.gl.getUniformLocation(this.singlepass_kdeShader, 'uNumPoints');
+  //this.shadeShader.contour = this.gl.getUniformLocation(this.shadeShader, "uContour");
+
+
+  this.singlepass_kdeShader.pMatrixUniform = this.gl.getUniformLocation(this.singlepass_kdeShader, "uPMatrix");
+  this.singlepass_kdeShader.mvMatrixUniform = this.gl.getUniformLocation(this.singlepass_kdeShader, "uMVMatrix");
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  this.gl.disableVertexAttribArray(this.singlepass_kdeShader.vertexPositionAttribute);
+  this.gl.disableVertexAttribArray(this.singlepass_kdeShader.textureCoordAttribute);
 
   this.gl.useProgram(null);
 
