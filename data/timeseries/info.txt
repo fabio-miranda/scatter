@@ -1,4 +1,4 @@
-numentries: 200
+numentries: 10000
 numdim: 3
 min: 0
 max: 1
