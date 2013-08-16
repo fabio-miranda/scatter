@@ -17,6 +17,6 @@ void main(void) {
 	float val = gauss(dist / uBandwidth);
 	float weight = 100.0 / uNumPoints;
 	val = val * weight;
-  gl_FragColor = vec4(val, 0, 0, 1);
+  gl_FragColor = vec4(val);
   
 }

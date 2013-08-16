@@ -1,6 +1,8 @@
 precision mediump float;
 uniform float uBandwidth;
 uniform float uNumPoints;
+uniform float uKernelSize;
+uniform float uNumBins;
 
 float gauss(float r){
   return 0.3989422804 * exp( 25.0 * (- r*r) / 2.0);

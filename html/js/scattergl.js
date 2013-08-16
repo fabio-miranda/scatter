@@ -69,6 +69,7 @@ function ScatterGL(canvas, numdim, numentries, useStreaming, isLine){
   this.translation = [0.0,0.0];
   this.latlng = null;
   this.flagUpdateTexture = false;
+  this.kernelsize = 256.0;
   if(useStreaming)
     this.useStreaming = 1.0;
   else
@@ -300,7 +301,9 @@ ScatterGL.prototype.updateSinglePassKDE = function(){
   this.gl.viewport(0, 0, this.numbin, this.numbin);
 
   this.gl.uniform1f(this.singlepass_kdeShader.bandwidth, this.bandwidth);
-  this.gl.uniform1f(this.singlepass_kdeShader.numPoints, this.primitives.numrasterpoints)
+  this.gl.uniform1f(this.singlepass_kdeShader.numPoints, this.primitives.numrasterpoints);
+  this.gl.uniform1f(this.singlepass_kdeShader.numBins, this.numbin);
+  this.gl.uniform1f(this.singlepass_kdeShader.kernelSize, this.windowSize);
 
 
   if(map != null && canvaslayer != null && map.getProjection() != null){
@@ -398,6 +401,8 @@ ScatterGL.prototype.updateSinglePassAKDE = function(){
     this.gl.useProgram(this.singlepass_akdeShader[0]);
     this.gl.uniform1f(this.singlepass_akdeShader[0].bandwidth, this.bandwidth);
     this.gl.uniform1f(this.singlepass_akdeShader[0].numPoints, this.primitives.numrasterpoints);
+    this.gl.uniform1f(this.singlepass_akdeShader[0].numBins, this.numbin);
+    this.gl.uniform1f(this.singlepass_akdeShader[0].kernelSize, this.windowSize);
 
 
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
@@ -422,6 +427,8 @@ ScatterGL.prototype.updateSinglePassAKDE = function(){
     this.gl.useProgram(this.singlepass_akdeShader[1]);
     this.gl.uniform1f(this.singlepass_akdeShader[1].bandwidth, this.bandwidth);
     this.gl.uniform1f(this.singlepass_akdeShader[1].numPoints, this.primitives.numrasterpoints);
+    this.gl.uniform1f(this.singlepass_akdeShader[1].numBins, this.numbin);
+    this.gl.uniform1f(this.singlepass_akdeShader[1].kernelSize, this.windowSize);
 
 
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
@@ -444,6 +451,8 @@ ScatterGL.prototype.updateSinglePassAKDE = function(){
     this.gl.useProgram(this.singlepass_akdeShader[2]);
     this.gl.uniform1f(this.singlepass_akdeShader[2].bandwidth, this.bandwidth);
     this.gl.uniform1f(this.singlepass_akdeShader[2].numPoints, this.primitives.numrasterpoints);
+    this.gl.uniform1f(this.singlepass_akdeShader[2].numBins, this.numbin);
+    this.gl.uniform1f(this.singlepass_akdeShader[2].kernelSize, this.windowSize);
 
 
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbof);
@@ -1492,6 +1501,8 @@ ScatterGL.prototype.initShaders = function(){
 
   this.singlepass_kdeShader.bandwidth = this.gl.getUniformLocation(this.singlepass_kdeShader, "uBandwidth");
   this.singlepass_kdeShader.numPoints = this.gl.getUniformLocation(this.singlepass_kdeShader, 'uNumPoints');
+  this.singlepass_kdeShader.numBins = this.gl.getUniformLocation(this.singlepass_kdeShader, 'uNumBins');
+  this.singlepass_kdeShader.kernelSize = this.gl.getUniformLocation(this.singlepass_kdeShader, 'uKernelSize');
   //this.shadeShader.contour = this.gl.getUniformLocation(this.shadeShader, "uContour");
 
 
@@ -1558,6 +1569,8 @@ ScatterGL.prototype.initShaders = function(){
 
     this.singlepass_akdeShader[i].bandwidth = this.gl.getUniformLocation(this.singlepass_akdeShader[i], "uBandwidth");
     this.singlepass_akdeShader[i].numPoints = this.gl.getUniformLocation(this.singlepass_akdeShader[i], 'uNumPoints');
+    this.singlepass_akdeShader[i].numBins = this.gl.getUniformLocation(this.singlepass_akdeShader[i], 'uNumBins');
+    this.singlepass_akdeShader[i].kernelSize = this.gl.getUniformLocation(this.singlepass_akdeShader[i], 'uKernelSize');
     this.singlepass_akdeShader[i].sampler0 = this.gl.getUniformLocation(this.singlepass_akdeShader[i], "uSamplerF");
     //this.shadeShader.contour = this.gl.getUniformLocation(this.shadeShader, "uContour");
 
