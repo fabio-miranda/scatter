@@ -98,15 +98,35 @@ function distance(x0, y0, x1, y1){
     return Math.sqrt((x0 -= x1) * x0 + (y0 -= y1) * y0);
 };
 
-function points(gl){
+function points(gl, hasTexture){
 
   this.array = {};
   this.pointsBuffer = null;
   this.color = null;
+  this.hasTexture = hasTexture;
 
   this.pointsBuffer = gl.createBuffer();
   this.pointsBuffer.itemSize = 2;
+  /*
+  if(this.hasTexture){
+    //tex coord
+    this.texCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+    
+    
+    var texCoords = [
+         1.0,  1.0,
+         0.0,  1.0,
+         1.0,  0.0,
+         0.0,  0.0,
+    ];
+    
 
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+    this.texCoordBuffer.itemSize = 2;
+    this.texCoordBuffer.numItems = 4;
+  }
+  */
   this.numrasterpoints = 0;
 
 }
@@ -134,7 +154,7 @@ points.prototype.reset = function(){
 }
 
 
-points.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, group){
+points.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, group, tex0, tex1){
 
   //TODO: optimize? Do we really need to call bufferData for every point inserted?
   gl.bindBuffer(gl.ARRAY_BUFFER, this.pointsBuffer);
@@ -148,6 +168,18 @@ points.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, group){
   gl.bindBuffer(gl.ARRAY_BUFFER, this.pointsBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.pointsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+  if(tex0 != null){
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, tex0);
+    gl.uniform1i(shaderProgram.sampler0, 0);
+  }
+
+  if(tex1 != null){
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, tex1);
+    gl.uniform1i(shaderProgram.sampler1, 1);
+  }
+
 
   gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
   gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
@@ -155,6 +187,9 @@ points.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, group){
 
   //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
   gl.disableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+  if(tex0 != null)
+    gl.disableVertexAttribArray(shaderProgram.textureCoordAttribute);
 }
 
 function lines(gl){
@@ -280,12 +315,12 @@ quad.prototype.draw = function(gl, shaderProgram, mvMatrix, pMatrix, tex0, tex1,
   //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
   //TODO: do this every frame?
   gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-  gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, this.quadBuffer.itemSize, gl.FLOAT, false, 0, 0);
   
   if(tex0 != null){
+    gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
     gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, this.texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 

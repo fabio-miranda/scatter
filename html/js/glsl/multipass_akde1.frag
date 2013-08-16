@@ -31,7 +31,7 @@ vec4 getValue(vec2 coord){
 }
 
 void main(void) {
-
+  
   vec2 coord2D = vTexCoord;
   vec4 values  = texture2D(uSamplerCount, coord2D); //count, f
   float mean=0.0;

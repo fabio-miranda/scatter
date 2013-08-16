@@ -11,8 +11,7 @@ function endtime(gl){
   var pixelValues = new Uint8Array(4 * 1);
   gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
   
-  var now2 = window.performance.now();
-  console.log(now2 - now);
+  console.log(window.performance.now() - now);
 }
 
 function SelectionQuad(gl){
@@ -105,11 +104,11 @@ function ScatterGL(canvas, numdim, numentries, useStreaming, isLine){
 
   if(isLine){
     this.isLine = 1.0;
-    this.primitives = new lines(this.gl);
+    this.primitives = new lines(this.gl, true);
   }
   else{
     this.isLine = 0.0;
-    this.primitives = new points(this.gl);
+    this.primitives = new points(this.gl, true);
   }
 }
 
@@ -286,19 +285,6 @@ ScatterGL.prototype.getSelection = function(){
 
 ScatterGL.prototype.updateSinglePassKDE = function(){
 
-  //draw points
-
-  //send bandwidth as uniform
-
-  //scale point according to bandwidth in vertex shader
-
-  //in fragment shader, calculate gauss value according to fragment distance to point (gl_PointCoord)
-
-  //output the value of f
-
-  //run the shade algorithm
-
-
   //this.drawTexture();
   //return;
   this.gl.disable(this.gl.DEPTH_TEST);
@@ -357,6 +343,122 @@ ScatterGL.prototype.updateSinglePassKDE = function(){
   this.gl.disable(this.gl.BLEND);
 
 
+  this.updateShade(0, 1);
+
+
+}
+
+ScatterGL.prototype.updateSinglePassAKDE = function(){
+
+  //this.drawTexture();
+  //return;
+  this.gl.disable(this.gl.DEPTH_TEST);
+  this.gl.enable(this.gl.BLEND);
+
+  var width = this.canvas.width;
+  var height = this.canvas.height;
+
+  mat4.identity(this.mvMatrix);
+
+  
+  this.gl.viewport(0, 0, this.numbin, this.numbin);
+
+
+  if(map != null && canvaslayer != null && map.getProjection() != null){
+    var mapProjection = map.getProjection();
+
+    mat4.copy(this.pMatrix, [2/width, 0, 0, 0, 0, -2/height, 0, 0, 0, 0, 0, 0, -1, 1, 0, 1]);
+
+    var scale = Math.pow(2, map.zoom);
+
+    var offset = mapProjection.fromLatLngToPoint(canvaslayer.getTopLeft());
+    var pos0 = mapProjection.fromLatLngToPoint(this.latlng[0]);
+    var pos1 = mapProjection.fromLatLngToPoint(this.latlng[1]);
+
+
+    mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 0]);
+    mat4.translate(this.pMatrix, this.pMatrix, [-offset.x, -offset.y, 0.0]);
+
+    mat4.translate(this.mvMatrix, this.mvMatrix, [pos0.x, pos0.y, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [pos1.x-pos0.x,pos1.y-pos0.y,1]);
+  }
+  else{
+    mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+
+    mat4.translate(this.mvMatrix, this.mvMatrix, [this.translation[0]/width, this.translation[1]/height, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [1.0+this.zoomLevel, 1.0+this.zoomLevel, 0]);
+  }
+
+
+
+  //first pass
+  {
+    this.gl.blendFunc(this.gl.ONE, this.gl.ONE);
+
+    this.gl.useProgram(this.singlepass_akdeShader[0]);
+    this.gl.uniform1f(this.singlepass_akdeShader[0].bandwidth, this.bandwidth);
+    this.gl.uniform1f(this.singlepass_akdeShader[0].numPoints, this.primitives.numrasterpoints);
+
+
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo1);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    //TODO: make sure this.primitives.array have the GROUPS, not some other variable
+    for(group in this.primitives.array)
+      this.primitives.draw(this.gl, this.singlepass_akdeShader[0], this.mvMatrix, this.pMatrix, group, null);
+      
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
+    this.gl.useProgram(null);
+  }
+
+  //return;
+
+
+  //second pass
+  {
+    this.gl.blendFunc(this.gl.ONE, this.gl.ONE);
+    //this.gl.blendFunc(this.gl.DST_COLOR, this.gl.ONE);
+
+    this.gl.useProgram(this.singlepass_akdeShader[1]);
+    this.gl.uniform1f(this.singlepass_akdeShader[1].bandwidth, this.bandwidth);
+    this.gl.uniform1f(this.singlepass_akdeShader[1].numPoints, this.primitives.numrasterpoints);
+
+
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbo2);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    //TODO: make sure this.primitives.array have the GROUPS, not some other variable
+    for(group in this.primitives.array)
+      this.primitives.draw(this.gl, this.singlepass_akdeShader[1], this.mvMatrix, this.pMatrix, group, this.fbotex1); //this.fbotexf
+      
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
+    this.gl.useProgram(null);
+  }
+
+  //return;
+
+  //third pass
+  {
+    this.gl.blendFunc(this.gl.ONE, this.gl.ONE);
+
+    this.gl.useProgram(this.singlepass_akdeShader[2]);
+    this.gl.uniform1f(this.singlepass_akdeShader[2].bandwidth, this.bandwidth);
+    this.gl.uniform1f(this.singlepass_akdeShader[2].numPoints, this.primitives.numrasterpoints);
+
+
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbof);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    //TODO: make sure this.primitives.array have the GROUPS, not some other variable
+    for(group in this.primitives.array)
+      this.primitives.draw(this.gl, this.singlepass_akdeShader[2], this.mvMatrix, this.pMatrix, group, this.fbotex1, this.fbotex2);
+      
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
+    this.gl.useProgram(null);
+  }
+  //return;
+
+  this.gl.disable(this.gl.BLEND);
   this.updateShade(0, 1);
 
 
@@ -861,9 +963,9 @@ ScatterGL.prototype.draw = function(map, canvaslayer){
 
   if(this.kdetype == 'singlekde'){
     this.updateSinglePassKDE();
-    mat4.identity(this.mvMatrix);
-    mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
-    //return;
+  }
+  else if(this.kdetype == 'singleakde'){
+    this.updateSinglePassAKDE();
   }
   else if(this.flagUpdateTexture == true){
     if(this.useStreaming == true)
@@ -1388,9 +1490,6 @@ ScatterGL.prototype.initShaders = function(){
   this.singlepass_kdeShader.vertexPositionAttribute = this.gl.getAttribLocation(this.singlepass_kdeShader, "aVertexPosition");
   this.gl.enableVertexAttribArray(this.singlepass_kdeShader.vertexPositionAttribute);
 
-  this.singlepass_kdeShader.textureCoordAttribute = this.gl.getAttribLocation(this.singlepass_kdeShader, "aTexCoord");
-  this.gl.enableVertexAttribArray(this.singlepass_kdeShader.textureCoordAttribute);
-
   this.singlepass_kdeShader.bandwidth = this.gl.getUniformLocation(this.singlepass_kdeShader, "uBandwidth");
   this.singlepass_kdeShader.numPoints = this.gl.getUniformLocation(this.singlepass_kdeShader, 'uNumPoints');
   //this.shadeShader.contour = this.gl.getUniformLocation(this.shadeShader, "uContour");
@@ -1401,7 +1500,6 @@ ScatterGL.prototype.initShaders = function(){
 
   //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
   this.gl.disableVertexAttribArray(this.singlepass_kdeShader.vertexPositionAttribute);
-  this.gl.disableVertexAttribArray(this.singlepass_kdeShader.textureCoordAttribute);
 
   this.gl.useProgram(null);
 
@@ -1432,6 +1530,50 @@ ScatterGL.prototype.initShaders = function(){
   
   this.gl.useProgram(null);
   */
+
+  //single pass akde
+  this.singlepass_akdeShader = [];
+  for(var i=0; i<3; i++){
+
+    var fragmentShader = getShader(this.gl, "./js/glsl/singlepass_akde"+i+".frag", true);
+    var vertexShader = getShader(this.gl, "./js/glsl/singlepass_akde"+i+".vert", false);
+
+    this.singlepass_akdeShader[i] = this.gl.createProgram();
+    this.gl.attachShader(this.singlepass_akdeShader[i], vertexShader);
+    this.gl.attachShader(this.singlepass_akdeShader[i], fragmentShader);
+    this.gl.linkProgram(this.singlepass_akdeShader[i]);
+
+    if (!this.gl.getProgramParameter(this.singlepass_akdeShader[i], this.gl.LINK_STATUS)) {
+      alert("Could not initialise shaders");
+    }
+
+    this.gl.useProgram(this.singlepass_akdeShader[i]);
+
+    this.singlepass_akdeShader[i].vertexPositionAttribute = this.gl.getAttribLocation(this.singlepass_akdeShader[i], "aVertexPosition");
+    this.gl.enableVertexAttribArray(this.singlepass_akdeShader[i].vertexPositionAttribute);
+
+    //we dont need tex coords. Access using the frag coord
+    //this.singlepass_akdeShader[i].textureCoordAttribute = this.gl.getAttribLocation(this.singlepass_akdeShader[i], "aTexCoord");
+    //this.gl.enableVertexAttribArray(this.singlepass_akdeShader[i].textureCoordAttribute);
+
+    this.singlepass_akdeShader[i].bandwidth = this.gl.getUniformLocation(this.singlepass_akdeShader[i], "uBandwidth");
+    this.singlepass_akdeShader[i].numPoints = this.gl.getUniformLocation(this.singlepass_akdeShader[i], 'uNumPoints');
+    this.singlepass_akdeShader[i].sampler0 = this.gl.getUniformLocation(this.singlepass_akdeShader[i], "uSamplerF");
+    //this.shadeShader.contour = this.gl.getUniformLocation(this.shadeShader, "uContour");
+
+    this.singlepass_akdeShader[i].pMatrixUniform = this.gl.getUniformLocation(this.singlepass_akdeShader[i], "uPMatrix");
+    this.singlepass_akdeShader[i].mvMatrixUniform = this.gl.getUniformLocation(this.singlepass_akdeShader[i], "uMVMatrix");
+
+    //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+    this.gl.disableVertexAttribArray(this.singlepass_akdeShader[i].vertexPositionAttribute);
+    this.gl.disableVertexAttribArray(this.singlepass_akdeShader[i].textureCoordAttribute);
+
+  }
+
+  this.singlepass_akdeShader[2].sampler1 = this.gl.getUniformLocation(this.singlepass_akdeShader[2], "uSamplerMean");
+  this.gl.useProgram(null);
+
+
 }
 
 function getxy(that, evt){

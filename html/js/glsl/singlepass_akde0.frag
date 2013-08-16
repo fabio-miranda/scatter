@@ -1,4 +1,8 @@
 precision mediump float;
+
+uniform sampler2D uSamplerF;
+
+
 uniform float uBandwidth;
 uniform float uNumPoints;
 
@@ -13,6 +17,6 @@ void main(void) {
 	float val = gauss(dist / uBandwidth);
 	float weight = 100.0 / uNumPoints;
 	val = val * weight;
-	gl_FragColor = vec4(val);
+  gl_FragColor = vec4(val, 0, 0, 1);
   
 }

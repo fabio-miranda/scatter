@@ -82,10 +82,10 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
     
   }
 
-  //this.texdata[4*0] = 255;
-  //this.texdata[4*0+1] = 255;
-  //this.texdata[4*0+2] = 255;
-  //this.texdata[4*0+3] = 0;
+  this.texdata[4*0] = 255;
+  this.texdata[4*0+1] = 255;
+  this.texdata[4*0+2] = 255;
+  this.texdata[4*0+3] = 0;
 
   //console.log(texData);
 
