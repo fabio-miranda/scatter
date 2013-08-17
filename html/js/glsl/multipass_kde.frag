@@ -31,7 +31,7 @@ const float std = 1.0;
 //const float maxvalue = 1.0;
 
 float gauss(float r){
-  return 0.3989422804 * exp( (- r*r) / 2.0);
+  return 0.3989422804 * exp( 25.0* (- r*r) / 2.0);
   //return (1.0 / (sqrt(6.28318530718 * std * std))) * exp(- (r*r) / (2.0 * std * std) );
 }
 
