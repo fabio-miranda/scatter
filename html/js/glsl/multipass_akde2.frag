@@ -27,7 +27,7 @@ const float std = 1.0;
 //const float maxvalue = 1.0;
 
 float gauss(float r){
-  return 0.3989422804 * exp( (- r*r) / 2.0);
+  return 0.3989422804 * exp( 25.0 * (- r*r) / 2.0);
   //return (1.0 / (sqrt(6.28318530718 * std * std))) * exp(- (r*r) / (2.0 * std * std) );
 }
 
@@ -48,17 +48,37 @@ void main(void) {
   //return;
 
   //float x = coord2D.x;
+
+  vec2 tex = texture2D(uSamplerIndex, vec2(0.5)).rg;
+  float mean = tex.r;
+  float numpoints = tex.g; //uNumPoints TODO; whats the difference?
+
+  //mean = pow(mean, 1.0/uNumPoints);
+  mean = mean / numpoints;
+  mean = exp(mean);
+
+
   
   float f = 0.0;
   float W = 0.0;
-  float numcounts = 0.0;
+  float numcounts = 1.0;
   for(int i=0;i<maxloop; i++){
     if(i >= int(uWindowSize)) break;
 
     int index = i - int(uWindowSize)/2;
     coord2D = vec2(vTexCoord.x + uIsFirstPass * (float(index) / uNumBins), vTexCoord.y + (1.0 - uIsFirstPass) * (float(index) / uNumBins)); //make sure to access not the next texel, but the next bin
 
-    vec4 valuesi  = texture2D(uSamplerCount, coord2D); //count, f, lambda
+    
+    
+
+    vec4 valuesi;
+    valuesi  = texture2D(uSamplerCount, coord2D); //count
+    float fi;
+
+    if(uIsFirstPass > 0.0)
+      fi = texture2D(uSamplerEntry, vTexCoord).r;
+    else
+      fi = texture2D(uSamplerEntry, vTexCoord).r;
 
 
     float value;
@@ -68,25 +88,45 @@ void main(void) {
       value = uPassValue;
 
     //TODO: remove this if. It REALLY impacts performance
-    if((valuesi.b > 0.0 && uIsFirstPass > 0.0 && value >= uPassValue-0.1 && value <= uPassValue+0.1 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)
-      ||
-      (valuesi.b > 0.0 && uIsFirstPass <= 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
+    if((coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
 
       //if((uIsFirstPass <= 0.0 && valuesi.g > 0.0) || uIsFirstPass > 0.0){
 
         float counti = valuesi.r;
-        //float fi = valuesi.g;
-        float lambdai = valuesi.b;
+        //float fi = valuesi.r;
+        //float fi = valuesi.r;
+        //if(uIsFirstPass <= 0.0)
+          //fi = fi * texture2D(uSamplerCount, coord2D).r;
 
-        float hi = uBandwidth * lambdai;
+        //if(uIsFirstPass <= 0.0){
+          //fi = texture2D(uSamplerCount, coord2D).g / texture2D(uSamplerCount, coord2D).b;
+        //}
 
-        float oneoverhi = 1.0 / hi;
+        float lambda = sqrt(mean / fi);
+
+        //if(uIsFirstPass <= 0.0){
+          //gl_FragColor = vec4(1);
+          //return;
+          //lambda = 1.0;
+        //}
+
+        float bandwidth = uBandwidth * lambda;
+
+        //if(uIsFirstPass <= 0.0){
+          //float count = texture2D(uSamplerCount, coord2D).b;
+          //bandwidth = uBandwidth / count;
+        //}
+
+
+        
+
+        float oneoverhi = 1.0 / bandwidth;
 
         float gaus = gauss((float(index) / uNumBins) * oneoverhi);
         float k = counti * gaus;
 
         f += k;
-        W += hi;
+        W += k;
         numcounts += counti;
         //W += counti ;
       //}
@@ -94,45 +134,32 @@ void main(void) {
   }
   
 
+  //f = f / h;
   if(uIsFirstPass > 0.0){
-    gl_FragColor = vec4(f, f, values.b, 1.0);
-    //gl_FragColor = vec4(values.g, values.g, values.g, 1.0);
-    //gl_FragColor = vec4(values.r, values.g, values.b, 1.0);
+    gl_FragColor = vec4(f, W, numcounts, 0);
   }
   else{
 
-    //W = W / numcounts;
-    //f = (1.0 / (uNumPoints * W)) * f;
-    f = f/0.3989422804;
-    gl_FragColor = vec4(f, f, f, 1.0);
-
+     //f = (1.0 / (uNumPoints*h)) * f;
+    //f = (1.0 / (uNumPoints*h*h)) * f;
+    //f = (1.0 / (50.0*h)) * f;
+    //f = f/0.3989422804;
+    f = f / uNumPoints;
+    f = f * 1000.0;
+    //f = f / 10.0;
+    //f = f / uNumPoints;
     //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     //gl_FragColor = vec4(color.xyz, 1);
+    gl_FragColor = vec4(f);
+    //gl_FragColor = texture2D(uSamplerEntry, vTexCoord);
     /*
-    //gl_FragColor = vec4(values.g, values.g, values.g, 1.0);
-    if(uUseDensity > 0.0){
-      vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).rgb;
-      float alpha = texture2D(uSamplerColorScale, vec2(f, 0)).a;
-      gl_FragColor = vec4(color.xyz*alpha, alpha); //TODO: multiply color by alpha?
-    }
-    else{
-      vec4 oldcolor = texture2D(uSamplerFinal, vTexCoord);
-      //oldcolor.a = 1.0;
-      //gl_FragColor = oldcolor+vec4(0.25, 0.0, 0.0, 0);
-      //return;
-
-      //vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/(uNumPassValues+1.0) + f/(uNumPassValues+1.0), 0)).rgb;
-      vec4 newcolor = texture2D(uSamplerColorScale, vec2(uPassValue/(uNumPassValues+1.0), 0));
-      newcolor.a = texture2D(uSamplerColorScale, vec2(f, 0)).a;
-      //newcolor.a = newcolor.a*0.5;
-
-      //TODO: use premultipled alpha? http://en.wikibooks.org/wiki/GLSL_Programming/Unity/Transparency
-      vec4 finalcolor;
-      finalcolor.rgb = newcolor.a * newcolor.rgb + (1.0 - newcolor.a) * oldcolor.rgb;
-      finalcolor.a = newcolor.a + oldcolor.a;
-      //newcolor.a = 0.5;
-      gl_FragColor = finalcolor;
-    }
+    //float count = texture2D(uSamplerCount, vTexCoord).r;
+    float f = texture2D(uSamplerEntry, vTexCoord).r;
+    float lambda = sqrt(mean / f);
+    float bandwidth = uBandwidth * lambda;
+    //float gaus = gauss(1.0 / bandwidth);
+    float k =  bandwidth;
+    gl_FragColor = vec4(k);
     */
   }
 

@@ -27,7 +27,7 @@ const float std = 1.0;
 //const float maxvalue = 1.0;
 
 float gauss(float r){
-  return 0.3989422804 * exp( (- r*r) / 2.0);
+  return 0.3989422804 * exp( 25.0 * (- r*r) / 2.0);
   //return (1.0 / (sqrt(6.28318530718 * std * std))) * exp(- (r*r) / (2.0 * std * std) );
 }
 
@@ -69,12 +69,13 @@ void main(void) {
       ||
       (uIsFirstPass <= 0.0 && coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0)){ //TODO: use clamp_to_border, instead of this if
 
-      float counti  = texture2D(uSamplerCount, coord2D).g;
+      float counti  = texture2D(uSamplerCount, coord2D).r;
 
       if(uIsFirstPass > 0.0 && uUseStreaming <= 0.0)
         counti = counti * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
-      float gaus = gauss((float(index) / uNumBins) * oneoverh);
+      //float gaus = gauss((float(index) / uNumBins) * oneoverh);
+      float gaus = gauss(0.0 * oneoverh);
       float k = counti * gaus;
 
       f += k;
@@ -83,18 +84,23 @@ void main(void) {
     }
   }
   
-
+  //f = f / h;
   if(uIsFirstPass > 0.0){
-    gl_FragColor = vec4(count, f, f, 1.0);
+    gl_FragColor = vec4(f);
   }
   else{
 
-    f = (1.0 / (uNumPoints*h)) * f;
-    f = f/0.3989422804;
-    gl_FragColor = vec4(count, f, f, 1.0);    
-    //vec3 color = texture2D(uSamplerColorScale, vec2(uPassValue/uNumPassValues, 0)).rgb;
-    //float alpha = texture2D(uSamplerColorScale, vec2(f, 0)).a;
-    //gl_FragColor = vec4(color.xyz*alpha, alpha);
+     //f = (1.0 / (uNumPoints*h)) * f;
+    //f = (1.0 / (uNumPoints*h*h)) * f;
+    //f = (1.0 / (50.0*h)) * f;
+    //f = f/0.3989422804;
+    f = f / uNumPoints;
+    f = f * 100.0;
+    //f = f / 10.0;
+    //f = f / uNumPoints;
+    //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
+    //gl_FragColor = vec4(color.xyz, 1);
+    gl_FragColor = vec4(f);
   }
 
 }

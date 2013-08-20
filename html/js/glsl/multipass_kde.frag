@@ -94,7 +94,7 @@ void main(void) {
     }
   }
   
-  f = f / h;
+  //f = f / h;
   if(uIsFirstPass > 0.0){
     gl_FragColor = vec4(count, f, f, 1.0);
     //gl_FragColor = vec4(count, count, count, 1.0); 
@@ -107,11 +107,12 @@ void main(void) {
     //f = (1.0 / (50.0*h)) * f;
     //f = f/0.3989422804;
     f = f / uNumPoints;
+    f = f * 100.0;
     //f = f / 10.0;
     //f = f / uNumPoints;
     //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     //gl_FragColor = vec4(color.xyz, 1);
-    gl_FragColor = vec4(f,f,f,1.0);
+    gl_FragColor = vec4(f);
   }
   
 

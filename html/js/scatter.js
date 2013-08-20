@@ -56,7 +56,7 @@ function cb_receiveInfo(data){
 
   $( "#div_bandwidthslider" ).slider({
     min: 0.001,
-    max: 1.0,
+    max: 4.0,
     step: 0.001,
     slide: function( event, ui ) {
       changeBandwidth(ui.value);

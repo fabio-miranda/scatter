@@ -11,7 +11,7 @@ varying vec2 originalPos;
 
 void main(void) {
 
-  float f = texture2D(uSamplerF, originalPos).r;
+  float f = texture2D(uSamplerF, originalPos).g;
   //float f = texture2D(uSamplerF, originalPos).r;
   f = log(f);
   gl_FragColor = vec4(f,1,1,1);
