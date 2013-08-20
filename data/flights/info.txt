@@ -1,0 +1,10 @@
+numentries: 509519
+numdim: 4
+min: 0
+max: 1
+isline: 1
+hasgeoinfo: 1
+lat0: -14.33
+lng0: -176.64611111
+lat1: 71.285
+lng1: 144.79722222
