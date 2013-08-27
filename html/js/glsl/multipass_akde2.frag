@@ -51,7 +51,7 @@ void main(void) {
 
   vec2 tex = texture2D(uSamplerIndex, vec2(0.5)).rg;
   float mean = tex.r;
-  float numpoints = tex.g; //uNumPoints TODO; whats the difference?
+  float numpoints = uNumPoints; //tex.g TODO; whats the difference?
 
   //mean = pow(mean, 1.0/uNumPoints);
   mean = mean / numpoints;

@@ -105,7 +105,7 @@ function cb_receiveInfo(data){
 
   $( "#div_alphaslider" ).slider({
     min: 0.0,
-    max: 2.0,
+    max: 10.0,
     value: 1.0,
     step: 0.001,
     slide: function( event, ui ) {
@@ -217,11 +217,16 @@ function cb_receivePoint(data){
   for(pos in data['points']){
     var x = (data['points'][pos]['i'] - data['mini']) / (data['maxi'] - data['mini']);
     var y = (data['points'][pos]['j'] - data['minj']) / (data['maxj'] - data['minj']);
+    
+    //console.log(data['points'][pos]['i']+', '+data['points'][pos]['j']);
+
     var group = data['points'][pos]['k'];
     scattermatrix.primitives.add(x, y, group);
   }
-  
 
+  changeBandwidth(data['h']*20.0);
+  
+  console.log(data);
   draw();
 
   //requestPoints();
@@ -483,6 +488,7 @@ function changeColorScale(){
   if(alphaType == 'alpha_linear')
     isAlphaLinear = true;
 
+  var fixedAlpha = null;
   if(alphaType == 'alpha_fixed')
     fixedAlpha = 1.0;
   
@@ -599,6 +605,7 @@ function resize(){
 }
 
 function draw(){
+  scattermatrix.flagUpdateTexture = true;
   scattermatrix.draw(map, canvaslayer);
 }
 
@@ -643,7 +650,7 @@ function initMap(){
     map: map,
     resizeHandler: resize,
     animate: false,
-    updateHandler: update
+    updateHandler: draw
   };
   canvaslayer = new CanvasLayer(canvasLayerOptions);
 

@@ -24,6 +24,7 @@ void main(void) {
   if(uUseDensity > 0.0){
     newcolor = texture2D(uSamplerColorScale, vec2(f, 0));
     newcolor.a *= uAlphaMultiplier;
+    newcolor.a = clamp(newcolor.a, 0.0,1.0);
     gl_FragColor = vec4(newcolor.rgb*newcolor.a, newcolor.a); //TODO: multiply color by alpha?
 
     //Density uses rgb to calculate the df. Groups use alpha.

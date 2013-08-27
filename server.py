@@ -58,7 +58,8 @@ class ScatterPage:
     maxk = - float("inf")
 
     data['points'] = {}
-
+    flati = []
+    flatj = []
     f = open(datapath+'/data', 'r')
     entrycount = 0
     for count in range(0, entry+numentries):
@@ -69,8 +70,11 @@ class ScatterPage:
       if(count >= entry):
         data['points'][count] = {};
         tokens = line.split(';')
-        data['points'][count]['i'] = float(tokens[j])
-        data['points'][count]['j'] = float(tokens[i])
+        data['points'][count]['i'] = float(tokens[i])
+        data['points'][count]['j'] = float(tokens[j])
+
+        flati.append(float(tokens[i]))
+        flatj.append(float(tokens[j]))
 
         if(k == 'density' and len(tokens) <= 2):
           data['points'][count]['k'] = 0
@@ -93,6 +97,7 @@ class ScatterPage:
         entrycount+=1
 
 
+    data['h'] = 1.06*0.5*(numpy.std(flati)+numpy.std(flatj))*pow(entrycount,-0.2)
     data['mini'] = mini
     data['minj'] = minj
     data['mink'] = mink

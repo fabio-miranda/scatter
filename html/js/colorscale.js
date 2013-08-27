@@ -54,7 +54,7 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
   this.texdata = new Uint8Array(4*this.texsize);
   var count = 1;
   for(var i=0; i<this.texsize; i++){
-    var hex = scaleColor(i);
+    var hex = scaleColor(this.texsize-i);
     var r = hexToR(hex);
     var g = hexToG(hex);
     var b = hexToB(hex);
@@ -82,10 +82,12 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
     
   }
 
-  //this.texdata[4*0] = 255;
-  //this.texdata[4*0+1] = 255;
-  //this.texdata[4*0+2] = 255;
-  //this.texdata[4*0+3] = 0;
+  for(var i=0; i<10; i++){
+    this.texdata[4*i] = 255;
+    this.texdata[4*i+1] = 255;
+    this.texdata[4*i+2] = 255;
+    this.texdata[4*i+3] = 0;
+  }
 
   //console.log(texData);
 
@@ -109,7 +111,7 @@ ColorScale.prototype.draw = function(){
 
   this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
 
-  this.quad.draw(this.gl, this.simpleShader, this.mvMatrix, this.pMatrix, this.texture);
+  this.quad.draw(this.simpleShader, this.mvMatrix, this.pMatrix, this.texture);
 
   this.gl.useProgram(null);
 

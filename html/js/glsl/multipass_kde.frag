@@ -107,7 +107,7 @@ void main(void) {
     //f = (1.0 / (50.0*h)) * f;
     //f = f/0.3989422804;
     f = f / uNumPoints;
-    f = f * 100.0;
+    f = f * 1000.0;
     //f = f / 10.0;
     //f = f / uNumPoints;
     //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;

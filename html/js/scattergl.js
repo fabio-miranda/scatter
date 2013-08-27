@@ -338,7 +338,7 @@ ScatterGL.prototype.updateSinglePassKDE = function(){
 
   //TODO: make sure this.primitives.array have the GROUPS, not some other variable
   for(group in this.primitives.array)
-    this.primitives.draw(this.gl, this.singlepass_kdeShader, this.mvMatrix, this.pMatrix, group);
+    this.primitives.draw(this.singlepass_kdeShader, this.mvMatrix, this.pMatrix, group);
     
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
   this.gl.useProgram(null);
@@ -410,7 +410,7 @@ ScatterGL.prototype.updateSinglePassAKDE = function(){
 
     //TODO: make sure this.primitives.array have the GROUPS, not some other variable
     for(group in this.primitives.array)
-      this.primitives.draw(this.gl, this.singlepass_akdeShader[0], this.mvMatrix, this.pMatrix, group, null);
+      this.primitives.draw(this.singlepass_akdeShader[0], this.mvMatrix, this.pMatrix, group, null);
       
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
     this.gl.useProgram(null);
@@ -436,7 +436,7 @@ ScatterGL.prototype.updateSinglePassAKDE = function(){
 
     //TODO: make sure this.primitives.array have the GROUPS, not some other variable
     for(group in this.primitives.array)
-      this.primitives.draw(this.gl, this.singlepass_akdeShader[1], this.mvMatrix, this.pMatrix, group, this.fbotex1); //this.fbotexf
+      this.primitives.draw(this.singlepass_akdeShader[1], this.mvMatrix, this.pMatrix, group, this.fbotex1); //this.fbotexf
       
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
     this.gl.useProgram(null);
@@ -460,7 +460,7 @@ ScatterGL.prototype.updateSinglePassAKDE = function(){
 
     //TODO: make sure this.primitives.array have the GROUPS, not some other variable
     for(group in this.primitives.array)
-      this.primitives.draw(this.gl, this.singlepass_akdeShader[2], this.mvMatrix, this.pMatrix, group, this.fbotex1, this.fbotex2);
+      this.primitives.draw(this.singlepass_akdeShader[2], this.mvMatrix, this.pMatrix, group, this.fbotex1, this.fbotex2);
       
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
     this.gl.useProgram(null);
@@ -530,7 +530,6 @@ ScatterGL.prototype.updateKDE = function(pass, numgroups, width, height){
   }
 
   this.scatterquad.draw(
-    this.gl,
     this.multipass_kdeShader,
     this.mvMatrix,
     this.pMatrix,
@@ -551,7 +550,6 @@ ScatterGL.prototype.updateKDE = function(pass, numgroups, width, height){
   this.gl.uniform1f(this.multipass_kdeShader.isFirstPass, 0.0);
   
   this.scatterquad.draw(
-    this.gl,
     this.multipass_kdeShader,
     this.mvMatrix,
     this.pMatrix,
@@ -606,7 +604,6 @@ ScatterGL.prototype.updateSingleAKDEPass = function(akdePass, isHorizontal, pass
 
 
   this.scatterquad.draw(
-    this.gl,
     this.multipass_akdeShader[akdePass],
     this.mvMatrix,
     this.pMatrix,
@@ -655,7 +652,7 @@ ScatterGL.prototype.updateAKDE = function(pass, numgroups, width, height){
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
     //return;
   }
-  
+
 
   //second pass (g)
   /*
@@ -691,7 +688,7 @@ ScatterGL.prototype.updateAKDE = function(pass, numgroups, width, height){
 
     //TODO: make sure this.primitives.array have the GROUPS, not some other variable
     for(group in this.primitives.array)
-      this.primitives.draw(this.gl, this.singlepass_akdeShader[1], this.mvMatrix, this.pMatrix, group, this.fbotex2); //this.fbotexf
+      this.primitives.draw(this.singlepass_akdeShader[1], this.mvMatrix, this.pMatrix, group, this.fbotex2); //this.fbotexf
       
     this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
     this.gl.useProgram(null);
@@ -745,7 +742,6 @@ ScatterGL.prototype.updateDiscrete = function(width, height){
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   this.scatterquad.draw(
-    this.gl,
     this.discreteShader,
     this.mvMatrix,
     this.pMatrix,
@@ -785,7 +781,6 @@ ScatterGL.prototype.updateOutliers = function(numgroups){
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   this.scatterquad.draw(
-    this.gl,
     this.outliersShader,
     this.mvMatrix,
     this.pMatrix,
@@ -807,7 +802,6 @@ ScatterGL.prototype.updateOutliers = function(numgroups){
   this.gl.uniform1f(this.outliersShader.isFirstPass, 0.0);
   
   this.scatterquad.draw(
-    this.gl,
     this.outliersShader,
     this.mvMatrix,
     this.pMatrix,
@@ -832,7 +826,6 @@ ScatterGL.prototype.updateOutliers = function(numgroups){
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   
   this.scatterquad.draw(
-    this.gl,
     this.simpleShader,
     this.mvMatrix,
     this.pMatrix,
@@ -868,7 +861,6 @@ ScatterGL.prototype.updateShade = function(pass, numgroups){
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   this.scatterquad.draw(
-    this.gl,
     this.shadeShader,
     this.mvMatrix,
     this.pMatrix,
@@ -892,7 +884,6 @@ ScatterGL.prototype.updateShade = function(pass, numgroups){
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   
   this.scatterquad.draw(
-    this.gl,
     this.simpleShader,
     this.mvMatrix,
     this.pMatrix,
@@ -1017,7 +1008,7 @@ ScatterGL.prototype.draw = function(map, canvaslayer){
     var pos0 = mapProjection.fromLatLngToPoint(this.latlng[0]);
     var pos1 = mapProjection.fromLatLngToPoint(this.latlng[1]);
 
-    console.log(offset);
+    //console.log(offset);
 
 
     mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 1]);
@@ -1042,7 +1033,6 @@ ScatterGL.prototype.draw = function(map, canvaslayer){
   
   
   this.finalquad.draw(
-    this.gl,
     this.simpleShader,
     this.mvMatrix,
     this.pMatrix,
@@ -1102,18 +1092,22 @@ ScatterGL.prototype.drawPoints = function(map, canvaslayer){
     var pos0 = mapProjection.fromLatLngToPoint(this.latlng[0]);
     var pos1 = mapProjection.fromLatLngToPoint(this.latlng[1]);
 
+    //pos0.y*=1.001;
+    //pos1.y*=1.1;
+
 
     mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 0]);
     mat4.translate(this.pMatrix, this.pMatrix, [-offset.x, -offset.y, 0.0]);
 
     mat4.translate(this.mvMatrix, this.mvMatrix, [pos0.x, pos0.y, 0]);
     mat4.scale(this.mvMatrix, this.mvMatrix, [pos1.x-pos0.x,pos1.y-pos0.y,1]);
+
   }
   else{
     mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
 
     mat4.translate(this.mvMatrix, this.mvMatrix, [this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight, 0]);
-    mat4.scale(this.mvMatrix, this.mvMatrix, [1.0+this.zoomLevel, 1.0+this.zoomLevel, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [1.0+this.zoomLevel, 1.0+this.zoomLevel, 1]);
   }
 
 
@@ -1122,7 +1116,7 @@ ScatterGL.prototype.drawPoints = function(map, canvaslayer){
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
   for(group in this.primitives.array)
-    this.primitives.draw(this.gl, this.pointShader, this.mvMatrix, this.pMatrix, group);
+    this.primitives.draw(this.pointShader, this.mvMatrix, this.pMatrix, group);
     
   this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
   this.gl.useProgram(null);
@@ -1665,7 +1659,7 @@ ScatterGL.prototype.initGL = function(){
   this.canvas.addEventListener("mouseup", function(evt){that.mouseup(evt);}, false);
   this.canvas.addEventListener("mousemove", function(evt){that.mousemove(evt);}, false);
 
-  this.gl = this.canvas.getContext("experimental-webgl");//, {alpha:false});
+  this.gl = this.canvas.getContext("webgl");//, {alpha:false});
   this.gl.viewportWidth = this.canvas.width;
   this.gl.viewportHeight = this.canvas.height;
 
@@ -1675,11 +1669,15 @@ ScatterGL.prototype.initGL = function(){
   //this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
   this.gl.clearColor(0, 0, 0, 0);
 
+  var float_texture_linear_ext = this.gl.getExtension('OES_texture_float_linear');
   var float_texture_ext = this.gl.getExtension('OES_texture_float');
   var standard_derivatives_ext = this.gl.getExtension('OES_standard_derivatives');
 
   if (!this.gl){
     alert("Could not initialise Webgl.");
+  }
+  if(!float_texture_linear_ext){
+    alert("OES_texture_float_linear not supported.");
   }
   if(!float_texture_ext){
     alert("OES_texture_float not supported.");
