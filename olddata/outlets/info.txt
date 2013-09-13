@@ -1,0 +1,10 @@
+numentries: 816
+numdim: 2
+min: 0.000000
+max: 1.000000
+isline: 0
+hasgeoinfo: 1
+lat0: 37.708290
+lng0: -122.510101
+lat1: 37.818241
+lng1: -122.370232

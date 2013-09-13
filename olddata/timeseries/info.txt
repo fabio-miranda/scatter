@@ -1,0 +1,6 @@
+numentries: 2000
+numdim: 3
+min: 0
+max: 1
+isline: 1
+hasgeoinfo: 0

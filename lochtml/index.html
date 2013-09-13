@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <link type="text/css" rel="stylesheet" href="css/style.css" media="all">
+    <link type="text/css" rel="stylesheet" href="css/jquery-ui.css" media="all">
+    <script src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+    <script type="text/javascript" src="js/libs/gl-matrix-min.js"></script>
+    <script type="text/javascript" src="js/libs/d3.v3.min.js"></script>
+    <script type="text/javascript" src="js/libs/colorbrewer.js"></script>
+    <script type="text/javascript" src="js/libs/crossfilter.min.js"></script>
+    <script type="text/javascript" src="js/libs/jquery-1.10.0.min.js"></script>
+    <script type="text/javascript" src="js/libs/jquery-ui.js"></script>
+    <script type="text/javascript" src="js/libs/CanvasLayer.js"></script>
+
+    <script type="text/javascript" src="js/colorscale.js"></script>
+    <script type="text/javascript" src="js/scatter.js"></script>
+    <script type="text/javascript" src="js/scattergl.js"></script>
+    <script type="text/javascript" src="js/glutil.js"></script>
+  </head>
+  <body>
+    <table id='scatterplottable' class='scatterplottable'>
+      <tr>
+        <td>
+          <canvas id='scatterplotmatrix' class='scatterplotmatrix'></canvas>
+          <div id="div_map"></div>
+        </td>
+        <td>
+          <canvas id='colorscale' class='colorscale'></canvas>
+        </td>
+        <td>
+          <center>
+            <input id='bandwidth' onchange='changeBandwidth(this.value)'></input>
+          </center>
+          <center>
+            Band:<div id='div_bandwidthslider'></div>
+          </center>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2"></td>
+        <td>
+          <select id='colorType' onchange='changeColorScale()'>
+            <option value='color_discrete'>Discrete colors</option>
+            <option value='color_linear' selected='selected'>Linear colors</option>
+          </select></br>
+          <div id='div_colorbrewer'></div>
+          <div id='div_dataclasses'></div>
+          <select id='alphaType' onchange='changeTransparency()'>
+            <option value='alpha_fixed' selected='selected'>Fixed alpha</option>
+            <option value='alpha_linear'>Linear alpha</option>
+            <option value='alpha_discrete'>Discrete alpha</option>
+          </select>
+          <div id='div_alphaslider'></div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
