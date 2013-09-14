@@ -176,6 +176,9 @@ ScatterGL.prototype.setGeoInfo = function(latlng0, latlng1){
 }
 
 ScatterGL.prototype.changeBandwidth = function(bandwidth){
+  if (bandwidth == this.bandwith) {
+    return;
+  }
 
   this.bandwidth = bandwidth;
 

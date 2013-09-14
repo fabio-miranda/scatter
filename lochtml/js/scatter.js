@@ -14,18 +14,38 @@ var datapath;
 var currententry;
 var numentries;
 var delay;
+var ANIM_STEP = 60 * 60;    // animation step: 60 minutes.
+var ANIM_TS_INITIAL = 1375143000;  // Initial timestamp in the animation.
+var ANIM_TS_FINAL = 1377993600;    // Final timestamp in the animation.
+var anim_cur_ts = ANIM_TS_INITIAL; // Current timestamp in the animation.
+var anim_on = true;                // Animation on/off flag.
 
+
+var toggleAnimation = function(enabled) {
+  anim_on = enabled;
+};
+
+var updateAnimation = function() {
+  if (anim_on) {
+    // Advances step in animation, of stops when finished.
+    if (anim_cur_ts == ANIM_TS_FINAL - ANIM_STEP) {
+      anim_on = false;
+    } else {
+      anim_cur_ts += ANIM_STEP;
+    }
+    requestData();
+  }
+  console.log('anim_cur_ts ' + anim_cur_ts);
+  console.log('limit: ' + (ANIM_TS_FINAL - ANIM_STEP));
+};
 
 
 var requestData = function() {
   // TODO Decide timestamp interval to request data.
-  var ts1 = 653249807;
-  var ts2 = 1600021007;
+  var ts1 = anim_cur_ts;
+  var ts2 = anim_cur_ts + ANIM_STEP;
 
   requestPoints(ts1, ts2);
-
-  changeBandwidth(0.052);
-  changeTransparency();
 };
 
 
@@ -43,7 +63,8 @@ var setupUI = function() {
     max: 4.0,
     step: 0.001,
     slide: function( event, ui ) {
-      changeBandwidth(ui.value);
+      var must_redraw = true;
+      changeBandwidth(ui.value, must_redraw);
     }
   });
 
@@ -66,10 +87,19 @@ var setupUI = function() {
   var KDE_TYPE = 'kde';
   scattermatrix = new ScatterGL(
     canvas, NUM_DIM, NUM_ENTRIES, USE_STREAMING, IS_LINE, KDE_TYPE);
+  // Sets up scatter matrix.
+  var NUM_BIN_SCATTER = 512;
+  var USE_DENSITY = 1;  //TODO: change that!
+  scattermatrix.setTexturesSize(NUM_BIN_SCATTER);
+  scattermatrix.useDensity = USE_DENSITY;
 
   // Sets up color scale.
   colorscale = new ColorScale(document.getElementById('colorscale'));
   initColorScale();
+
+  var must_redraw = false;
+  changeBandwidth(0.052, must_redraw);
+  changeTransparency();
 };
 
 
@@ -104,47 +134,50 @@ var getMapBoundaries = function(latlng0, latlng1) {
 
 
 var cb_receivedPoints = function(data) {
-  // Sets up scatter matrix.
-  var NUM_BIN_SCATTER = 512;
-  var USE_DENSITY = 1;  //TODO: change that!
-  scattermatrix.setTexturesSize(NUM_BIN_SCATTER);
-  scattermatrix.useDensity = USE_DENSITY;
-
   // Sets map boundaries.
   var min_lat = data['min_lat']; 
   var min_lon = data['min_lon'];
   var max_lat = data['max_lat']; 
   var max_lon = data['max_lon'];
-
   var latlng0 = new google.maps.LatLng(min_lat, min_lon);
   var latlng1 = new google.maps.LatLng(max_lat, max_lon);
   scattermatrix.setGeoInfo(latlng0, latlng1);
+  //var bounds = getMapBoundaries(latlng0, latlng1);
+  //map.fitBounds(bounds);
 
-  var bounds = getMapBoundaries(latlng0, latlng1);
-  map.fitBounds(bounds);
+  console.log('npoints: ' + data['points'].length)
+
 
   scattermatrix.primitives.reset();
 
   //console.log(data);
 
-  // TODO change
+  var inv_len_lat = 1 / (max_lat - min_lat);
+  var inv_len_lon = 1 / (max_lon - min_lon);
   for (pos in data['points']) {
     var point = data['points'][pos];
+    var point_lat = point[0];
+    var point_lon = point[1];
+    var point_acc = point[2];
+    // TODO(Fabio): Use accuracy to define bandwith.
 
-    var lat = (point[3] - min_lat) / (max_lat - min_lat);
-    var lon = (point[4] - min_lon) / (max_lon - min_lon);
+    var lat = (point_lat - min_lat) * inv_len_lat;
+    var lon = (point_lon - min_lon) * inv_len_lon;
     
     //console.log(data['points'][pos]['i']+', '+data['points'][pos]['j']);
 
     // Uses 0 for group: not used for this app.
     var group = 0;
+
     // NOTE: must inform lon for x and lat for y here.
     scattermatrix.primitives.add(lon, lat, group);
   }
+  scattermatrix.primitives.updateBuffer();
 
-  changeBandwidth(data['h'] * 20.0);
+  var must_redraw = false;
+  // TODO update bandwidth! changeBandwidth(data['h'] * 20.0, must_redraw);
   
-  console.log(data);
+  //console.log(data);
   draw();
 };
 
@@ -185,7 +218,7 @@ var changeColorScale = function() {
   var alphaType = $('#alphaType').prop('value');
   var kdetype = $('#kdetype').prop('value');
 
-  console.log($('#div_alphaslider').slider('value'));
+  //console.log($('#div_alphaslider').slider('value'));
 
   var isColorLinear = false;
   var isAlphaLinear = false;
@@ -214,10 +247,12 @@ var changeTransparency = function() {
 };
 
 
-var changeBandwidth = function(value) {
+var changeBandwidth = function(value, must_redraw) {
   scattermatrix.changeBandwidth(value);
 
-  draw();
+  if (must_redraw) {
+    draw();
+  }
 
   //update slider and input
   $('#bandwidth').attr('value', value);
@@ -340,11 +375,41 @@ var initMap = function() {
   };
   canvaslayer = new CanvasLayer(canvasLayerOptions);
 
+  // Sets up zoom handler callback.
+  google.maps.event.addListener(map, 'zoom_changed', function() {
+    updateOnZoom(map.getZoom());
+  });
+};
+
+var centerMapInNewYork = function() {
+  var min_lat = 40.49574;
+  var max_lat = 40.9176;
+  var min_lon = -74.2557;
+  var max_lon = -73.6895;
+  var latlng0 = new google.maps.LatLng(min_lat, min_lon);
+  var latlng1 = new google.maps.LatLng(max_lat, max_lon);
+  scattermatrix.setGeoInfo(latlng0, latlng1);
+  var bounds = getMapBoundaries(latlng0, latlng1);
+  map.fitBounds(bounds);
+};
+
+
+var updateOnZoom = function(zoom_level) {
+  console.log('zoom_level' + zoom_level);
+  var bandwidth = 0.025 + Math.max(0, (zoom_level - 11) * (0.1 / 3));
+  var must_redraw = false;
+  changeBandwidth(bandwidth, must_redraw);
 };
 
 var initialize = function(){
   setupUI();
+  centerMapInNewYork();
   requestData();
+
+  setInterval(function() {
+      updateAnimation();
+    },
+    200);
 };
 
 

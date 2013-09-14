@@ -141,11 +141,18 @@ points.prototype.add = function(x, y, group){
   this.array[group].push(y);
 
   this.numrasterpoints+=1.0;
+}
 
-  //TODO: optimize? Do we really need to call bufferData for every point inserted?
-  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.pointsBuffer);
-  this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.array[group]), this.gl.DYNAMIC_DRAW);
-  //this.gl.bindBuffer(this.gl.ARRAY_BUFFER, 0);
+points.prototype.updateBuffer = function() {
+  for (var group in this.array) {
+    //TODO: optimize? Do we really need to call bufferData for every point inserted?
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.pointsBuffer);
+    this.gl.bufferData(
+      this.gl.ARRAY_BUFFER,
+      new Float32Array(this.array[group]),
+      this.gl.DYNAMIC_DRAW);
+    //this.gl.bindBuffer(this.gl.ARRAY_BUFFER, 0);
+  }
 }
 
 points.prototype.reset = function(){
