@@ -6,6 +6,7 @@ var datapath;
 var info;
 var colorscale;
 var canvas;
+var map_text_layer = null;
 
 var useMap = false;
 var useStreaming = false;
@@ -14,12 +15,11 @@ var datapath;
 var currententry;
 var numentries;
 var delay;
-var ANIM_STEP = 60 * 60;    // animation step: 60 minutes.
-var ANIM_TS_INITIAL = 1375143000;  // Initial timestamp in the animation.
-var ANIM_TS_FINAL = 1377993600;    // Final timestamp in the animation.
-var anim_cur_ts = ANIM_TS_INITIAL; // Current timestamp in the animation.
-var anim_on = true;                // Animation on/off flag.
-
+var ANIM_STEP = 60 * 60;                       // animation step: 60 minutes.
+var ANIM_TS_INITIAL =  1375142400;              // Initial timestamp in the animation.
+var ANIM_TS_FINAL = 1377993600 - ANIM_STEP;    // Final timestamp in the animation.
+var anim_cur_ts = ANIM_TS_INITIAL;             // Current timestamp in the animation.
+var anim_on = false;                           // Animation on/off flag.
 
 var toggleAnimation = function(enabled) {
   anim_on = enabled;
@@ -28,20 +28,72 @@ var toggleAnimation = function(enabled) {
 var updateAnimation = function() {
   if (anim_on) {
     // Advances step in animation, of stops when finished.
-    if (anim_cur_ts == ANIM_TS_FINAL - ANIM_STEP) {
+    if (anim_cur_ts == ANIM_TS_FINAL) {
       anim_on = false;
     } else {
       anim_cur_ts += ANIM_STEP;
     }
     requestData();
+    console.log('anim_cur_ts ' + anim_cur_ts);
+    console.log('limit: ' + (ANIM_TS_FINAL));
   }
-  console.log('anim_cur_ts ' + anim_cur_ts);
-  console.log('limit: ' + (ANIM_TS_FINAL - ANIM_STEP));
+  // Updates overlay for text on top of the map.
+  updateMapOverlay();
+};
+
+var parseDateTime = function(ts) {
+  var date = new Date(0);
+  date.setUTCSeconds(ts);
+
+  var daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  var month = date.getUTCMonth() + 1;
+  month = month < 10 ? '0' + month : month;
+  var day = date.getUTCDate();
+  day = day < 10 ? '0' + day : day;
+  var dw = daysOfWeek[date.getUTCDay()];
+  var year = date.getUTCFullYear();
+  
+  var dateStr = dw + ' ' + month + '/' + day + '/' + year;
+
+  var hour = date.getUTCHours();
+  hour = hour < 10 ? '0' + hour : hour;
+  var min = date.getUTCMinutes();
+  min = min < 10 ? '0' + min : min;
+  var timeStr = hour + ':' + min;
+
+  return {date: dateStr, time: timeStr};
+};
+
+var getCurTimeText = function() {
+  var initial = parseDateTime(anim_cur_ts);
+  var final = parseDateTime(anim_cur_ts + ANIM_STEP);
+
+  if (initial.date != final.date) {
+    var initialText = initial.date + ' ' + initial.time;
+    var finalText = final.date + ' ' + final.time;
+    return initialText + ' - ' + finalText;
+  } else {
+    var initialText = initial.date + ' ' + initial.time;
+    return initialText + ' - ' + final.time;
+  }
+};
+
+var setAnimCurTime = function(ts) {
+  // When changing time, turn off animation.
+  anim_on = false;
+  anim_cur_ts = ts;
+  requestData();
+  setAnumCurTimeText(ts);
+};
+
+var setAnumCurTimeText = function(ts) {
+  var parsedDateTime = parseDateTime(ts);
+  var text = parsedDateTime.date + ' ' + parsedDateTime.time;
+  $('#curtime').attr('value', text);
 };
 
 
 var requestData = function() {
-  // TODO Decide timestamp interval to request data.
   var ts1 = anim_cur_ts;
   var ts2 = anim_cur_ts + ANIM_STEP;
 
@@ -79,6 +131,20 @@ var setupUI = function() {
     }
   });
 
+  $( "#div_animslider" ).slider({
+    min: ANIM_TS_INITIAL,
+    max: ANIM_TS_FINAL,
+    value: ANIM_TS_INITIAL,
+    step: ANIM_STEP,
+    stop: function(event, ui) {
+      setAnimCurTime(ui.value);
+    },
+    slide: function(event, ui) {
+      setAnumCurTimeText(ui.value);
+    }
+  });
+  setAnimCurTime(ANIM_TS_INITIAL);
+
   // Instantiates webgl renderer.
   var NUM_DIM = 2;
   var NUM_ENTRIES = 0;
@@ -94,7 +160,7 @@ var setupUI = function() {
   scattermatrix.useDensity = USE_DENSITY;
 
   // Sets up color scale.
-  colorscale = new ColorScale(document.getElementById('colorscale'));
+  colorscale = new ColorScale(document.getElementById('color_scale'));
   initColorScale();
 
   var must_redraw = false;
@@ -145,7 +211,7 @@ var cb_receivedPoints = function(data) {
   //var bounds = getMapBoundaries(latlng0, latlng1);
   //map.fitBounds(bounds);
 
-  console.log('npoints: ' + data['points'].length)
+  //console.log('npoints: ' + data['points'].length)
 
 
   scattermatrix.primitives.reset();
@@ -364,7 +430,7 @@ var initMap = function() {
 //      }
     ]
   };
-  var div = document.getElementById('div_map');
+  var div = document.getElementById('map_container');
   map = new google.maps.Map(div, mapOptions);
 
   var canvasLayerOptions = {
@@ -381,6 +447,21 @@ var initMap = function() {
   });
 };
 
+var updateMapOverlay = function() {
+  var current_time_text = getCurTimeText();
+  var svg = d3.select('#map_overlay')
+      .selectAll('svg').data([current_time_text]);
+  svg
+    .enter().append('svg');
+  var text = svg.selectAll('text').data([current_time_text]);
+  text
+    .enter().append('svg:text')
+    .attr('x', 50)
+    .attr('y', 30)
+    .attr('dy', '.31em');
+  text.text(current_time_text);
+};
+
 var centerMapInNewYork = function() {
   var min_lat = 40.49574;
   var max_lat = 40.9176;
@@ -395,7 +476,7 @@ var centerMapInNewYork = function() {
 
 
 var updateOnZoom = function(zoom_level) {
-  console.log('zoom_level' + zoom_level);
+  //console.log('zoom_level' + zoom_level);
   var bandwidth = 0.025 + Math.max(0, (zoom_level - 11) * (0.1 / 3));
   var must_redraw = false;
   changeBandwidth(bandwidth, must_redraw);
