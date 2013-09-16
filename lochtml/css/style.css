@@ -27,7 +27,7 @@ div {
 
 #top_panel {
   width: 1040px;
-  height: 600px;
+  height: 700px;
   margin: 0 auto;
   margin-bottom: 20px;
 }
@@ -42,11 +42,9 @@ div {
 }
 
 #gallery {
-  display: inline-block;
-  width: 100%;
-  height: 300px;
+  width: 1270px;
   margin: 0 auto;
-  background: blue;
+  box-shadow:0 0 1px 1px #777;
 }
 
 
@@ -57,7 +55,7 @@ div {
   vertical-align: top;
   position: relative;
   width: 700px;
-  height: 600px;
+  height: 700px;
   box-shadow:0 0 1px 1px #333333;
 }
 
@@ -93,7 +91,7 @@ div {
   vertical-align: top;
   position: relative;
   width: 300px;
-  height: 600px;
+  height: 700px;
 }
 
 /* Side panel component: filters. */
@@ -142,16 +140,16 @@ div {
 
 #gallery_items .item {
   display: inline-block;
-  width: 310px;
-  height: 300px;
+  width: 200px;
+  height: 240px;
   margin-bottom: 5px;
   padding: 5px;
   box-shadow:0 0 1px 1px #333333;
 }
 
 #gallery_items .item img {
-  width: 310px;
-  height: 198px;
+  width: 200px;
+  height: 200px;
   box-shadow:0 0 1px 1px #333333;
 }
 

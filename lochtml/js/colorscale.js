@@ -8,6 +8,7 @@ function ColorScale(canvas){
   this.mvMatrix = mat4.create();
   this.pMatrix = mat4.create();
   this.devicePixelRatio = 1;
+  this.FIRST_VALID_COLOR_SCALE_VALUE = 10;
 
   this.texsize = 1024;
   this.texture = null;
@@ -82,7 +83,7 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
     
   }
 
-  for(var i=0; i<10; i++){
+  for(var i=0; i< this.FIRST_VALID_COLOR_SCALE_VALUE; i++){
     this.texdata[4*i] = 255;
     this.texdata[4*i+1] = 255;
     this.texdata[4*i+2] = 255;

@@ -7,6 +7,8 @@ var info;
 var colorscale;
 var canvas;
 var map_text_layer = null;
+var gallery = null;
+var numberOfPoints = 0;
 
 var useMap = false;
 var useStreaming = false;
@@ -27,6 +29,8 @@ var toggleAnimation = function(enabled) {
 
   var svg = d3.selectAll('#anim_button').data(['anim_button'])
     .on('click', function () {
+      // TODO test here
+      gallery.addSnapshot();
       toggleAnimation(!anim_on);
     });
     
@@ -38,6 +42,10 @@ var toggleAnimation = function(enabled) {
     .attr('width', '28')
     .attr('height', '28');
   image.attr('xlink:href', images[anim_on]);
+};
+
+var getNumberOfPoints = function() {
+  return numberOfPoints;
 };
 
 var updateAnimation = function() {
@@ -197,6 +205,8 @@ var setupUI = function() {
   changeTransparency();
 
   toggleAnimation(anim_on);
+
+  setupGallery();
 };
 
 
@@ -231,6 +241,7 @@ var getMapBoundaries = function(latlng0, latlng1) {
 
 
 var cb_receivedPoints = function(data) {
+  numberOfPoints = data['points'].length;
   // Sets map boundaries.
   var min_lat = data['min_lat']; 
   var min_lon = data['min_lon'];
@@ -533,5 +544,13 @@ var initialize = function(){
     200);
 };
 
+var toDataURL = function() {
+  return scattermatrix.toDataURL();
+};
+
+var setupGallery = function() {
+  // Sets up gallery.
+  gallery = new Gallery('#gallery_items', toDataURL);
+};
 
 window.onload = initialize;

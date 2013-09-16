@@ -1718,6 +1718,12 @@ ScatterGL.prototype.mousemove = function(evt){
   this.draw();
 }
 
+ScatterGL.prototype.toDataURL = function() {
+  // TODO test here
+  var image = canvaslayer.canvas.toDataURL();
+  //var image = this.gl.canvas.toDataURL("image/jpeg");
+  return image;
+};
 
 ScatterGL.prototype.initGL = function(){
 
@@ -1731,7 +1737,7 @@ ScatterGL.prototype.initGL = function(){
   this.canvas.addEventListener("mouseup", function(evt){that.mouseup(evt);}, false);
   this.canvas.addEventListener("mousemove", function(evt){that.mousemove(evt);}, false);
 
-  this.gl = this.canvas.getContext("webgl");//, {alpha:false});
+  this.gl = this.canvas.getContext("webgl", {preserveDrawingBuffer: true}); //, {alpha:false});
   this.gl.viewportWidth = this.canvas.width;
   this.gl.viewportHeight = this.canvas.height;
 
