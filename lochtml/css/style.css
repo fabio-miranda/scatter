@@ -26,7 +26,7 @@ div {
 }
 
 #top_panel {
-  width: 100%;
+  width: 1040px;
   height: 600px;
   margin: 0 auto;
   margin-bottom: 20px;
@@ -87,28 +87,62 @@ div {
   height: 100%;
 }
 
-/* Top panel component: filters. */
-#filters_container {
+/* Top panel component: side panel. */
+#side_panel {
   display: inline-block;
   vertical-align: top;
   position: relative;
   width: 300px;
+  height: 600px;
+}
+
+/* Side panel component: filters. */
+#filters_container {
+  position: relative;
+  width: 280px;
   height: 300px;
   background: #222;
   padding: 10px;
 }
 
-/* Animation control container. */
+/* Side panel component: animation control container. */
 #anim_container {
-  display: inline-block;
-  vertical-align: top;
   position: relative;
   width: 280px;
-  height: 50px;
+  height: 250px;
   background: #222;
   padding: 10px;
   margin-bottom: 10px;
 }
+
+/* Animation control container component: animation button. */
+#anim_button {
+  font: 18px sans-serif;
+  width: 60px;
+  height: 25px;
+  display: inline-block;
+  background: gray;
+  stroke: white;
+  fill: white;
+}
+
+#anim_button {
+  cursor: hand;
+  cursor: pointer;
+}
+
+#anim_button text {
+  text-anchor: middle;
+}
+
+/* Animation control container component: div animation slider. */
+#div_animslider {
+  width: 200px;
+  display: inline-block;
+  margin-left: 10px;
+  margin-bottom: 7px;
+}
+
 
 /* Gallery components. */
 #gallery_items {

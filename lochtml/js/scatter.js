@@ -16,23 +16,39 @@ var currententry;
 var numentries;
 var delay;
 var ANIM_STEP = 60 * 60;                       // animation step: 60 minutes.
-var ANIM_TS_INITIAL =  1375142400;              // Initial timestamp in the animation.
+var ANIM_TS_INITIAL =  1375142400;             // Initial timestamp in the animation.
 var ANIM_TS_FINAL = 1377993600 - ANIM_STEP;    // Final timestamp in the animation.
 var anim_cur_ts = ANIM_TS_INITIAL;             // Current timestamp in the animation.
 var anim_on = false;                           // Animation on/off flag.
 
 var toggleAnimation = function(enabled) {
   anim_on = enabled;
+  var options = {true: 'Pause', false: 'Play'};
+
+  var svg = d3.selectAll('#anim_button').data(['anim_button'])
+    .on('click', function () {
+      toggleAnimation(!anim_on);
+    });
+    
+  var text = svg.selectAll('text').data(['anim_button']);
+  text
+    .enter().append('svg:text')
+    .attr('y', 12)
+    .attr('dy', '.31em')
+    .attr('transform', 'translate(30, 0)');
+  text.text(options[anim_on]);
 };
 
 var updateAnimation = function() {
   if (anim_on) {
     // Advances step in animation, of stops when finished.
     if (anim_cur_ts == ANIM_TS_FINAL) {
-      anim_on = false;
+      toggleAnimation(false);
     } else {
       anim_cur_ts += ANIM_STEP;
     }
+    $( "#div_animslider" ).slider('value', anim_cur_ts);
+
     requestData();
     console.log('anim_cur_ts ' + anim_cur_ts);
     console.log('limit: ' + (ANIM_TS_FINAL));
@@ -79,8 +95,6 @@ var getCurTimeText = function() {
 };
 
 var setAnimCurTime = function(ts) {
-  // When changing time, turn off animation.
-  anim_on = false;
   anim_cur_ts = ts;
   requestData();
   setAnumCurTimeText(ts);
@@ -139,7 +153,11 @@ var setupUI = function() {
     stop: function(event, ui) {
       setAnimCurTime(ui.value);
     },
+    change: function(event, ui) {
+      setAnumCurTimeText(ui.value);
+    },
     slide: function(event, ui) {
+      toggleAnimation(false);
       setAnumCurTimeText(ui.value);
     }
   });
@@ -166,6 +184,8 @@ var setupUI = function() {
   var must_redraw = false;
   changeBandwidth(0.052, must_redraw);
   changeTransparency();
+
+  toggleAnimation(anim_on);
 };
 
 
@@ -450,10 +470,10 @@ var initMap = function() {
 var updateMapOverlay = function() {
   var current_time_text = getCurTimeText();
   var svg = d3.select('#map_overlay')
-      .selectAll('svg').data([current_time_text]);
+      .selectAll('svg').data(['map_overlay']);
   svg
     .enter().append('svg');
-  var text = svg.selectAll('text').data([current_time_text]);
+  var text = svg.selectAll('text').data(['map_overlay']);
   text
     .enter().append('svg:text')
     .attr('x', 50)

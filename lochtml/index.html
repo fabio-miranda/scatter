@@ -30,31 +30,6 @@
       <!-- Top panel -->
       <div id="top_panel">
 
-        <!-- Filters -->
-        <div id="filters_container">
-
-          Band: <input id='bandwidth' onchange='changeBandwidth(this.value)'></input>
-          <div id='div_bandwidthslider'></div>
-
-          <select id='colorType' onchange='changeColorScale()'>
-            <option value='color_discrete'>Discrete colors</option>
-            <option value='color_linear' selected='selected'>Linear colors</option>
-          </select></br>
-
-          <div id='div_colorbrewer'></div>
-
-          <div id='div_dataclasses'></div>
-
-          Alpha:
-          <select id='alphaType' onchange='changeTransparency()'>
-            <option value='alpha_fixed' selected='selected'>Fixed alpha</option>
-            <option value='alpha_linear'>Linear alpha</option>
-            <option value='alpha_discrete'>Discrete alpha</option>
-          </select>
-          <div id='div_alphaslider'></div>
-
-        </div>
-
         <!-- Map -->
         <div id="canvas_container">
           <canvas id='scatterplotmatrix'></canvas>
@@ -64,11 +39,40 @@
 
         <!-- Color scale -->
         <canvas id='color_scale'></canvas>
-        <!-- Animation control. -->
-        <div id="anim_container">
-          Date/time: <input id='curtime' enabled="false"></input>
-          <div>
-            <div id='div_animslider'></div>
+
+        <div id="side_panel">
+          <!-- Animation control. -->
+          <div id="anim_container">
+            Date/time: <input id='curtime' size="24" disabled></input>
+            <div>
+              <svg id="anim_button"></svg>
+              <div id='div_animslider'></div>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div id="filters_container">
+
+            Band: <input id='bandwidth' onchange='changeBandwidth(this.value)'></input>
+            <div id='div_bandwidthslider'></div>
+
+            <select id='colorType' onchange='changeColorScale()'>
+              <option value='color_discrete'>Discrete colors</option>
+              <option value='color_linear' selected='selected'>Linear colors</option>
+            </select></br>
+
+            <div id='div_colorbrewer'></div>
+
+            <div id='div_dataclasses'></div>
+
+            Alpha:
+            <select id='alphaType' onchange='changeTransparency()'>
+              <option value='alpha_fixed' selected='selected'>Fixed alpha</option>
+              <option value='alpha_linear'>Linear alpha</option>
+              <option value='alpha_discrete'>Discrete alpha</option>
+            </select>
+            <div id='div_alphaslider'></div>
+
           </div>
         </div>
 
