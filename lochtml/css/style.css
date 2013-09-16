@@ -117,22 +117,12 @@ div {
 
 /* Animation control container component: animation button. */
 #anim_button {
-  font: 18px sans-serif;
-  width: 60px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
   display: inline-block;
-  background: gray;
-  stroke: white;
-  fill: white;
-}
-
-#anim_button {
+  background-size: 28px 28px;
   cursor: hand;
   cursor: pointer;
-}
-
-#anim_button text {
-  text-anchor: middle;
 }
 
 /* Animation control container component: div animation slider. */

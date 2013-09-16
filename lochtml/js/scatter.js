@@ -23,20 +23,21 @@ var anim_on = false;                           // Animation on/off flag.
 
 var toggleAnimation = function(enabled) {
   anim_on = enabled;
-  var options = {true: 'Pause', false: 'Play'};
+  var images = {true: '../img/pause.png', false: '../img/play.png'};
 
   var svg = d3.selectAll('#anim_button').data(['anim_button'])
     .on('click', function () {
       toggleAnimation(!anim_on);
     });
     
-  var text = svg.selectAll('text').data(['anim_button']);
-  text
-    .enter().append('svg:text')
-    .attr('y', 12)
-    .attr('dy', '.31em')
-    .attr('transform', 'translate(30, 0)');
-  text.text(options[anim_on]);
+  var image = svg.selectAll('image').data(['anim_button']);
+  image
+    .enter().append('svg:image')
+    .attr('x', '0')
+    .attr('y', '0')
+    .attr('width', '28')
+    .attr('height', '28');
+  image.attr('xlink:href', images[anim_on]);
 };
 
 var updateAnimation = function() {
@@ -445,7 +446,7 @@ var initMap = function() {
         "stylers": [
           { "visibility": "on" },
           { "saturation": -100 },
-          { "lightness": -80 }
+          { "lightness": -95 }
         ]
       }
 //      {
