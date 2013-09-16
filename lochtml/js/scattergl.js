@@ -77,6 +77,7 @@ function ScatterGL(canvas, numdim, numentries, useStreaming, isLine, opt_kdetype
   else
     this.useStreaming = 0.0;
 
+  this.FIRST_VALID_COLOR_SCALE_VALUE = 4 * 10;
 
   this.numbin = 0;
   this.datatiles = {};
@@ -159,6 +160,8 @@ ScatterGL.prototype.setHistogram = function(histogram){
 }
 
 ScatterGL.prototype.setColorScale = function(colorscalevalues){
+  // Saves values for future use.
+  this.colorScaleValues = colorscalevalues;
 
   //No shared resource. I create the texture two times, one for each canvas
   this.colorscaletex = this.gl.createTexture();
@@ -738,6 +741,15 @@ ScatterGL.prototype.updateDiscrete = function(map, canvaslayer){
   this.gl.useProgram(this.discreteShader);
 
   this.gl.uniform1f(this.discreteShader.pointSize, this.pointSize);
+  this.gl.uniform1f(this.discreteShader.alpha, this.alphaMultiplier / 10.0);
+  var colorIndex = Math.floor(0.5 * (this.FIRST_VALID_COLOR_SCALE_VALUE +
+      this.colorScaleValues.length));
+  var color = [
+    this.colorScaleValues[colorIndex + 0] / 255,
+    this.colorScaleValues[colorIndex + 1] / 255,
+    this.colorScaleValues[colorIndex + 2] / 255];
+  this.gl.uniform3fv(this.discreteShader.color, color);
+
   //this.gl.uniform1f(this.discreteShader.numPassValues, numgroups);
 
 
@@ -1340,6 +1352,8 @@ ScatterGL.prototype.initShaders = function(){
   var fragmentShader = getShader(this.gl, "./js/glsl/discrete.frag", true);
   var vertexShader = getShader(this.gl, "./js/glsl/discrete.vert", false);
 
+  // CESAR
+
   this.discreteShader = this.gl.createProgram();
   this.gl.attachShader(this.discreteShader, vertexShader);
   this.gl.attachShader(this.discreteShader, fragmentShader);
@@ -1358,6 +1372,8 @@ ScatterGL.prototype.initShaders = function(){
   //this.gl.enableVertexAttribArray(this.discreteShader.textureCoordAttribute);
 
   this.discreteShader.pointSize = this.gl.getUniformLocation(this.discreteShader, 'uPointSize');
+  this.discreteShader.alpha = this.gl.getUniformLocation(this.discreteShader, 'uAlpha');
+  this.discreteShader.color = this.gl.getUniformLocation(this.discreteShader, 'uColor');
   /*
   this.discreteShader.minCountValue = this.gl.getUniformLocation(this.discreteShader, 'uMinCountValue');
   this.discreteShader.maxCountValue = this.gl.getUniformLocation(this.discreteShader, 'uMaxCountValue');

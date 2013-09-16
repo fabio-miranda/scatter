@@ -371,6 +371,7 @@ var setAlphaMultiplier = function(value) {
 
 var setPointSize = function(value) {
   scattermatrix.setPointSize(value);
+  draw();
 };
 
 
@@ -446,7 +447,7 @@ var initMap = function() {
         "stylers": [
           { "visibility": "on" },
           { "saturation": -100 },
-          { "lightness": -95 }
+          { "lightness": -90 }
         ]
       }
 //      {
@@ -509,7 +510,6 @@ var centerMapInNewYork = function() {
   var max_lon = -73.6895;
   var latlng0 = new google.maps.LatLng(min_lat, min_lon);
   var latlng1 = new google.maps.LatLng(max_lat, max_lon);
-  scattermatrix.setGeoInfo(latlng0, latlng1);
   var bounds = getMapBoundaries(latlng0, latlng1);
   map.fitBounds(bounds);
 };
