@@ -1,5 +1,6 @@
 precision mediump float;
 
+/*
 varying highp vec2 vTexCoord;
 uniform sampler2D uSamplerColorScale;
 uniform sampler2D uSamplerCount;
@@ -13,17 +14,18 @@ uniform float uMinEntryValue;
 uniform float uMaxEntryValue;
 uniform float uUseDensity;
 uniform float uEntryDataTileWidth;
+*/
 
-
+/*
 vec4 getValue(vec2 coord){
   float index = texture2D(uSamplerIndex, coord).r * (uMaxIndexValue - uMinIndexValue) + uMinIndexValue;
   vec2 coordValue = vec2(index/uEntryDataTileWidth, 0);
   return texture2D(uSamplerEntry, coordValue.xy);// * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue;
 }
-
+*/
 
 void main(void) {
-
+  /*
   float value = 0.0;
   float count = texture2D(uSamplerCount, vTexCoord).r;
 
@@ -41,4 +43,7 @@ void main(void) {
 
   vec3 color = texture2D(uSamplerColorScale, vec2(value, 0)).xyz;
   gl_FragColor = vec4(color, 1.0);
+  */
+
+  gl_FragColor = vec4(1.0, 0.0, 0.0, 0.1);
 }

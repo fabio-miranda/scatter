@@ -145,6 +145,16 @@ var setupUI = function() {
     }
   });
 
+  $( "#div_pointslider" ).slider({
+    min: 0.0,
+    max: 10.0,
+    value: 1.0,
+    step: 1.0,
+    slide: function( event, ui ) {
+      setPointSize(ui.value);
+    }
+  });
+
   $( "#div_animslider" ).slider({
     min: ANIM_TS_INITIAL,
     max: ANIM_TS_FINAL,
@@ -332,6 +342,11 @@ var changeTransparency = function() {
   draw();
 };
 
+var changeRenderType = function(value) {
+  scattermatrix.changeKDEType(value);
+  draw();
+};
+
 
 var changeBandwidth = function(value, must_redraw) {
   scattermatrix.changeBandwidth(value);
@@ -351,6 +366,10 @@ var setAlphaMultiplier = function(value) {
   $('#div_alphaslider').slider('value', value);
   scattermatrix.setAlphaMultiplier(value);
   draw();
+};
+
+var setPointSize = function(value) {
+  scattermatrix.setPointSize(value);
 };
 
 

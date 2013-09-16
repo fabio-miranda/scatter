@@ -71,6 +71,7 @@ function ScatterGL(canvas, numdim, numentries, useStreaming, isLine, opt_kdetype
   this.flagUpdateTexture = false;
   this.kernelsize = 256.0;
   this.windowSize = 512;
+  this.pointSize = 1.0;
   if(useStreaming)
     this.useStreaming = 1.0;
   else
@@ -200,6 +201,10 @@ ScatterGL.prototype.setAlphaMultiplier = function(alphaMultiplier){
 
   this.flagUpdateTexture = true;
 
+}
+
+ScatterGL.prototype.setPointSize = function(size){
+  this.pointSize = size;
 }
 
 ScatterGL.prototype.changeZoom = function(delta){
@@ -728,34 +733,73 @@ ScatterGL.prototype.updateAKDE = function(pass, numgroups, width, height){
 
 }
 
-ScatterGL.prototype.updateDiscrete = function(width, height){
+ScatterGL.prototype.updateDiscrete = function(map, canvaslayer){
 
   this.gl.useProgram(this.discreteShader);
 
-  this.gl.uniform1f(this.discreteShader.minCountValue, this.datatiles['count'].minvalue);
-  this.gl.uniform1f(this.discreteShader.maxCountValue, this.datatiles['count'].maxvalue);
-  this.gl.uniform1f(this.discreteShader.minIndexValue, this.datatiles['index'].minvalue);
-  this.gl.uniform1f(this.discreteShader.maxIndexValue, this.datatiles['index'].maxvalue);
-  this.gl.uniform1f(this.discreteShader.minEntryValue, this.datatiles['entry'].minvalue);
-  this.gl.uniform1f(this.discreteShader.maxEntryValue, this.datatiles['entry'].maxvalue);
-  this.gl.uniform1f(this.discreteShader.useDensity, this.useDensity);
-  this.gl.uniform1f(this.discreteShader.entryDataTileWidth, this.datatiles['entry'].imgsize);
+  this.gl.uniform1f(this.discreteShader.pointSize, this.pointSize);
+  //this.gl.uniform1f(this.discreteShader.numPassValues, numgroups);
 
-  this.gl.viewport(0, 0, this.numbin, this.numbin);
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, this.fbofinal);
+
+
+  //this.drawTexture();
+  //return;
+  this.gl.disable(this.gl.DEPTH_TEST);
+  this.gl.enable(this.gl.BLEND);
+  this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+
+  var width = this.canvas.width;
+  var height = this.canvas.height;
+
+  mat4.identity(this.mvMatrix);
+
+  //this.gl.useProgram(this.pointShader);
+  this.gl.viewport(0, 0, width, height);
+  //console.log(this.numbin);
+
+  //console.log(this.translation[0]);
+
+  //mat4.translate(this.mvMatrix, this.mvMatrix, [this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight, 0]);
+  //mat4.scale(this.mvMatrix, this.mvMatrix, [scale, scale, 0]);
+
+  if(map != null && canvaslayer != null && map.getProjection() != null){
+    var mapProjection = map.getProjection();
+
+    mat4.copy(this.pMatrix, [2/width, 0, 0, 0, 0, -2/height, 0, 0, 0, 0, 0, 0, -1, 1, 0, 1]);
+
+    var scale = Math.pow(2, map.zoom);
+
+    var offset = mapProjection.fromLatLngToPoint(canvaslayer.getTopLeft());
+    var pos0 = mapProjection.fromLatLngToPoint(this.latlng[0]);
+    var pos1 = mapProjection.fromLatLngToPoint(this.latlng[1]);
+
+    //pos0.y*=1.001;
+    //pos1.y*=1.1;
+
+
+    mat4.scale(this.pMatrix, this.pMatrix, [scale, scale, 0]);
+    mat4.translate(this.pMatrix, this.pMatrix, [-offset.x, -offset.y, 0.0]);
+
+    mat4.translate(this.mvMatrix, this.mvMatrix, [pos0.x, pos0.y, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [pos1.x-pos0.x,pos1.y-pos0.y,1]);
+
+  }
+  else{
+    mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+
+    mat4.translate(this.mvMatrix, this.mvMatrix, [this.translation[0]/this.gl.viewportWidth, this.translation[1]/this.gl.viewportHeight, 0]);
+    mat4.scale(this.mvMatrix, this.mvMatrix, [1.0+this.zoomLevel, 1.0+this.zoomLevel, 1]);
+  }
+
+
   this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
-  this.scatterquad.draw(
-    this.discreteShader,
-    this.mvMatrix,
-    this.pMatrix,
-    this.datatiles['count'].texture,
-    this.colorscaletex,
-    this.datatiles['index'].texture,
-    this.datatiles['entry'].texture
-  );
-  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null);
+  for(group in this.primitives.array)
+    this.primitives.draw(this.discreteShader, this.mvMatrix, this.pMatrix, group);
+    
   this.gl.useProgram(null);
+
+  this.gl.disable(this.gl.BLEND);
 
 }
 
@@ -947,9 +991,11 @@ ScatterGL.prototype.update = function(){
       this.updateShade(i, numgroups);
     }
   }
+  /*
   else if(this.kdetype == 'discrete'){
     this.updateDiscrete(width, height);
   }
+  */
 
   if(this.drawOutliers){
     this.updateOutliers(numgroups);
@@ -968,12 +1014,15 @@ ScatterGL.prototype.draw = function(map, canvaslayer) {
   if(measureTime)
     starttime(this.gl);
 
-
   //this.update();
 
   //if(this.drawReady == false) return;
 
-  if(this.kdetype == 'singlekde'){
+  if(this.kdetype == 'discrete'){
+    this.updateDiscrete(map, canvaslayer);
+    return;
+  }
+  else if(this.kdetype == 'singlekde'){
     this.updateSinglePassKDE();
   }
   else if(this.kdetype == 'singleakde'){
@@ -1289,7 +1338,7 @@ ScatterGL.prototype.initShaders = function(){
 
   //discrete
   var fragmentShader = getShader(this.gl, "./js/glsl/discrete.frag", true);
-  var vertexShader = getShader(this.gl, "./js/glsl/simple.vert", false);
+  var vertexShader = getShader(this.gl, "./js/glsl/discrete.vert", false);
 
   this.discreteShader = this.gl.createProgram();
   this.gl.attachShader(this.discreteShader, vertexShader);
@@ -1305,9 +1354,11 @@ ScatterGL.prototype.initShaders = function(){
   this.discreteShader.vertexPositionAttribute = this.gl.getAttribLocation(this.discreteShader, "aVertexPosition");
   this.gl.enableVertexAttribArray(this.discreteShader.vertexPositionAttribute);
 
-  this.discreteShader.textureCoordAttribute = this.gl.getAttribLocation(this.discreteShader, "aTexCoord");
-  this.gl.enableVertexAttribArray(this.discreteShader.textureCoordAttribute);
+  //this.discreteShader.textureCoordAttribute = this.gl.getAttribLocation(this.discreteShader, "aTexCoord");
+  //this.gl.enableVertexAttribArray(this.discreteShader.textureCoordAttribute);
 
+  this.discreteShader.pointSize = this.gl.getUniformLocation(this.discreteShader, 'uPointSize');
+  /*
   this.discreteShader.minCountValue = this.gl.getUniformLocation(this.discreteShader, 'uMinCountValue');
   this.discreteShader.maxCountValue = this.gl.getUniformLocation(this.discreteShader, 'uMaxCountValue');
   this.discreteShader.minIndexValue = this.gl.getUniformLocation(this.discreteShader, 'uMinIndexValue');
@@ -1325,13 +1376,14 @@ ScatterGL.prototype.initShaders = function(){
   this.discreteShader.sampler2 = this.gl.getUniformLocation(this.discreteShader, "uSamplerIndex");
   this.discreteShader.sampler3 = this.gl.getUniformLocation(this.discreteShader, "uSamplerEntry");
   this.discreteShader.entryDataTileWidth = this.gl.getUniformLocation(this.discreteShader, "uEntryDataTileWidth");
+  */
 
   this.discreteShader.pMatrixUniform = this.gl.getUniformLocation(this.discreteShader, "uPMatrix");
   this.discreteShader.mvMatrixUniform = this.gl.getUniformLocation(this.discreteShader, "uMVMatrix");
 
   //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
   this.gl.disableVertexAttribArray(this.discreteShader.vertexPositionAttribute);
-  this.gl.disableVertexAttribArray(this.discreteShader.textureCoordAttribute);
+  //this.gl.disableVertexAttribArray(this.discreteShader.textureCoordAttribute);
 
   this.gl.useProgram(null);
 
