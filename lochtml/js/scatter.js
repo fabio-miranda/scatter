@@ -68,21 +68,21 @@ var updateAnimation = function() {
 
 var parseDateTime = function(ts) {
   var date = new Date(0);
-  date.setUTCSeconds(ts);
+  date.setSeconds(ts);
 
   var daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-  var month = date.getUTCMonth() + 1;
+  var month = date.getMonth() + 1;
   month = month < 10 ? '0' + month : month;
-  var day = date.getUTCDate();
+  var day = date.getDate();
   day = day < 10 ? '0' + day : day;
-  var dw = daysOfWeek[date.getUTCDay()];
-  var year = date.getUTCFullYear();
+  var dw = daysOfWeek[date.getDay()];
+  var year = date.getFullYear();
   
   var dateStr = dw + ' ' + month + '/' + day + '/' + year;
 
-  var hour = date.getUTCHours();
+  var hour = date.getHours();
   hour = hour < 10 ? '0' + hour : hour;
-  var min = date.getUTCMinutes();
+  var min = date.getMinutes();
   min = min < 10 ? '0' + min : min;
   var timeStr = hour + ':' + min;
 
@@ -91,7 +91,7 @@ var parseDateTime = function(ts) {
 
 var getCurTimeText = function() {
   var initial = parseDateTime(anim_cur_ts);
-  var final = parseDateTime(anim_cur_ts + ANIM_STEP);
+  var final = parseDateTime(anim_cur_ts + ANIM_STEP - 60);
 
   if (initial.date != final.date) {
     var initialText = initial.date + ' ' + initial.time;
@@ -461,25 +461,6 @@ var initMap = function() {
           { "lightness": -90 }
         ]
       }
-//      {
-//        stylers: [
-//          { hue: "#00ffe6" },
-//          { saturation: -100 } //-20
-//        ]
-//      },{
-//        featureType: "road",
-//        elementType: "geometry",
-//        stylers: [
-//          { lightness: 100 },
-//          { visibility: "simplified" }
-//        ]
-//      },{
-//        featureType: "road",
-//        elementType: "labels",
-//        stylers: [
-//          { visibility: "off" }
-//        ]
-//      }
     ]
   };
   var div = document.getElementById('map_container');
@@ -545,7 +526,22 @@ var initialize = function(){
 };
 
 var toDataURL = function() {
-  return scattermatrix.toDataURL();
+  // Use static google maps API to save map.
+  var zoomLevel = map.getZoom();
+  var center = map.getCenter();
+  var centerStr = center.lat() + ',' + center.lng();
+  var requestUrl =
+    'http://maps.google.com/maps/api/staticmap' +
+    '?sensor=false&size=700x700' +
+    '&zoom=' + zoomLevel +
+    '&center=' + centerStr + 
+    '&style=feature:water|lightness:-100' +
+    '&style=feature:landscape|saturation:-100|lightness:-90|' +
+    '&style=element:labels|visibility:off&style=feature:poi|visibility:off|' +
+    '&style=feature:administrative|element:geometry|visibility:off' +
+    '&style=feature:road|visibility:off&style=feature:transit|visibility:off';
+  // Saves canvas layer on top of the map to save current rendering results.
+  return {map_src: requestUrl, overlay: scattermatrix.toDataURL()};
 };
 
 var setupGallery = function() {

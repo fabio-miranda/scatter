@@ -14,13 +14,12 @@
  * @param containerId id for gallery div element.
  * @param saveButtonId id for element whose click event will trigger
  *     creation of snapshot and addition to gallery.
- * @param getImageSrcFunction function to get the src content for snapshot
- *     when add button id clicked.
+ * @param getSnapshot function to get the content for a snapshot.
  */
-var Gallery = function(containerId, getImageSrcFunction) {
+var Gallery = function(containerId, getSnapshot) {
   // Containers.
   this.containerId_ = containerId;
-  this.getImageSrcFunction_ = getImageSrcFunction;
+  this.getSnapshot_ = getSnapshot;
 
   // Items in gallery.
   this.items_ = [];
@@ -33,8 +32,10 @@ var Gallery = function(containerId, getImageSrcFunction) {
  */
 Gallery.prototype.addSnapshot = function() {
   // Save snapshot of current canvas, and add to this.items.
+  var snapshot = this.getSnapshot_();
   this.items_.push({
-    src: this.getImageSrcFunction_(),
+    map_src: snapshot.map_src,
+    overlay: snapshot.overlay,
     dateTime: getCurTimeText(),
     numberOfPoints: getNumberOfPoints()
   });
@@ -58,14 +59,19 @@ Gallery.prototype.update = function() {
     .enter()
       .append('div')
       .classed('item', true);
+  // Adds map image.
   newItems
     .append('img')
     .attr('src', function(item, i) {
-      return item.src;
-    })
-    .on('click', function(item, i) {
-      gallery.loadItem(item);
+      return item.map_src;
   });
+  // Adds map overlay.
+  newItems
+    .append('img')
+    .attr('src', function(item, i) {
+      return item.overlay;
+  });
+  // Adds item information.
   newItems
     .append('div')
     .classed('item_info', true)

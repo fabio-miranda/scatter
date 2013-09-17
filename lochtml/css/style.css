@@ -26,8 +26,8 @@ div {
 }
 
 #top_panel {
-  width: 1040px;
-  height: 700px;
+  width: 980px;
+  height: 640px;
   margin: 0 auto;
   margin-bottom: 20px;
 }
@@ -54,8 +54,8 @@ div {
   display: inline-block;
   vertical-align: top;
   position: relative;
-  width: 700px;
-  height: 700px;
+  width: 640px;
+  height: 640px;
   box-shadow:0 0 1px 1px #333333;
 }
 
@@ -91,7 +91,7 @@ div {
   vertical-align: top;
   position: relative;
   width: 300px;
-  height: 700px;
+  height: 640px;
 }
 
 /* Side panel component: filters. */
@@ -148,11 +148,13 @@ div {
 }
 
 #gallery_items .item img {
+  position: absolute;
   width: 200px;
   height: 200px;
   box-shadow:0 0 1px 1px #333333;
 }
 
 #gallery_items .item p {
+  padding-top: 200px;
   margin: 5px;
 }
