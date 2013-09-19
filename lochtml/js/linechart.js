@@ -24,9 +24,16 @@ var LineChart = function(containerId, data, format) {
       .orient('left')
       .ticks(5);
 
+  // A line generator.
   var line = d3.svg.line()
       .x(function(d) { return x(d[0]); })
       .y(function(d) { return y(d[1]); });
+
+  // An area generator, for the light fill.
+  var area = d3.svg.area()
+      .x(function(d) { return x(d[0]); })
+      .y0(height)
+      .y1(function(d) { return y(d[1]); });
 
   var svg = d3.select(containerId)
     .append('svg')
@@ -35,6 +42,11 @@ var LineChart = function(containerId, data, format) {
       .attr('height', height + margin.top + margin.bottom)
     .append('g')
       .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+  svg.append('text')
+      .attr('x', width / 2)
+      .attr('y', '-5')
+      .style('text-anchor', 'middle')
+      .text('Number of Points');
 
   // Creation with data.
   var parseDate = d3.time.format('%d-%b-%y %H:00');
@@ -47,6 +59,7 @@ var LineChart = function(containerId, data, format) {
   x.domain(d3.extent(data, function(d) { return d[0]; }));
   y.domain(d3.extent(data, function(d) { return d[1]; }));
 
+  // Adds axis.
   svg.append('g')
       .attr('class', 'x axis')
       .attr('transform', 'translate(0,' + height + ')')
@@ -54,14 +67,15 @@ var LineChart = function(containerId, data, format) {
 
   svg.append('g')
       .attr('class', 'y axis')
-      .call(yAxis)
-    .append('text')
-      .attr('transform', 'rotate(-90)')
-      .attr('y', 6)
-      .attr('dy', '.71em')
-      .style('text-anchor', 'end')
-      .text('Number of Points');
+      .call(yAxis);
 
+  // Add the area path.
+  svg.append("path")
+      .attr("class", "area")
+      .attr("clip-path", "url(#clip)")
+      .attr("d", area(data));
+
+  // Adds line path.
   svg.append('path')
       .datum(data)
       .attr('class', 'line')

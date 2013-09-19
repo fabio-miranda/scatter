@@ -1,8 +1,8 @@
 body {
   font: 14px Verdana;
   font-family: "Helvetica Neue", Helvetica, sans-serif;
-  background: white;
-  color: rgba(0, 0, 0, 0.85);
+  background: black;
+  color: rgba(255, 255, 255, 0.85);
   width: 100%;
   height: 100%;
   text-align:justify;
@@ -30,12 +30,11 @@ div {
   height: 640px;
   margin: 0 auto;
   margin-bottom: 20px;
-  box-shadow:0 0 1px 1px #777;
 }
 
 #charts_panel {
   width: 1270px;
-  height: 200px;
+  height: 160px;
   margin: 0 auto;
   box-shadow:0 0 1px 1px #777;
 }
@@ -97,8 +96,8 @@ div {
 #filters_container {
   position: relative;
   width: 280px;
-  height: 300px;
-  background: #eee;
+  height: 335px;
+  background: #222;
   padding: 10px;
 }
 
@@ -107,7 +106,7 @@ div {
   position: relative;
   width: 280px;
   height: 250px;
-  background: #eee;
+  background: #222;
   padding: 10px;
   margin-bottom: 10px;
 }
@@ -143,14 +142,14 @@ div {
   height: 240px;
   margin-bottom: 5px;
   padding: 5px;
-  box-shadow:0 0 1px 1px #aaa;
+  box-shadow:0 0 1px 1px #333333;
 }
 
 #gallery_items .item img {
   position: absolute;
   width: 200px;
   height: 200px;
-  box-shadow:0 0 1px 1px #aaa;
+  box-shadow:0 0 1px 1px #333333;
 }
 
 #gallery_items .item p {
@@ -176,8 +175,9 @@ div {
 
 .monthTitle {
   text-anchor: middle;
-  stroke: black;
-  fill: black;
+  font: 12px sans-serif;
+  stroke: white;
+  fill: white;
 }
 
 .RdYlGn .q0-11{fill:rgb(165,0,38)}
@@ -195,17 +195,21 @@ div {
 /* Line chart component items. */
 #lineChart {
   stroke: none;
-  fill: black;
+  fill: white;
 }
 
 #lineChart .axis path, #lineChart .axis line {
   fill: none;
-  stroke: black;
+  stroke: white;
   shape-rendering: crispEdges;
 }
 
 #lineChart .line {
   fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
+  stroke: white;
+  stroke-width: 1.0px;
+}
+
+#lineChart path.area {
+  fill: #888;
 }
