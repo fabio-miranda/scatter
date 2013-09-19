@@ -15,6 +15,7 @@ BUCKET_TS_FINAL = 1377993600     # Final timestamp in the animation.
 # Number of data buckets.
 BUCKET_COUNT = (BUCKET_TS_FINAL - BUCKET_TS_INITIAL) / BUCKET_SIZE
 
+DATA_STATS_FILE = 'data/buckets/points_stats.json';
 
 class LocationDataConverter:
 
@@ -114,6 +115,25 @@ class LocationDataConverter:
       self.outputToCSV(buckets[bucket_index], output_filename)
 
 
+  # Outputs a 
+  def createDataStatsJson(self, input_folder, output_file):
+    data_stats = []
+    for bucket_index in range(BUCKET_COUNT):
+      current_ts = BUCKET_TS_INITIAL + bucket_index * BUCKET_SIZE
+      filename = input_folder + str(bucket_index) + '.csv'
+      print filename
+      with open(filename) as input_file:
+        csv_reader = csv.reader(input_file)
+
+        numberOfPoints = 0
+        for point in csv_reader:
+          numberOfPoints += 1
+      data_stats.append([current_ts, numberOfPoints])
+
+    # Outputs to file.
+    self.outputToJson(data_stats, output_file)
+
+
   # Iterates over filtered files and outputs basic stats for each data file:
   # number of points and min/max timestamp.
   def showInfoForFilteredFiles(self, input_folder):
@@ -173,4 +193,5 @@ if __name__ == "__main__":
   converter = LocationDataConverter()
   #converter.filterFilesInFolder(ORIGINAL_FILES_FOLDER, FILTERED_FILES_FOLDER)
   #converter.outputBucketsForFilesInFolder(FILTERED_FILES_FOLDER, BUCKETS_FILES_FOLDER)
-  converter.showInfoForFilteredFiles(FILTERED_FILES_FOLDER)
+  #converter.showInfoForFilteredFiles(FILTERED_FILES_FOLDER)
+  converter.createDataStatsJson(BUCKETS_FILES_FOLDER, DATA_STATS_FILE)

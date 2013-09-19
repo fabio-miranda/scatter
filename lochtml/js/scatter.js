@@ -9,6 +9,8 @@ var canvas;
 var map_text_layer = null;
 var gallery = null;
 var numberOfPoints = 0;
+var lastReceivedDateTime = null;
+var pointsSummaryData = null;
 
 var useMap = false;
 var useStreaming = false;
@@ -58,7 +60,7 @@ var updateAnimation = function() {
     }
     $( "#div_animslider" ).slider('value', anim_cur_ts);
 
-    requestData();
+    requestPoints();
     console.log('anim_cur_ts ' + anim_cur_ts);
     console.log('limit: ' + (ANIM_TS_FINAL));
   }
@@ -89,9 +91,13 @@ var parseDateTime = function(ts) {
   return {date: dateStr, time: timeStr};
 };
 
-var getCurTimeText = function() {
-  var initial = parseDateTime(anim_cur_ts);
-  var final = parseDateTime(anim_cur_ts + ANIM_STEP - 60);
+var getRenderedTimeText = function() {
+  if (!lastReceivedDateTime) {
+    return '';
+  }
+
+  var initial = parseDateTime(lastReceivedDateTime);
+  var final = parseDateTime(lastReceivedDateTime + ANIM_STEP - 60);
 
   if (initial.date != final.date) {
     var initialText = initial.date + ' ' + initial.time;
@@ -105,7 +111,7 @@ var getCurTimeText = function() {
 
 var setAnimCurTime = function(ts) {
   anim_cur_ts = ts;
-  requestData();
+  requestPoints();
   setAnumCurTimeText(ts);
 };
 
@@ -116,11 +122,11 @@ var setAnumCurTimeText = function(ts) {
 };
 
 
-var requestData = function() {
+var requestPoints = function() {
   var ts1 = anim_cur_ts;
   var ts2 = anim_cur_ts + ANIM_STEP;
 
-  requestPoints(ts1, ts2);
+  requestPointsData(ts1, ts2);
 };
 
 
@@ -164,6 +170,7 @@ var setupUI = function() {
     }
   });
 
+  var lastSlide = 0;
   $( "#div_animslider" ).slider({
     min: ANIM_TS_INITIAL,
     max: ANIM_TS_FINAL,
@@ -207,6 +214,7 @@ var setupUI = function() {
   toggleAnimation(anim_on);
 
   setupGallery();
+  setupCalendar();
 };
 
 
@@ -240,8 +248,10 @@ var getMapBoundaries = function(latlng0, latlng1) {
 };
 
 
-var cb_receivedPoints = function(data) {
+var cb_receivedPointsData = function(data) {
   numberOfPoints = data['points'].length;
+  lastReceivedDateTime = +data['ts1'];
+
   // Sets map boundaries.
   var min_lat = data['min_lat']; 
   var min_lon = data['min_lon'];
@@ -290,15 +300,29 @@ var cb_receivedPoints = function(data) {
 };
 
 
-var requestPoints = function(ts1, ts2) {
+var cb_receivedPointsSummaryData = function(data) {
+  pointsSummaryData = data;
+  createCalendar();
+};
+
+
+var requestPointsData = function(ts1, ts2) {
   $.post(
-      '/getPoints',
-      {
-        'query_ts1' : ts1,
-        'query_ts2' : ts2
-      },
-      cb_receivedPoints
-    );
+    '/getPoints',
+    {
+      'query_ts1' : ts1,
+      'query_ts2' : ts2
+    },
+    cb_receivedPointsData
+  );
+};
+
+
+var requestPointsSummaryData = function() {
+  $.post(
+      '/getPointsSummary',
+      cb_receivedPointsSummaryData
+  );
 };
 
 
@@ -481,7 +505,7 @@ var initMap = function() {
 };
 
 var updateMapOverlay = function() {
-  var current_time_text = getCurTimeText();
+  var rendered_time_text = getRenderedTimeText();
   var svg = d3.select('#map_overlay')
       .selectAll('svg').data(['map_overlay']);
   svg
@@ -492,7 +516,7 @@ var updateMapOverlay = function() {
     .attr('x', 50)
     .attr('y', 30)
     .attr('dy', '.31em');
-  text.text(current_time_text);
+  text.text(rendered_time_text);
 };
 
 var centerMapInNewYork = function() {
@@ -517,7 +541,7 @@ var updateOnZoom = function(zoom_level) {
 var initialize = function(){
   setupUI();
   centerMapInNewYork();
-  requestData();
+  requestPoints();
 
   setInterval(function() {
       updateAnimation();
@@ -532,7 +556,7 @@ var toDataURL = function() {
   var centerStr = center.lat() + ',' + center.lng();
   var requestUrl =
     'http://maps.google.com/maps/api/staticmap' +
-    '?sensor=false&size=700x700' +
+    '?sensor=false&size=640x640' +
     '&zoom=' + zoomLevel +
     '&center=' + centerStr + 
     '&style=feature:water|lightness:-100' +
@@ -548,5 +572,49 @@ var setupGallery = function() {
   // Sets up gallery.
   gallery = new Gallery('#gallery_items', toDataURL);
 };
+
+
+var setupCalendar = function() {
+  requestPointsSummaryData();
+}
+  
+
+var createCalendar = function() {
+  // Summarizes values by date.
+  var pointsByDate = {};
+  var dateFormat = d3.time.format('%Y-%m-%d');
+  for (var entry_index in pointsSummaryData) {
+    var entry = pointsSummaryData[entry_index];
+    var ts = entry[0];
+    var entryNumberOfPoints = entry[1];
+
+    var date = new Date(0);
+    date.setSeconds(ts);
+    date.setHours(0, 0, 0);
+
+    var dateIndex = dateFormat(date);
+    var dateEntry = pointsByDate[dateIndex];
+
+    var pointsInDate = dateEntry ? dateEntry[1] : 0;
+    pointsByDate[dateIndex] = [date, pointsInDate + entryNumberOfPoints];
+  }
+  var dateEntries = [];
+  for (var dateIndex in pointsByDate) {
+    dateEntries.push(pointsByDate[dateIndex]);
+  }
+
+  // Creates calendar.
+  var format = {
+    cellWidth: 20,
+    cellHeight: 20,
+    paddingX: 5,
+    paddingY: 20,
+    cellTextFormatter: function(date, value) {
+      return date + ': ' + value + ' points';
+    }
+  };
+  new Calendar('#calendar_container', dateEntries, format);
+};
+
 
 window.onload = initialize;

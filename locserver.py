@@ -7,7 +7,6 @@ import numpy
 
 
 DATA_FOLDER = 'data/buckets/'
-DATA_FILE = 'min_20130731_loc.csv'
 
 HTML_DIR = os.path.join(os.path.abspath("."), u"lochtml")
 
@@ -17,58 +16,19 @@ BUCKET_TS_FINAL = 1377993600     # Final timestamp in the animation.
 # Number of data buckets.
 BUCKET_COUNT = (BUCKET_TS_FINAL - BUCKET_TS_INITIAL) / BUCKET_SIZE
 
+DATA_STATS_FILE = 'data/buckets/points_stats.json';
+
 class ScatterPage:
 
   # Default constructor reading app config file.
   def __init__(self):
     # Reads configuration file with application folders and server port.
     self.config = os.path.join(os.path.dirname(__file__), 'config.conf')
-    # Loads data into buckets.
-    #self.initializeDataStats()
-    #self.computeDataStats(DATA_FOLDER)
 
 
   # Given a timestamp, returns the bucket index containing it.
   def getBucketIndex(self, ts):
     return int(math.floor((int(ts) - BUCKET_TS_INITIAL) / BUCKET_SIZE))
-
-
-  # Initializes empty data statistics.
-  def initializeDataStats(self):
-    self.data_stats = []
-    inf = float('inf')
-    for bucket_index in range(BUCKET_COUNT):
-      bucket = dict()
-      # Stores min/max lat and lon and filename.
-      bucket['min_lat'] = inf
-      bucket['max_lat'] = -inf
-      bucket['min_lon'] = inf
-      bucket['max_lon'] = -inf
-      bucket['filename'] = str(bucket_index) + '.csv'
-      self.data_stats.append(bucket)
-
-
-  # Precomputes min/max lat/lon to speed up clients requests.
-  def computeDataStats(self, data_folder):
-    for bucket_index in range(BUCKET_COUNT):
-      bucket = self.data_stats[bucket_index]
-      filename = data_folder + bucket['filename']
-      with open(filename) as input_file:
-        csv_reader = csv.reader(input_file)
-
-        print filename + '\n'
-
-        # Points: xid(0), ts(1), acc(2), lat(3), lon(4)
-        for point in csv_reader:
-          #print point
-          lat = float(point[3])
-          lon = float(point[4])
-
-          bucket['min_lat'] = min(bucket['min_lat'], lat)
-          bucket['max_lat'] = max(bucket['max_lat'], lat)
-          bucket['min_lon'] = min(bucket['min_lon'], lon)
-          bucket['max_lon'] = max(bucket['max_lon'], lon)
-
 
   # Access to index.html, the entry point in the application.
   @cherrypy.expose
@@ -124,6 +84,7 @@ class ScatterPage:
 
     # Prepares return data structure.
     data = {}
+    data['ts1'] = query_ts1;
     data['points'] = points
     data['h'] = 1.06 * 0.5 * (numpy.std(points_lat) + \
         numpy.std(points_lon)) * pow(len(points), -0.2)
@@ -136,6 +97,17 @@ class ScatterPage:
     # Returns a json with data.
     cherrypy.response.headers['Content-Type'] = "application/json;"
     return json.dumps(data)
+
+
+  # Returns data summary per date: returns array of dates and
+  # the number of points in each date.
+  @cherrypy.expose
+  def getPointsSummary(self):
+    # Returns a json with summary data.
+    cherrypy.response.headers['Content-Type'] = "application/json;"
+    with open(DATA_STATS_FILE) as input_file:
+      data = input_file.read()
+    return data
 
 
 if __name__ == '__main__':

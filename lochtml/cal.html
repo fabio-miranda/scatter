@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+.day {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.month {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+.monthTitle {
+  text-anchor: middle;
+  font: 12px sans-serif;
+}
+
+.RdYlGn .q0-11{fill:rgb(165,0,38)}
+.RdYlGn .q1-11{fill:rgb(215,48,39)}
+.RdYlGn .q2-11{fill:rgb(244,109,67)}
+.RdYlGn .q3-11{fill:rgb(253,174,97)}
+.RdYlGn .q4-11{fill:rgb(254,224,139)}
+.RdYlGn .q5-11{fill:rgb(255,255,191)}
+.RdYlGn .q6-11{fill:rgb(217,239,139)}
+.RdYlGn .q7-11{fill:rgb(166,217,106)}
+.RdYlGn .q8-11{fill:rgb(102,189,99)}
+.RdYlGn .q9-11{fill:rgb(26,152,80)}
+.RdYlGn .q10-11{fill:rgb(0,104,55)}
+
+</style>
+<body>
+  <div id="calendar_container"></div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src = "js/calendar.js"></script>
+<script type="text/javascript">
+  var format = {
+    cellWidth: 18,
+    cellHeight: 18,
+    paddingX: 5,
+    paddingY: 20
+  };
+
+  new Calendar('#calendar_container', [
+      [new Date(2013, 7, 1), 30],
+      [new Date(2013, 7, 3), 30],
+      [new Date(2013, 7, 8), 8],
+      [new Date(2013, 7, 2), 25],
+      [new Date(2013, 8, 20), 5]
+  ]);
+</script>
+

@@ -1719,9 +1719,7 @@ ScatterGL.prototype.mousemove = function(evt){
 }
 
 ScatterGL.prototype.toDataURL = function() {
-  // TODO test here
   var image = canvaslayer.canvas.toDataURL();
-  //var image = this.gl.canvas.toDataURL("image/jpeg");
   return image;
 };
 
