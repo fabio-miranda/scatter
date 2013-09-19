@@ -18,8 +18,10 @@
     <script type="text/javascript" src="js/libs/CanvasLayer.js"></script>
 
     <script type="text/javascript" src="js/colorscale.js"></script>
+    <script type="text/javascript" src="js/calendar.js"></script>
     <script type="text/javascript" src="js/gallery.js"></script>
     <script type="text/javascript" src="js/glutil.js"></script>
+    <script type="text/javascript" src="js/linechart.js"></script>
     <script type="text/javascript" src="js/scatter.js"></script>
     <script type="text/javascript" src="js/scattergl.js"></script>
   </head>
@@ -48,6 +50,7 @@
             <div>
               <svg id="anim_button"></svg>
               <div id='div_animslider'></div>
+              <div id='calendar_container'></div>
             </div>
           </div>
 
@@ -88,9 +91,10 @@
 
       </div>
 
-      <!-- Charts panel ->
-      <div id="charts_panel"></div>
-      -->
+      <!-- Charts panel -->
+      <div id="charts_panel">
+        <div id="line_chart_container"></div> 
+      </div>
 
       <!-- Gallery -->
       <div id="gallery">

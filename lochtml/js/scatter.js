@@ -303,6 +303,7 @@ var cb_receivedPointsData = function(data) {
 var cb_receivedPointsSummaryData = function(data) {
   pointsSummaryData = data;
   createCalendar();
+  createLineChart();
 };
 
 
@@ -616,5 +617,10 @@ var createCalendar = function() {
   new Calendar('#calendar_container', dateEntries, format);
 };
 
+var createLineChart = function() {
+  // TODO
+  var format = {};
+  new LineChart('#line_chart_container', pointsSummaryData, format);
+}
 
 window.onload = initialize;

@@ -1,7 +1,7 @@
 /**
  * Creates a calendar as a heat map for given data.
  * Data must be an array of [date, value].
- *
+ * @author Cesar Palomo cesarpalomo@gmail.com
  */
 var Calendar = function(containerId, data, format) {
   var monthsExtent = this.getMonthsExtent(data);

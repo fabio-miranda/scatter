@@ -36,7 +36,7 @@ Gallery.prototype.addSnapshot = function() {
   this.items_.push({
     map_src: snapshot.map_src,
     overlay: snapshot.overlay,
-    dateTime: getCurTimeText(),
+    dateTime: getRenderedTimeText(),
     numberOfPoints: getNumberOfPoints()
   });
 
