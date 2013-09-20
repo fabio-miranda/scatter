@@ -25,6 +25,8 @@ var ANIM_TS_FINAL = 1377993600 - ANIM_STEP;    // Final timestamp in the animati
 var anim_cur_ts = ANIM_TS_INITIAL;             // Current timestamp in the animation.
 var anim_on = false;                           // Animation on/off flag.
 
+var USE_DARK_STYLE = false;
+
 var toggleAnimation = function(enabled) {
   anim_on = enabled;
   var images = {true: '../img/pause.png', false: '../img/play.png'};
@@ -437,6 +439,109 @@ var draw = function() {
 };
 
 var initMap = function() {
+
+  var BRIGHT_STYLE = [
+    {
+      "featureType": "road",
+      "elementType": "geometry",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "transit",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "water",
+      "stylers": [
+        { "visibility": "simplified" }
+      ]
+    },{
+      "featureType": "poi.business",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "landscape.man_made",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "administrative.neighborhood",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "administrative.province",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "road",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "water",
+      "stylers": [
+        { "lightness": 39 }
+      ]
+    },{
+      "stylers": [
+        { "gamma": 2.19 }
+      ]
+    },{
+      "featureType": "landscape",
+      "stylers": [
+        { "visibility": "on" },
+        { "saturation": -100 },
+        { "lightness": 90 }
+      ]
+    }
+  ];
+  var DARK_STYLE = [
+    {
+      "featureType": "administrative",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "landscape",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "poi",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "road",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "transit",
+      "stylers": [
+        { "visibility": "off" }
+      ]
+    },{
+      "featureType": "water",
+      "stylers": [
+        { "lightness": -100 }
+      ]
+    },{
+      "featureType": "landscape",
+      "stylers": [
+        { "visibility": "on" },
+        { "saturation": -100 },
+        { "lightness": -90 }
+      ]
+    }
+  ];
+
+
   var mapOptions = {
     zoom: 1,
     center: new google.maps.LatLng(0,0),
@@ -447,47 +552,9 @@ var initMap = function() {
     scaleControl: true,
     streetViewControl: false,
     overviewMapControl: false,
-    styles : [
-      {
-        "featureType": "administrative",
-        "stylers": [
-          { "visibility": "off" }
-        ]
-      },{
-        "featureType": "landscape",
-        "stylers": [
-          { "visibility": "off" }
-        ]
-      },{
-        "featureType": "poi",
-        "stylers": [
-          { "visibility": "off" }
-        ]
-      },{
-        "featureType": "road",
-        "stylers": [
-          { "visibility": "off" }
-        ]
-      },{
-        "featureType": "transit",
-        "stylers": [
-          { "visibility": "off" }
-        ]
-      },{
-        "featureType": "water",
-        "stylers": [
-          { "lightness": -100 }
-        ]
-      },{
-        "featureType": "landscape",
-        "stylers": [
-          { "visibility": "on" },
-          { "saturation": -100 },
-          { "lightness": -90 }
-        ]
-      }
-    ]
+    styles: USE_DARK_STYLE ? DARK_STYLE : BRIGHT_STYLE
   };
+
   var div = document.getElementById('map_container');
   map = new google.maps.Map(div, mapOptions);
 
