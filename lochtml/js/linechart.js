@@ -46,7 +46,7 @@ var LineChart = function(containerId, data, format) {
       .attr('x', width / 2)
       .attr('y', '-5')
       .style('text-anchor', 'middle')
-      .text('Number of Points');
+      .text('Number of active calls');
 
   // Creation with data.
   var parseDate = d3.time.format('%d-%b-%y %H:00');

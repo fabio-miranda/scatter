@@ -30,6 +30,7 @@ div {
   height: 640px;
   margin: 0 auto;
   margin-bottom: 20px;
+  box-shadow:0 0 1px 1px #777;
 }
 
 #charts_panel {
@@ -54,7 +55,6 @@ div {
   position: relative;
   width: 640px;
   height: 640px;
-  box-shadow:0 0 1px 1px #333333;
 }
 
 #map_container, #map_overlay, #map_overlay svg {
@@ -211,5 +211,5 @@ div {
 }
 
 #lineChart path.area {
-  fill: #888;
+  fill: #AFB7DA;
 }

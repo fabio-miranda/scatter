@@ -25,7 +25,7 @@ var ANIM_TS_FINAL = 1377993600 - ANIM_STEP;    // Final timestamp in the animati
 var anim_cur_ts = ANIM_TS_INITIAL;             // Current timestamp in the animation.
 var anim_on = false;                           // Animation on/off flag.
 
-var USE_DARK_STYLE = false;
+var USE_DARK_STYLE = true;
 
 var toggleAnimation = function(enabled) {
   anim_on = enabled;
@@ -134,6 +134,14 @@ var requestPoints = function() {
 
 // Sets up user interface elements. Should be called only once.
 var setupUI = function() {
+  // Sets correct css.
+  var head = document.getElementsByTagName('head')[0];
+  var link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = USE_DARK_STYLE ? 'css/style-black.css' : 'css/style-white.css';
+  head.appendChild(link);
+
   // Sets up map.
   initMap();
   canvas = canvaslayer.canvas;
@@ -678,7 +686,7 @@ var createCalendar = function() {
     paddingX: 5,
     paddingY: 20,
     cellTextFormatter: function(date, value) {
-      return date + ': ' + value + ' points';
+      return date + ': ' + value + ' active calls';
     }
   };
   new Calendar('#calendar_container', dateEntries, format);
