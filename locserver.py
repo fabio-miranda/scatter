@@ -16,7 +16,8 @@ BUCKET_TS_FINAL = 1377993600     # Final timestamp in the animation.
 # Number of data buckets.
 BUCKET_COUNT = (BUCKET_TS_FINAL - BUCKET_TS_INITIAL) / BUCKET_SIZE
 
-DATA_STATS_FILE = 'data/buckets/points_stats.json';
+DATA_STATS_FILE = 'data/points_stats.json'
+IDS_SAMPLE_COUNT_FILE = 'data/samples_per_bucket_of_10.json'
 
 class ScatterPage:
 
@@ -106,6 +107,17 @@ class ScatterPage:
     # Returns a json with summary data.
     cherrypy.response.headers['Content-Type'] = "application/json;"
     with open(DATA_STATS_FILE) as input_file:
+      data = input_file.read()
+    return data
+
+
+  # Returns bucketted data summary per xid: returns number of xid's
+  # that have the number of samples falling in each bucket (bucket size = 10).
+  @cherrypy.expose
+  def getIdsSampleCountSummary(self):
+    # Returns a json with summary data.
+    cherrypy.response.headers['Content-Type'] = "application/json;"
+    with open(IDS_SAMPLE_COUNT_FILE) as input_file:
       data = input_file.read()
     return data
 

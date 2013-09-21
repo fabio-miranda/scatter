@@ -11,6 +11,7 @@ var gallery = null;
 var numberOfPoints = 0;
 var lastReceivedDateTime = null;
 var pointsSummaryData = null;
+var idsSamplesCountData = null;
 
 var useMap = false;
 var useStreaming = false;
@@ -224,7 +225,7 @@ var setupUI = function() {
   toggleAnimation(anim_on);
 
   setupGallery();
-  setupCalendar();
+  setupPlots();
 };
 
 
@@ -310,13 +311,6 @@ var cb_receivedPointsData = function(data) {
 };
 
 
-var cb_receivedPointsSummaryData = function(data) {
-  pointsSummaryData = data;
-  createCalendar();
-  createLineChart();
-};
-
-
 var requestPointsData = function(ts1, ts2) {
   $.post(
     '/getPoints',
@@ -329,10 +323,31 @@ var requestPointsData = function(ts1, ts2) {
 };
 
 
+var cb_receivedPointsSummaryData = function(data) {
+  pointsSummaryData = data;
+  createCalendar();
+  createPointsSummaryChart();
+};
+
+
 var requestPointsSummaryData = function() {
   $.post(
       '/getPointsSummary',
       cb_receivedPointsSummaryData
+  );
+};
+
+
+var cb_receivedIdsSamplesCountData = function(data) {
+  idsSamplesCountData = data;
+  createIdsSampleCountSummaryChart();
+};
+
+
+var requestIdsSamplesCountData = function(ts1, ts2) {
+  $.post(
+    '/getIdsSampleCountSummary',
+    cb_receivedIdsSamplesCountData
   );
 };
 
@@ -650,8 +665,9 @@ var setupGallery = function() {
 };
 
 
-var setupCalendar = function() {
+var setupPlots = function() {
   requestPointsSummaryData();
+  requestIdsSamplesCountData();
 }
   
 
@@ -692,10 +708,36 @@ var createCalendar = function() {
   new Calendar('#calendar_container', dateEntries, format);
 };
 
-var createLineChart = function() {
-  // TODO
-  var format = {};
-  new LineChart('#line_chart_container', pointsSummaryData, format);
+var createPointsSummaryChart = function() {
+  // Converts ts to date.
+  pointsSummaryData.forEach(function(d) {
+    var date = new Date(0);
+    date.setSeconds(d[0]);
+    d[0] = date;
+  });
+  var format = {
+    useTimeScaleForX: true,
+    xAxisTitle: 'Date/time',
+    yAxisTitle: 'Calls',
+    xTicks: 8,
+    yTicks: 5
+  };
+  var title = 'Number of active calls';
+  new LineChart('#points_summary_chart_container', pointsSummaryData, title, format);
+}
+
+var createIdsSampleCountSummaryChart = function() {
+  var format = {
+    useTimeScaleForY: false,
+    useLogScaleForY: true,
+    xAxisTitle: 'Samples',
+    yAxisTitle: 'Users',
+    yTicks: 3,
+    height: 300
+  };
+
+  var title = 'Samples per users';
+  new LineChart('#ids_samples_count_chart_container', idsSamplesCountData, title, format);
 }
 
 window.onload = initialize;

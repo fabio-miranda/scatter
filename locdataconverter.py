@@ -15,7 +15,8 @@ BUCKET_TS_FINAL = 1377993600     # Final timestamp in the animation.
 # Number of data buckets.
 BUCKET_COUNT = (BUCKET_TS_FINAL - BUCKET_TS_INITIAL) / BUCKET_SIZE
 
-DATA_STATS_FILE = 'data/buckets/points_stats.json';
+DATA_STATS_FILE = 'data/points_stats.json'
+IDS_SAMPLE_COUNT_FILE = 'data/samples_per_bucket_of_10.json'
 
 class LocationDataConverter:
 
@@ -115,7 +116,7 @@ class LocationDataConverter:
       self.outputToCSV(buckets[bucket_index], output_filename)
 
 
-  # Outputs a 
+  # Outputs a Json with statistics of points: number of points.
   def createDataStatsJson(self, input_folder, output_file):
     data_stats = []
     for bucket_index in range(BUCKET_COUNT):
@@ -134,6 +135,35 @@ class LocationDataConverter:
     self.outputToJson(data_stats, output_file)
 
 
+  # Outputs a Json with the number of samples per xid, in ascending order
+  # of number of samples.
+  def createIdsStatsJson(self, input_folder, output_file):
+    samples_per_id = dict()
+    max_number_of_samples = -sys.maxint
+
+    for filename in os.listdir(input_folder):
+      csv_reader = csv.reader(open(input_folder + filename))
+
+      for point in csv_reader:
+        xid = point[2]
+        number_of_samples = samples_per_id.setdefault(xid, 0) + 1
+        samples_per_id[xid] = number_of_samples
+        max_number_of_samples = max(max_number_of_samples, number_of_samples)
+
+    # Creates a bucketed list: stores how many users have
+    # (BUCKET_N_SAMPLES_I, BUCKET_N_SAMPLES_I+1] samples.
+    bucket_size = 10
+    num_buckets = max_number_of_samples // bucket_size + 1
+    buckets = [[bucket_i * bucket_size, 0] for bucket_i in range(num_buckets)]
+    for xid, n in samples_per_id.iteritems():
+      bucket_i = n // bucket_size
+      num_entries = buckets[bucket_i][1] + 1
+      buckets[bucket_i] = [bucket_i * bucket_size, num_entries]
+
+    # Outputs to file.
+    self.outputToJson(buckets, output_file)
+
+
   # Iterates over filtered files and outputs basic stats for each data file:
   # number of points and min/max timestamp.
   def showInfoForFilteredFiles(self, input_folder):
@@ -145,6 +175,8 @@ class LocationDataConverter:
     general_max_lon = -float('inf')
     general_point_count = 0
 
+    general_ids_count = 0
+    xids_set = set()
     for filename in os.listdir(input_folder):
       csv_reader = csv.reader(open(input_folder + filename))
 
@@ -155,16 +187,21 @@ class LocationDataConverter:
       # Points: xid(0), ts(1), acc(2), lat(3), lon(4)
       for p in csv_reader:
         # Updates min/max and updates points count for file.
-        file_point_count += 1
-        timestamp = int(p[1])
-        lat = float(p[3])
-        lon = float(p[4])
-        file_min_ts = min(file_min_ts, timestamp)
-        file_max_ts = max(file_max_ts, timestamp)
-        general_min_lat = min(general_min_lat, lat)
-        general_max_lat = max(general_max_lat, lat)
-        general_min_lon = min(general_min_lon, lon)
-        general_max_lon = max(general_max_lon, lon)
+        #file_point_count += 1
+        #timestamp = int(p[1])
+        #lat = float(p[3])
+        #lon = float(p[4])
+        #file_min_ts = min(file_min_ts, timestamp)
+        #file_max_ts = max(file_max_ts, timestamp)
+        #general_min_lat = min(general_min_lat, lat)
+        #general_max_lat = max(general_max_lat, lat)
+        #general_min_lon = min(general_min_lon, lon)
+        #general_max_lon = max(general_max_lon, lon)
+
+        xid = p[0]
+        if xid not in xids_set:
+          xids_set.add(xid)
+          general_ids_count += 1
       
       # Outputs stats for file.
       print filename + '\t' + \
@@ -182,7 +219,38 @@ class LocationDataConverter:
         '[' + str(general_min_ts) + ', ' + str(general_max_ts) + '] ' + \
         'lat: [' + str(general_min_lat) + ', ' + str(general_max_lat) + '] ' + \
         'lon: [' + str(general_min_lon) + ', ' + str(general_max_lon) + ']'
+    print 'xid count: ' + str(general_ids_count)
 
+
+  # Iterates over original files and outputs basic stats for each data file:
+  # number of points and unique xid count.
+  def showInfoForOriginalFiles(self, input_folder):
+    general_point_count = 0
+    general_xids_count = 0
+    general_pids_count = 0
+    xids_set = set()
+    pids_set = set()
+
+    for filename in os.listdir(input_folder):
+      csv_reader = csv.reader(open(input_folder + filename))
+
+      # Points: xid(0), ts(1), acc(2), lat(3), lon(4)
+      for p in csv_reader:
+        general_point_count += 1
+        pid = p[0]
+        xid = p[2]
+        if xid not in xids_set:
+          xids_set.add(xid)
+          general_xids_count += 1
+
+        if pid not in pids_set:
+          pids_set.add(pid)
+          general_pids_count += 1
+      
+    # Outputs general stats.
+    print 'point count:  ' + str(general_point_count) + \
+        '\txid count: ' + str(general_xids_count) + \
+        '\tid count: ' + str(general_pids_count)
 
 # Main
 if __name__ == "__main__":
@@ -190,8 +258,11 @@ if __name__ == "__main__":
   FILTERED_FILES_FOLDER = 'data/filtered/'
   BUCKETS_FILES_FOLDER = 'data/buckets/'
 
+
   converter = LocationDataConverter()
   #converter.filterFilesInFolder(ORIGINAL_FILES_FOLDER, FILTERED_FILES_FOLDER)
   #converter.outputBucketsForFilesInFolder(FILTERED_FILES_FOLDER, BUCKETS_FILES_FOLDER)
   #converter.showInfoForFilteredFiles(FILTERED_FILES_FOLDER)
+  #converter.showInfoForOriginalFiles(ORIGINAL_FILES_FOLDER)
+  converter.createIdsStatsJson(ORIGINAL_FILES_FOLDER, IDS_SAMPLE_COUNT_FILE)
   converter.createDataStatsJson(BUCKETS_FILES_FOLDER, DATA_STATS_FILE)

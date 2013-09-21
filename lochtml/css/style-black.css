@@ -35,7 +35,7 @@ div {
 
 #charts_panel {
   width: 1270px;
-  height: 160px;
+  height: 480px;
   margin: 0 auto;
   box-shadow:0 0 1px 1px #777;
 }
@@ -175,7 +175,7 @@ div {
 
 .monthTitle {
   text-anchor: middle;
-  font: 12px sans-serif;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
   stroke: white;
   fill: white;
 }
@@ -192,24 +192,32 @@ div {
 .RdYlGn .q9-11{fill:rgb(26,152,80)}
 .RdYlGn .q10-11{fill:rgb(0,104,55)}
 
+/* Charts component items. */
+#charts_panel div {
+  background: rgba(30, 30, 30, 0.8);
+  margin-top: 10px;
+  margin-bottom: 10px;
+  box-shadow:0 0 1px 1px #777;
+}
+
 /* Line chart component items. */
-#lineChart {
+.line_chart {
   stroke: none;
   fill: white;
 }
 
-#lineChart .axis path, #lineChart .axis line {
+.line_chart .axis path, .line_chart .axis line {
   fill: none;
   stroke: white;
   shape-rendering: crispEdges;
 }
 
-#lineChart .line {
+.line_chart .line {
   fill: none;
   stroke: white;
   stroke-width: 1.0px;
 }
 
-#lineChart path.area {
+.line_chart path.area {
   fill: #AFB7DA;
 }
