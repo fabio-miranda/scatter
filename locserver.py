@@ -6,18 +6,18 @@ import os
 import numpy
 
 
-DATA_FOLDER = 'data/buckets/'
+DATA_FOLDER = os.path.expanduser('~/xtifyData/buckets/')
 
 HTML_DIR = os.path.join(os.path.abspath("."), u"lochtml")
 
 BUCKET_SIZE = 10 * 60            # Data bucket size: 10 minutes.
-BUCKET_TS_INITIAL = 1375142400   # Bucket zero Initial timestamp for datin the animation.
+BUCKET_TS_INITIAL = 1375142400   # Bucket zero Initial timestamp for dates in the animation.
 BUCKET_TS_FINAL = 1377993600     # Final timestamp in the animation.
 # Number of data buckets.
 BUCKET_COUNT = (BUCKET_TS_FINAL - BUCKET_TS_INITIAL) / BUCKET_SIZE
 
-DATA_STATS_FILE = 'data/points_stats.json'
-IDS_SAMPLE_COUNT_FILE = 'data/samples_per_bucket_of_10.json'
+DATA_STATS_FILE = os.path.expanduser('~/xtifyData/points_stats.json')
+IDS_SAMPLE_COUNT_FILE = os.path.expanduser('~/xtifyData/samples_per_bucket_of_10.json')
 
 class ScatterPage:
 

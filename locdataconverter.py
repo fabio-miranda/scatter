@@ -10,13 +10,16 @@ import sys
 
 
 BUCKET_SIZE = 10 * 60            # Data bucket size: 60 minutes.
-BUCKET_TS_INITIAL = 1375142400   # Bucket zero Initial timestamp for datin the animation.
+BUCKET_TS_INITIAL = 1375142400   # Bucket zero Initial timestamp for date in the animation.
 BUCKET_TS_FINAL = 1377993600     # Final timestamp in the animation.
 # Number of data buckets.
 BUCKET_COUNT = (BUCKET_TS_FINAL - BUCKET_TS_INITIAL) / BUCKET_SIZE
 
-DATA_STATS_FILE = 'data/points_stats.json'
-IDS_SAMPLE_COUNT_FILE = 'data/samples_per_bucket_of_10.json'
+DATA_STATS_FILE = os.path.expanduser('~/xtifyData/points_stats.json')
+IDS_SAMPLE_COUNT_FILE = os.path.expanduser('~/xtifyData/samples_per_bucket_of_10.json')
+ORIGINAL_FILES_FOLDER = os.path.expanduser('~/xtifyData/original/')
+FILTERED_FILES_FOLDER = os.path.expanduser('~/xtifyData/filtered/')
+BUCKETS_FILES_FOLDER = os.path.expanduser('~/xtifyData/buckets/')
 
 class LocationDataConverter:
 
@@ -187,12 +190,12 @@ class LocationDataConverter:
       # Points: xid(0), ts(1), acc(2), lat(3), lon(4)
       for p in csv_reader:
         # Updates min/max and updates points count for file.
-        #file_point_count += 1
-        #timestamp = int(p[1])
+        file_point_count += 1
+        timestamp = int(p[1])
+        file_min_ts = min(file_min_ts, timestamp)
+        file_max_ts = max(file_max_ts, timestamp)
         #lat = float(p[3])
         #lon = float(p[4])
-        #file_min_ts = min(file_min_ts, timestamp)
-        #file_max_ts = max(file_max_ts, timestamp)
         #general_min_lat = min(general_min_lat, lat)
         #general_max_lat = max(general_max_lat, lat)
         #general_min_lon = min(general_min_lon, lon)
@@ -252,17 +255,38 @@ class LocationDataConverter:
         '\txid count: ' + str(general_xids_count) + \
         '\tid count: ' + str(general_pids_count)
 
+
+  # Iterates over buckets files and outputs basic stats for each data file:
+  # number of points per file.
+  def showInfoForBucketsFiles(self, input_folder):
+    max_point_count = -sys.maxint
+    point_count = 0
+
+    fi = 0
+    for filename in os.listdir(input_folder):
+      fi += 1
+      csv_reader = csv.reader(open(input_folder + filename))
+
+      if fi == 6:
+        print 'point count:  ' + str(point_count)
+        point_count = 0
+        fi = 0
+
+      for p in csv_reader:
+        point_count += 1
+
+      max_point_count = max(max_point_count, point_count)
+      
+    # Outputs general stats.
+    print 'max_point count:  ' + str(max_point_count)
+
 # Main
 if __name__ == "__main__":
-  ORIGINAL_FILES_FOLDER = 'data/original/'
-  FILTERED_FILES_FOLDER = 'data/filtered/'
-  BUCKETS_FILES_FOLDER = 'data/buckets/'
-
-
   converter = LocationDataConverter()
   #converter.filterFilesInFolder(ORIGINAL_FILES_FOLDER, FILTERED_FILES_FOLDER)
   #converter.outputBucketsForFilesInFolder(FILTERED_FILES_FOLDER, BUCKETS_FILES_FOLDER)
-  #converter.showInfoForFilteredFiles(FILTERED_FILES_FOLDER)
+  converter.showInfoForFilteredFiles(FILTERED_FILES_FOLDER)
   #converter.showInfoForOriginalFiles(ORIGINAL_FILES_FOLDER)
-  converter.createIdsStatsJson(ORIGINAL_FILES_FOLDER, IDS_SAMPLE_COUNT_FILE)
-  converter.createDataStatsJson(BUCKETS_FILES_FOLDER, DATA_STATS_FILE)
+  #converter.createIdsStatsJson(ORIGINAL_FILES_FOLDER, IDS_SAMPLE_COUNT_FILE)
+  #converter.createDataStatsJson(BUCKETS_FILES_FOLDER, DATA_STATS_FILE)
+  #converter.showInfoForBucketsFiles(BUCKETS_FILES_FOLDER)
