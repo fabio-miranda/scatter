@@ -48,6 +48,7 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
       .domain([0,this.texsize]);
   }
 
+
   scaleColor.range(values);
   scaleAlpha.range(d3.range(0, 255+255.0/(values.length), 255.0/(values.length)));
 

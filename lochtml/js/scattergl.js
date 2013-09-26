@@ -46,7 +46,7 @@ SelectionQuad.prototype.updateBB = function(){
 }
 
 
-function ScatterGL(canvas, numdim, numentries, useStreaming, isLine, opt_kdetype) {
+function ScatterGL(canvas, numdim, numentries, useStreaming, isLine, opt_kdetype, opt_bandwidth, opt_alpha) {
   this.canvas = canvas;
   this.gl = null;
   this.numdim = numdim;
@@ -57,9 +57,9 @@ function ScatterGL(canvas, numdim, numentries, useStreaming, isLine, opt_kdetype
   this.pMatrix = mat4.create();
   this.mousestate = 'MOUSEUP';
   this.devicePixelRatio = 1;
-  this.bandwidth = 0.01;
+  this.bandwidth = opt_bandwidth || 0.01;
   this.contourWidth = 0.0;
-  this.alphaMultiplier = 1.0;
+  this.alphaMultiplier = opt_alpha || 1.0;
   this.kdetype = opt_kdetype || 'singlekde';
   this.drawReady = false;
   this.drawOutliers = false;
@@ -496,10 +496,14 @@ ScatterGL.prototype.updateKDE = function(pass, numgroups, width, height){
   this.gl.uniform1f(this.multipass_kdeShader.numBins, this.numbin);
 
   if(this.useStreaming > 0){
-    if(this.isLine)
+    if(this.isLine) {
       this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.primitives.numrasterpoints * this.numbin);
-    else
-      this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.primitives.numrasterpoints);
+    } else {
+      // TODO Cesar: change to max of all frames.
+      var MAX_NUM_POINTS_PER_FRAME = 20000;
+      //this.gl.uniform1f(this.multipass_kdeShader.numPoints, this.primitives.numrasterpoints);
+      this.gl.uniform1f(this.multipass_kdeShader.numPoints, MAX_NUM_POINTS_PER_FRAME);
+    }
     this.gl.uniform1f(this.multipass_kdeShader.minCountValue, 0);
     this.gl.uniform1f(this.multipass_kdeShader.maxCountValue, 1);
     this.gl.uniform1f(this.multipass_kdeShader.minIndexValue, 0);

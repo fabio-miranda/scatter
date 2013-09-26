@@ -86,12 +86,12 @@ Gallery.prototype.update = function() {
 
 /**
  * Builds html content with info about an item in the gallery,
- * such as date/time and number of points.
+ * such as date/time and number of samples.
  */
 Gallery.prototype.getItemInfo = function(item, i) {
-  // Add text with details (date/time, number of points).
+  // Add text with details (date/time, number of samples).
   return '<p>' +
     item.dateTime + '<br>' +
-    '<b>' + item.numberOfPoints + '</b> points' +
+    '<b>' + item.numberOfPoints + '</b> samples' +
     '</p>';
 };

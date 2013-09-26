@@ -47,6 +47,22 @@ div {
 }
 
 
+/* General items: tooltip. */
+
+div.tooltip {
+  position: absolute;
+  text-align: center;
+  width: 160px;
+  height: 12px;
+  padding: 8px;
+  font: 12px sans-serif;
+  background: #ddd;
+  border: solid 1px #aaa;
+  border-radius: 8px;
+  pointer-events: none;
+  color: black;
+}
+
 /* Top panel component: canvas container and its content. */
 
 #canvas_container {
@@ -69,7 +85,7 @@ div {
 }
 
 #map_overlay svg {
-  font: 30px sans-serif;
+  font: 20px sans-serif;
   stroke: white;
   fill: white;
 }
@@ -160,6 +176,7 @@ div {
 /* Calendar component items. */
 #calendar_container {
   padding-left: 30px;
+  font: 12px Verdana;
 }
 
 .day {
@@ -175,8 +192,11 @@ div {
 
 .monthTitle {
   text-anchor: middle;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
-  stroke: white;
+  fill: white;
+}
+
+.dayOfWeekTitle {
+  text-anchor: left;
   fill: white;
 }
 
@@ -220,4 +240,9 @@ div {
 
 .line_chart path.area {
   fill: #AFB7DA;
+}
+
+.line_chart .brush {
+  fill: white;
+  stroke: none;
 }

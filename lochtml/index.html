@@ -3,10 +3,10 @@
 
 <html>
   <head>
-    <title>Cell phone calls in New York</title>
+    <title>Cell phones in New York</title>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     <link type="text/css" rel="stylesheet" href="css/jquery-ui.css" media="all">
-    <!--link type="text/css" rel="stylesheet" href="css/style-black.css" media="all"-->
+    <!--link type="text/css" rel="stylesheet" href="css/style-white.css" media="all"-->
 
     <script src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
     <script type="text/javascript" src="js/libs/gl-matrix-min.js"></script>
@@ -20,14 +20,16 @@
     <script type="text/javascript" src="js/colorscale.js"></script>
     <script type="text/javascript" src="js/calendar.js"></script>
     <script type="text/javascript" src="js/gallery.js"></script>
+    <script type="text/javascript" src="js/gaussianchart.js"></script>
     <script type="text/javascript" src="js/glutil.js"></script>
     <script type="text/javascript" src="js/linechart.js"></script>
     <script type="text/javascript" src="js/scatter.js"></script>
     <script type="text/javascript" src="js/scattergl.js"></script>
+    <script type="text/javascript" src="js/utils.js"></script>
   </head>
 
   <body>
-    <center><h2>Cell phone calls in New York</h2></center>
+    <center><h2>Cell phones in New York</h2></center>
     <div id="page_container">
 
       <!-- Top panel -->
@@ -71,8 +73,8 @@
 
             Alpha:
             <select id='alphaType' onchange='changeTransparency()'>
-              <option value='alpha_fixed' selected='selected'>Fixed alpha</option>
-              <option value='alpha_linear'>Linear alpha</option>
+              <option value='alpha_fixed'>Fixed alpha</option>
+              <option value='alpha_linear' selected='selected'>Linear alpha</option>
               <option value='alpha_discrete'>Discrete alpha</option>
             </select>
             <div id='div_alphaslider'></div>

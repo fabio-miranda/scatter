@@ -1,3 +1,5 @@
+var USE_DARK_STYLE = false;
+
 var histogram;
 var scattermatrix;
 var map = null;
@@ -12,6 +14,9 @@ var numberOfPoints = 0;
 var lastReceivedDateTime = null;
 var pointsSummaryData = null;
 var idsSamplesCountData = null;
+var pointsSummaryChart = null;
+var utils = null;
+var lastPointsRequestTime = 0;
 
 var useMap = false;
 var useStreaming = false;
@@ -19,14 +24,13 @@ var isline = false;
 var datapath;
 var currententry;
 var numentries;
-var delay;
 var ANIM_STEP = 60 * 60;                       // animation step: 60 minutes.
 var ANIM_TS_INITIAL =  1375142400;             // Initial timestamp in the animation.
 var ANIM_TS_FINAL = 1377993600 - ANIM_STEP;    // Final timestamp in the animation.
 var anim_cur_ts = ANIM_TS_INITIAL;             // Current timestamp in the animation.
 var anim_on = false;                           // Animation on/off flag.
-
-var USE_DARK_STYLE = true;
+var ANIMATION_INTERVAL = 200;
+var previous_zoom_level = null;
 
 var toggleAnimation = function(enabled) {
   anim_on = enabled;
@@ -61,7 +65,7 @@ var updateAnimation = function() {
     } else {
       anim_cur_ts += ANIM_STEP;
     }
-    $( "#div_animslider" ).slider('value', anim_cur_ts);
+    $( '#div_animslider' ).slider('value', anim_cur_ts);
 
     requestPoints();
     console.log('anim_cur_ts ' + anim_cur_ts);
@@ -69,7 +73,14 @@ var updateAnimation = function() {
   }
   // Updates overlay for text on top of the map.
   updateMapOverlay();
+
+  var date1 = new Date(0);
+  date1.setSeconds(anim_cur_ts);
+  var date2 = new Date(0);
+  date2.setSeconds(anim_cur_ts + ANIM_STEP);
+  pointsSummaryChart.updateBrush(date1, date2);
 };
+
 
 var parseDateTime = function(ts) {
   var date = new Date(0);
@@ -115,10 +126,10 @@ var getRenderedTimeText = function() {
 var setAnimCurTime = function(ts) {
   anim_cur_ts = ts;
   requestPoints();
-  setAnumCurTimeText(ts);
+  setAnimCurTimeText(ts);
 };
 
-var setAnumCurTimeText = function(ts) {
+var setAnimCurTimeText = function(ts) {
   var parsedDateTime = parseDateTime(ts);
   var text = parsedDateTime.date + ' ' + parsedDateTime.time;
   $('#curtime').attr('value', text);
@@ -126,10 +137,16 @@ var setAnumCurTimeText = function(ts) {
 
 
 var requestPoints = function() {
-  var ts1 = anim_cur_ts;
-  var ts2 = anim_cur_ts + ANIM_STEP;
+  // Ignores requests that happen to often.
+  var pointsRequestTime = new Date().getTime();
+  if (pointsRequestTime - lastPointsRequestTime > ANIMATION_INTERVAL) {
+    lastPointsRequestTime = pointsRequestTime;
 
-  requestPointsData(ts1, ts2);
+    var ts1 = anim_cur_ts;
+    var ts2 = anim_cur_ts + ANIM_STEP;
+
+    requestPointsData(ts1, ts2);
+  }
 };
 
 
@@ -143,6 +160,8 @@ var setupUI = function() {
   link.href = USE_DARK_STYLE ? 'css/style-black.css' : 'css/style-white.css';
   head.appendChild(link);
 
+  utils = new Utils();
+
   // Sets up map.
   initMap();
   canvas = canvaslayer.canvas;
@@ -150,8 +169,10 @@ var setupUI = function() {
   $('#zoom').hide();
 
   // Sets up sliders.
-  $( "#div_bandwidthslider" ).slider({
+  var bandwidth_value = 0.027;
+  $( '#div_bandwidthslider' ).slider({
     min: 0.001,
+    value: bandwidth_value,
     max: 4.0,
     step: 0.001,
     slide: function( event, ui ) {
@@ -160,10 +181,11 @@ var setupUI = function() {
     }
   });
 
-  $( "#div_alphaslider" ).slider({
+  var alpha_value = 9;
+  $( '#div_alphaslider' ).slider({
     min: 0.0,
-    max: 10.0,
-    value: 1.0,
+    max: 12.0,
+    value: alpha_value,
     step: 0.001,
     slide: function( event, ui ) {
       //changeColorScale();
@@ -171,7 +193,7 @@ var setupUI = function() {
     }
   });
 
-  $( "#div_pointslider" ).slider({
+  $( '#div_pointslider' ).slider({
     min: 0.0,
     max: 10.0,
     value: 1.0,
@@ -182,7 +204,7 @@ var setupUI = function() {
   });
 
   var lastSlide = 0;
-  $( "#div_animslider" ).slider({
+  $( '#div_animslider' ).slider({
     min: ANIM_TS_INITIAL,
     max: ANIM_TS_FINAL,
     value: ANIM_TS_INITIAL,
@@ -191,11 +213,13 @@ var setupUI = function() {
       setAnimCurTime(ui.value);
     },
     change: function(event, ui) {
-      setAnumCurTimeText(ui.value);
+      //setAnimCurTimeText(ui.value);
+      setAnimCurTime(ui.value);
     },
     slide: function(event, ui) {
       toggleAnimation(false);
-      setAnumCurTimeText(ui.value);
+      //setAnimCurTimeText(ui.value);
+      setAnimCurTime(ui.value);
     }
   });
   setAnimCurTime(ANIM_TS_INITIAL);
@@ -207,7 +231,7 @@ var setupUI = function() {
   var IS_LINE = false;
   var KDE_TYPE = 'kde';
   scattermatrix = new ScatterGL(
-    canvas, NUM_DIM, NUM_ENTRIES, USE_STREAMING, IS_LINE, KDE_TYPE);
+    canvas, NUM_DIM, NUM_ENTRIES, USE_STREAMING, IS_LINE, KDE_TYPE, bandwidth_value, alpha_value);
   // Sets up scatter matrix.
   var NUM_BIN_SCATTER = 512;
   var USE_DENSITY = 1;  //TODO: change that!
@@ -219,8 +243,7 @@ var setupUI = function() {
   initColorScale();
 
   var must_redraw = false;
-  changeBandwidth(0.052, must_redraw);
-  changeTransparency();
+  changeBandwidth(bandwidth_value, must_redraw);
 
   toggleAnimation(anim_on);
 
@@ -354,13 +377,13 @@ var requestIdsSamplesCountData = function(ts1, ts2) {
 
 var createdropdown = function(id, values, onchange, className) {
   //TODO: replace with jquery
-  var dropdown = document.createElement("select");
+  var dropdown = document.createElement('select');
   dropdown.id = id;
   dropdown.className = className;
   dropdown.onchange = onchange;
 
   for(var i=0; i<values.length; i++){
-    var option=document.createElement("option");
+    var option=document.createElement('option');
     option.text = values[i];
     dropdown.add(option, null);
   }
@@ -444,10 +467,13 @@ var initColorScale = function() {
 
   var dropbox = createdropdown('colorbrewer', values, changeColorScale);
   $('#div_colorbrewer').append(dropbox);
+  var initialColor = USE_DARK_STYLE ? 'YlOrRd' : 'YlOrRd';
+  $('#colorbrewer').val(initialColor);
+
 
   var dropbox = createdropdown('dataclasses', [3,4,5,6,7,8,9,10,11,12], changeColorScale);
   $('#div_dataclasses').append(dropbox);
-  $('#dataclasses').val('9');
+  $('#dataclasses').val('3');
 
   changeColorScale();
 };
@@ -465,101 +491,51 @@ var initMap = function() {
 
   var BRIGHT_STYLE = [
     {
-      "featureType": "road",
-      "elementType": "geometry",
-      "stylers": [
-        { "visibility": "off" }
+      'featureType': 'all',
+      'stylers': [
+        { 'saturation': -100 }
       ]
     },{
-      "featureType": "transit",
-      "stylers": [
-        { "visibility": "off" }
+      'featureType': 'water',
+      'stylers': [
+        { 'visibility': 'simplified' },
+        { 'lightness': -5 }
       ]
     },{
-      "featureType": "water",
-      "stylers": [
-        { "visibility": "simplified" }
+      'featureType': 'poi',
+      'stylers': [
+        { 'lightness': 50 }
       ]
     },{
-      "featureType": "poi.business",
-      "stylers": [
-        { "visibility": "off" }
-      ]
-    },{
-      "featureType": "landscape.man_made",
-      "stylers": [
-        { "visibility": "off" }
-      ]
-    },{
-      "featureType": "administrative.neighborhood",
-      "stylers": [
-        { "visibility": "off" }
-      ]
-    },{
-      "featureType": "administrative.province",
-      "stylers": [
-        { "visibility": "off" }
-      ]
-    },{
-      "featureType": "road",
-      "stylers": [
-        { "visibility": "off" }
-      ]
-    },{
-      "featureType": "water",
-      "stylers": [
-        { "lightness": 39 }
-      ]
-    },{
-      "stylers": [
-        { "gamma": 2.19 }
-      ]
-    },{
-      "featureType": "landscape",
-      "stylers": [
-        { "visibility": "on" },
-        { "saturation": -100 },
-        { "lightness": 90 }
+      'featureType': 'road',
+      'stylers': [
+        { 'lightness': 60 }
       ]
     }
   ];
+
   var DARK_STYLE = [
     {
-      "featureType": "administrative",
-      "stylers": [
-        { "visibility": "off" }
+      'featureType': 'all',
+      'stylers': [
+        { 'invert_lightness': true },
+        { 'saturation': -100 }
       ]
     },{
-      "featureType": "landscape",
-      "stylers": [
-        { "visibility": "off" }
+      'featureType': 'water',
+      'stylers': [
+        { 'visibility': 'simplified' },
+        { 'lightness': -100 }
       ]
     },{
-      "featureType": "poi",
-      "stylers": [
-        { "visibility": "off" }
+      'featureType': 'poi',
+      'stylers': [
+        { 'lightness': -30 }
       ]
     },{
-      "featureType": "road",
-      "stylers": [
-        { "visibility": "off" }
-      ]
-    },{
-      "featureType": "transit",
-      "stylers": [
-        { "visibility": "off" }
-      ]
-    },{
-      "featureType": "water",
-      "stylers": [
-        { "lightness": -100 }
-      ]
-    },{
-      "featureType": "landscape",
-      "stylers": [
-        { "visibility": "on" },
-        { "saturation": -100 },
-        { "lightness": -90 }
+      'featureType': 'road',
+      'stylers': [
+        { 'lightness': -40 }
       ]
     }
   ];
@@ -596,18 +572,28 @@ var initMap = function() {
 };
 
 var updateMapOverlay = function() {
-  var rendered_time_text = getRenderedTimeText();
   var svg = d3.select('#map_overlay')
       .selectAll('svg').data(['map_overlay']);
-  svg
-    .enter().append('svg');
-  var text = svg.selectAll('text').data(['map_overlay']);
-  text
+  svg.enter().append('svg');
+
+  var dateText = svg.selectAll('#date').data(['map_overlay']);
+  dateText
     .enter().append('svg:text')
+    .attr('id', 'date')
     .attr('x', 50)
-    .attr('y', 30)
+    .attr('y', 15)
     .attr('dy', '.31em');
-  text.text(rendered_time_text);
+  dateText.text(getRenderedTimeText());
+
+  var numberOfPointsText =
+    svg.selectAll('#numberOfPoints').data(['map_overlay']);
+  numberOfPointsText
+    .enter().append('svg:text')
+    .attr('id', 'numberOfPoints')
+    .attr('x', 50)
+    .attr('y', 40)
+    .attr('dy', '.31em');
+  numberOfPointsText.text(getNumberOfPoints() + ' samples');
 };
 
 var centerMapInNewYork = function() {
@@ -623,10 +609,21 @@ var centerMapInNewYork = function() {
 
 
 var updateOnZoom = function(zoom_level) {
+  if (previous_zoom_level != null) {
+    previous_zoom_level = zoom_level;
+  }
+
+  var dZoom = previous_zoom_level - zoom_level;
+
+  
+
+  // TODO use old_zoom_level to adjust bandwidth.
+
   //console.log('zoom_level' + zoom_level);
-  var bandwidth = 0.025 + Math.max(0, (zoom_level - 11) * (0.1 / 3));
-  var must_redraw = false;
-  changeBandwidth(bandwidth, must_redraw);
+  // TODO
+  //var bandwidth = 0.025 + Math.max(0, (zoom_level - 11) * (0.1 / 3));
+  //var must_redraw = false;
+  //changeBandwidth(bandwidth, must_redraw);
 };
 
 var initialize = function(){
@@ -637,7 +634,8 @@ var initialize = function(){
   setInterval(function() {
       updateAnimation();
     },
-    200);
+    ANIMATION_INTERVAL
+  );
 };
 
 var toDataURL = function() {
@@ -645,13 +643,16 @@ var toDataURL = function() {
   var zoomLevel = map.getZoom();
   var center = map.getCenter();
   var centerStr = center.lat() + ',' + center.lng();
+  var water_lightness = USE_DARK_STYLE ? -90 : 20;
+  var landscape_lightness = USE_DARK_STYLE ? -70 : 90;
   var requestUrl =
     'http://maps.google.com/maps/api/staticmap' +
     '?sensor=false&size=640x640' +
     '&zoom=' + zoomLevel +
     '&center=' + centerStr + 
-    '&style=feature:water|lightness:-100' +
-    '&style=feature:landscape|saturation:-100|lightness:-90|' +
+    '&style=feature:all|saturation:-100' +
+    '&style=feature:water|lightness:' + water_lightness +
+    '&style=feature:landscape|lightness:' + landscape_lightness +
     '&style=element:labels|visibility:off&style=feature:poi|visibility:off|' +
     '&style=feature:administrative|element:geometry|visibility:off' +
     '&style=feature:road|visibility:off&style=feature:transit|visibility:off';
@@ -699,10 +700,10 @@ var createCalendar = function() {
   var format = {
     cellWidth: 20,
     cellHeight: 20,
-    paddingX: 5,
+    paddingX: 25,
     paddingY: 20,
     cellTextFormatter: function(date, value) {
-      return date + ': ' + value + ' active calls';
+      return date + ': ' + value + ' samples';
     }
   };
   new Calendar('#calendar_container', dateEntries, format);
@@ -716,14 +717,19 @@ var createPointsSummaryChart = function() {
     d[0] = date;
   });
   var format = {
+    width: 640,
     useTimeScaleForX: true,
     xAxisTitle: 'Date/time',
-    yAxisTitle: 'Calls',
+    yAxisTitle: 'Samples',
     xTicks: 8,
     yTicks: 5
   };
-  var title = 'Number of active calls';
-  new LineChart('#points_summary_chart_container', pointsSummaryData, title, format);
+  var title = 'Number of active samples';
+  pointsSummaryChart = new LineChart(
+    '#points_summary_chart_container',
+    pointsSummaryData,
+    title,
+    format);
 }
 
 var createIdsSampleCountSummaryChart = function() {
@@ -737,7 +743,11 @@ var createIdsSampleCountSummaryChart = function() {
   };
 
   var title = 'Samples per users';
-  new LineChart('#ids_samples_count_chart_container', idsSamplesCountData, title, format);
+  new LineChart(
+    '#ids_samples_count_chart_container',
+    idsSamplesCountData,
+    title,
+    format);
 }
 
 window.onload = initialize;

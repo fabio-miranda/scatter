@@ -12,7 +12,7 @@ var Calendar = function(containerId, data, format) {
   var format = format || {};
   var cellWidth = format.cellWidth || 17,
       cellHeight = format.cellHeight || 17,
-      paddingX = format.paddingX || 5,
+      paddingX = format.paddingX || 25,
       paddingY = format.paddingY || 20,
       width = numberOfWeeks * cellWidth + 2 * paddingX,
       height = cellHeight * DAYS_IN_A_WEEK + paddingY;
@@ -90,11 +90,21 @@ var Calendar = function(containerId, data, format) {
       .attr('x', function(d) {
         var thisMonth = d.getMonth();
         var nextMonthDate = new Date(2013, thisMonth + 1, 1);
-        var middleMonth = 0.5 * (+week(nextMonthDate) + +week(d));
+        var middleMonth = 0.5 * (+week(nextMonthDate) + (+week(d)));
         return (middleMonth - week0) * cellWidth;
       })
       .attr('y', '-5')
       .text(function(d) { return monthFormat(d); });
+
+  // Legends for days of week on the left.
+  var daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  this.svg.selectAll('.dayOfWeekTitle').data(daysOfWeek)
+    .enter()
+      .append('text')
+      .classed('dayOfWeekTitle', true)
+      .attr('x', -paddingX)
+      .attr('y', function(d, i) { return cellWidth * (0.7 + i); } )
+      .text(function(d) { return d; });
 
   var nestedData = d3.nest()
     .key(function(d) {
