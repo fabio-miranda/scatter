@@ -2,6 +2,7 @@ var USE_DARK_STYLE = false;
 
 var histogram;
 var scattermatrix;
+var calendar = null;
 var map = null;
 var canvaslayer = null;
 var datapath;
@@ -25,7 +26,7 @@ var datapath;
 var currententry;
 var numentries;
 var ANIM_STEP = 60 * 60;                       // animation step: 60 minutes.
-var ANIM_TS_INITIAL =  1375142400;             // Initial timestamp in the animation.
+var ANIM_TS_INITIAL =  1375243200;             // Initial timestamp in the animation.
 var ANIM_TS_FINAL = 1377993600 - ANIM_STEP;    // Final timestamp in the animation.
 var anim_cur_ts = ANIM_TS_INITIAL;             // Current timestamp in the animation.
 var anim_on = false;                           // Animation on/off flag.
@@ -393,8 +394,6 @@ var createdropdown = function(id, values, onchange, className) {
 
 
 var changeColorScale = function() {
-  var color = $('#colorbrewer').prop('value');
-  var dataclasses = $('#dataclasses').prop('value');
   var colorType = $('#colorType').prop('value');
   var alphaType = $('#alphaType').prop('value');
   var kdetype = $('#kdetype').prop('value');
@@ -412,13 +411,26 @@ var changeColorScale = function() {
   if(alphaType == 'alpha_fixed')
     fixedAlpha = 1.0;
   
-  if(colorbrewer[color][dataclasses] != null){
-    colorscale.setValues(colorbrewer[color][dataclasses],
-      isColorLinear, isAlphaLinear, fixedAlpha);
+  var colors = getColorsForColorScale();
+  if (colors != null) {
+    colorscale.setValues(
+      colors, isColorLinear, isAlphaLinear, fixedAlpha);
 
     scattermatrix.setColorScale(colorscale.texdata);
     draw();
+
+    // Updates calendar color scale.
+    if (calendar) {
+      calendar.setColorScale(colors.reverse());
+    }
   }
+};
+
+var getColorsForColorScale = function() {
+  var color = $('#colorbrewer').prop('value');
+  var dataclasses = $('#dataclasses').prop('value');
+  
+  return colorbrewer[color][dataclasses];
 };
 
 
@@ -697,16 +709,17 @@ var createCalendar = function() {
   }
 
   // Creates calendar.
-  var format = {
+  var options = {
     cellWidth: 20,
     cellHeight: 20,
     paddingX: 25,
     paddingY: 20,
     cellTextFormatter: function(date, value) {
       return date + ': ' + value + ' samples';
-    }
+    },
+    colors: getColorsForColorScale()
   };
-  new Calendar('#calendar_container', dateEntries, format);
+  calendar = new Calendar('#calendar_container', dateEntries, options);
 };
 
 var createPointsSummaryChart = function() {
@@ -716,7 +729,7 @@ var createPointsSummaryChart = function() {
     date.setSeconds(d[0]);
     d[0] = date;
   });
-  var format = {
+  var options = {
     width: 640,
     useTimeScaleForX: true,
     xAxisTitle: 'Date/time',
@@ -729,11 +742,11 @@ var createPointsSummaryChart = function() {
     '#points_summary_chart_container',
     pointsSummaryData,
     title,
-    format);
+    options);
 }
 
 var createIdsSampleCountSummaryChart = function() {
-  var format = {
+  var options = {
     useTimeScaleForY: false,
     useLogScaleForY: true,
     xAxisTitle: 'Samples',
@@ -747,7 +760,7 @@ var createIdsSampleCountSummaryChart = function() {
     '#ids_samples_count_chart_container',
     idsSamplesCountData,
     title,
-    format);
+    options);
 }
 
 window.onload = initialize;

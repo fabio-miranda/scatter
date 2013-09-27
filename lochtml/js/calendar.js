@@ -3,35 +3,47 @@
  * Data must be an array of [date, value].
  * @author Cesar Palomo cesarpalomo@gmail.com
  */
-var Calendar = function(containerId, data, format) {
+var Calendar = function(containerId, data, options) {
+  var that = this;
   var monthsExtent = this.getMonthsExtent(data);
   var numberOfWeeks =
     d3.time.weeks(monthsExtent[0], monthsExtent[1]).length + 1;
 
   var DAYS_IN_A_WEEK = 7;
-  var format = format || {};
-  var cellWidth = format.cellWidth || 17,
-      cellHeight = format.cellHeight || 17,
-      paddingX = format.paddingX || 25,
-      paddingY = format.paddingY || 20,
+  var options = options || {};
+  var cellWidth = options.cellWidth || 17,
+      cellHeight = options.cellHeight || 17,
+      paddingX = options.paddingX || 25,
+      paddingY = options.paddingY || 20,
       width = numberOfWeeks * cellWidth + 2 * paddingX,
       height = cellHeight * DAYS_IN_A_WEEK + paddingY;
 
   // Formatters.
   var day = d3.time.format('%w'),
       week = d3.time.format('%U'),
-      numberFormat = format.numberFormat || d3.format('.2f'),
+      numberFormat = options.numberFormat || d3.format('.2f'),
       dateFormat = d3.time.format('%Y-%m-%d'),
       yearFormat = d3.time.format('%Y'),
       monthFormat = d3.time.format('%b/%Y');
 
 
   // Color scale.
-  var color = d3.scale.quantize()
-      .domain(d3.extent(data, function(d) { return d[1]; }))
-      .range(d3.range(11).map(function(d) {
-        return 'q' + d + '-11';
-      }));
+  this.colorScale = d3.scale.linear();
+  this.extents = d3.extent(data, function(d) { return d[1]; });
+  var colors = options.colors || [
+    d3.rgb(165,0,38).toString(),
+    d3.rgb(215,48,39).toString(),
+    d3.rgb(244,109,67).toString(),
+    d3.rgb(253,174,97).toString(),
+    d3.rgb(254,224,139).toString(),
+    d3.rgb(255,255,191).toString(),
+    d3.rgb(217,239,139).toString(),
+    d3.rgb(166,217,106).toString(),
+    d3.rgb(102,189,99).toString(),
+    d3.rgb(26,152,80).toString(),
+    d3.rgb(0,104,55).toString()];
+  this.setupColorScaleDomainAndRange(
+    this.colorScale, this.extents, colors, 'white');
 
   var center = [
     paddingX,
@@ -106,7 +118,7 @@ var Calendar = function(containerId, data, format) {
       .attr('y', function(d, i) { return cellWidth * (0.7 + i); } )
       .text(function(d) { return d; });
 
-  var nestedData = d3.nest()
+  this.nestedData = d3.nest()
     .key(function(d) {
       var date = d[0];
       return dateFormat(date);
@@ -118,20 +130,27 @@ var Calendar = function(containerId, data, format) {
     })
     .map(data);
 
-  var cellTextFormatter = format.cellTextFormatter ||
+  var cellTextFormatter = options.cellTextFormatter ||
     function(date, value) {
       return date + ': ' + numberformat(value);
     };
 
-  rect.filter(function(d) {
-      return d in nestedData;
+  rect.filter(function(date) {
+      // TODO Maybe should not filter, but apply to all dates.
+      return date in that.nestedData;
     })
-    .attr('class', function(d) {
-      return 'day ' + color(nestedData[d]);
+    .style('fill', function(date) {
+      var value = that.nestedData[date];
+      var color = that.colorScale(value);
+      if (color == '#NaNNaNNaN') {
+        console.log('wrong color for [' + date + '] = ' + value);
+        return 'white';
+      }
+      return color; 
     })
     .select('title')
     .text(function(date) {
-      return cellTextFormatter(date, nestedData[date]);
+      return cellTextFormatter(date, that.nestedData[date]);
     });
 
   function monthPath(t0) {
@@ -187,4 +206,42 @@ Calendar.prototype.getMonthsExtent = function(data) {
     new Date(firstYear, firstMonth, 1),
     new Date(lastYear, lastMonth + 1, 1)
   ];
+};
+
+
+/**
+ * Given array with colors and data extents, set the domain
+ * and range for a color scale.
+ */
+Calendar.prototype.setupColorScaleDomainAndRange = function(
+    colorScale, extents, colors) {
+  // Create domain with correct number of steps to accomodate colors.
+  var step = 1 / (colors.length - 1);
+  var domain = d3.range(colors.length).map(function (i) {
+    return extents[0] + i * step * (extents[1] - extents[0]);
+  });
+
+  colorScale.domain(domain).range(colors);
+};
+
+
+/**
+ * Applies color scale to calendar.
+ * @param colorScale {Array<number>} array with strings of html colors
+ * to be applied in the domain 0..1.
+ */
+Calendar.prototype.setColorScale = function(colors) {
+  // Sets up color scale and redraws calendar.
+  this.setupColorScaleDomainAndRange(
+    this.colorScale, this.extents, colors);
+
+  var that = this;
+  this.svg.selectAll('.day')
+    .filter(function(date) {
+      return date in that.nestedData;
+    })
+    .style('fill', function(date) {
+      var value = that.nestedData[date];
+      return that.colorScale(value);
+    });
 };
