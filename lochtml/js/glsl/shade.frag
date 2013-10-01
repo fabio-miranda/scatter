@@ -10,6 +10,7 @@ uniform float uUseDensity;
 uniform float uContour;
 uniform float uPassValue;
 uniform float uNumPassValues;
+uniform float uMaxf;
 uniform sampler2D uSamplerF;
 uniform sampler2D uSamplerColorScale;
 uniform sampler2D uSamplerFinal;

@@ -48,10 +48,12 @@
         <div id="side_panel">
           <!-- Animation control. -->
           <div id="anim_container">
-            Date/time: <input id='curtime' size="24" disabled></input>
+            <svg id="rw_button"></svg>
+            <svg id="play_button"></svg>
+            <svg id="fw_button"></svg>
+            <div id='div_animslider'></div>
+            <div id="points_summary_chart_container"></div> 
             <div>
-              <svg id="anim_button"></svg>
-              <div id='div_animslider'></div>
               <div id='calendar_container'></div>
             </div>
           </div>
@@ -95,7 +97,6 @@
 
       <!-- Charts panel -->
       <div id="charts_panel">
-        <div id="points_summary_chart_container"></div> 
         <div id="ids_samples_count_chart_container" style="height: 300px"></div> 
       </div>
 

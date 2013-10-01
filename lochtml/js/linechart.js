@@ -3,20 +3,21 @@
  * Data must be an array of [date, value].
  * @author Cesar Palomo cesarpalomo@gmail.com
  */
-var LineChart = function(containerId, data, title, options) {
+var LineChart = function(containerId, data, options) {
   var that = this;
   var options = options || {};
-  var margin = {top: 20, right: 20, bottom: 60, left: 80},
-      width = (options.width || 1270) - margin.left - margin.right;
-  this.height = (options.height || 160) - margin.top - margin.bottom;
+  options.margin = options.margin ||  
+    {top: 20, right: 20, bottom: 60, left: 80};
+  this.width = (options.width || 1270) - options.margin.left - options.margin.right;
+  this.height = (options.height || 160) - options.margin.top - options.margin.bottom;
   this.containerId = containerId;
   this.classId = 'line_chart';
 
   that.x = options.useTimeScaleForX ?
-    d3.time.scale().range([0, width]) :
+    d3.time.scale().range([0, that.width]) :
     options.useLogScaleForX ?
-      d3.scale.log().clamp(true).range([0, width]) :
-      d3.scale.linear().range([0, width]);
+      d3.scale.log().clamp(true).range([0, that.width]) :
+      d3.scale.linear().range([0, that.width]);
 
   that.y = options.useTimeScaleForY ?
     d3.time.scale().range([that.height, 0]) :
@@ -52,15 +53,17 @@ var LineChart = function(containerId, data, title, options) {
   this.svg = d3.select(containerId)
     .append('svg')
       .classed(that.classId, true)
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', that.height + margin.top + margin.bottom)
+      .attr('width', that.width + options.margin.left + options.margin.right)
+      .attr('height', that.height + options.margin.top + options.margin.bottom)
     .append('g')
-      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-  this.svg.append('text')
-      .attr('x', width / 2)
-      .attr('y', '-5')
-      .style('text-anchor', 'middle')
-      .text(title);
+      .attr('transform', 'translate(' + options.margin.left + ',' + options.margin.top + ')');
+  if (options.title) {
+    this.svg.append('text')
+        .attr('x', that.width / 2)
+        .attr('y', '-5')
+        .style('text-anchor', 'middle')
+        .text(options.title);
+  }
 
   var x_extent = d3.extent(data, function(d) { return d[0]; });
   if (options.useLogScaleForX) {
@@ -87,7 +90,7 @@ var LineChart = function(containerId, data, title, options) {
       .text(options.xAxisTitle)
       .attr(
         'transform',
-        'translate(' + (width / 2) + ', ' + (margin.bottom) + ')');
+        'translate(' + (that.width / 2) + ', ' + (options.margin.bottom) + ')');
   }
 
   var yAxisGroup = this.svg.append('g')
@@ -99,7 +102,7 @@ var LineChart = function(containerId, data, title, options) {
       .text(options.yAxisTitle)
       .attr(
         'transform',
-        'translate(' + (-margin.left + 20) + ', ' + (that.height / 2) + ') ' +
+        'translate(' + (-options.margin.left + 20) + ', ' + (that.height / 2) + ') ' +
         'rotate(-90)');
   }
 
@@ -154,10 +157,26 @@ var LineChart = function(containerId, data, title, options) {
 LineChart.prototype.updateBrush = function(x1, x2) {
   var that = this;
   var brush = this.svg.selectAll('.brush').data(['brush']);
-  brush.enter().append('rect').classed('brush', true);
-  brush
-    .attr('x', this.x(x1))
-    .attr('y', 0)
-    .attr('width', this.x(x2) - this.x(x1))
-    .attr('height', this.y(0));
+  brush.enter().append('g').classed('brush', true);
+
+  // Translates brush's center.
+  var brushXCenter = 0.5 * (this.x(x2) + this.x(x1));
+  brush.attr('transform', 'translate(' + brushXCenter + ', 0)');
+
+  // Updates line position.
+  var lineSize = {
+    w: this.x(x2) - this.x(x1),
+    h: this.y(0) + 10
+  };
+  var linePos = {
+    x: -0.5 * (this.x(x2) - this.x(x1)),
+    y: -10
+  };
+  var brushLine = brush.selectAll('.line').data(['brush']);
+  brushLine.enter().append('rect').classed('line', true);
+  brushLine
+    .attr('x', linePos.x)
+    .attr('y', linePos.y)
+    .attr('width', lineSize.w)
+    .attr('height', lineSize.h);
 };

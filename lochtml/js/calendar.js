@@ -148,6 +148,12 @@ var Calendar = function(containerId, data, options) {
       }
       return color; 
     })
+    .on('click', function(date, i) {
+      if (options.onClick) {
+        var value = that.nestedData[date];
+        options.onClick(date, value);
+      }
+    })
     .select('title')
     .text(function(date) {
       return cellTextFormatter(date, that.nestedData[date]);

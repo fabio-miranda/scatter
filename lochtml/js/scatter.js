@@ -1,4 +1,4 @@
-var USE_DARK_STYLE = false;
+var USE_DARK_STYLE = true;
 
 var histogram;
 var scattermatrix;
@@ -28,42 +28,94 @@ var numentries;
 var ANIM_STEP = 60 * 60;                       // animation step: 60 minutes.
 var ANIM_TS_INITIAL =  1375243200;             // Initial timestamp in the animation.
 var ANIM_TS_FINAL = 1377993600 - ANIM_STEP;    // Final timestamp in the animation.
+var anim_prev_ts = Infinity;
 var anim_cur_ts = ANIM_TS_INITIAL;             // Current timestamp in the animation.
 var anim_on = false;                           // Animation on/off flag.
 var ANIMATION_INTERVAL = 200;
 var previous_zoom_level = null;
 
-var toggleAnimation = function(enabled) {
-  anim_on = enabled;
-  var images = {true: '../img/pause.png', false: '../img/play.png'};
 
-  var svg = d3.selectAll('#anim_button').data(['anim_button'])
+var snapshotControl;
+
+var toggleAnimation = function(enabled) {
+  // TODO remove! Creating 6 images per day, in intervals of 4 hours.
+  // TODO check whether save image as works with 2 images (map and data).
+  // TODO otherwise should save map separate from points image.
+  //if (enabled) {
+  //  createSnapshotsForDays(ANIM_TS_INITIAL);
+  //  return;
+  //}
+
+
+  anim_on = enabled;
+  var images = {true: '../img/anim-pause.png', false: '../img/anim-play.png'};
+
+  var svg = d3.selectAll('#play_button').data(['play_button'])
     .on('click', function () {
       // TODO test here
       gallery.addSnapshot();
       toggleAnimation(!anim_on);
     });
     
-  var image = svg.selectAll('image').data(['anim_button']);
+  var radius = 20;
+  var image = svg.selectAll('image').data(['play_button']);
   image
     .enter().append('svg:image')
     .attr('x', '0')
     .attr('y', '0')
-    .attr('width', '28')
-    .attr('height', '28');
+    .attr('width', radius)
+    .attr('height', radius);
   image.attr('xlink:href', images[anim_on]);
 };
+
+
+var setupAnimButtons = function() {
+  var radius = 20;
+
+  // Forward button.
+  d3.selectAll('#fw_button').data(['fw_button'])
+      .on('click', function () {
+        // TODO forward animation one time step.
+      })
+      .selectAll('image').data(['fw_button'])
+    .enter()
+      .append('svg:image')
+      .attr('x', '0')
+      .attr('y', '0')
+      .attr('width', radius)
+      .attr('height', radius)
+      .attr('xlink:href', '../img/anim-fw.png');
+
+  // Rewind button.
+  d3.selectAll('#rw_button').data(['rw_button'])
+      .on('click', function () {
+        // TODO forward animation one time step.
+      })
+      .selectAll('image').data(['rw_button'])
+    .enter()
+      .append('svg:image')
+      .attr('x', '0')
+      .attr('y', '0')
+      .attr('width', radius)
+      .attr('height', radius)
+      .attr('xlink:href', '../img/anim-rw.png');
+};
+
 
 var getNumberOfPoints = function() {
   return numberOfPoints;
 };
 
 var updateAnimation = function() {
+  if (anim_cur_ts == anim_prev_ts) {
+    return;
+  }
   if (anim_on) {
     // Advances step in animation, of stops when finished.
     if (anim_cur_ts == ANIM_TS_FINAL) {
       toggleAnimation(false);
     } else {
+      anim_prev_ts = anim_cur_ts;
       anim_cur_ts += ANIM_STEP;
     }
     $( '#div_animslider' ).slider('value', anim_cur_ts);
@@ -124,16 +176,10 @@ var getRenderedTimeText = function() {
   }
 };
 
+
 var setAnimCurTime = function(ts) {
   anim_cur_ts = ts;
   requestPoints();
-  setAnimCurTimeText(ts);
-};
-
-var setAnimCurTimeText = function(ts) {
-  var parsedDateTime = parseDateTime(ts);
-  var text = parsedDateTime.date + ' ' + parsedDateTime.time;
-  $('#curtime').attr('value', text);
 };
 
 
@@ -170,12 +216,12 @@ var setupUI = function() {
   $('#zoom').hide();
 
   // Sets up sliders.
-  var bandwidth_value = 0.027;
+  var bandwidth_value = 0.0005;
   $( '#div_bandwidthslider' ).slider({
-    min: 0.001,
+    min: 0.0005,
     value: bandwidth_value,
-    max: 4.0,
-    step: 0.001,
+    max: 0.01,
+    step: 0.0001,
     slide: function( event, ui ) {
       var must_redraw = true;
       changeBandwidth(ui.value, must_redraw);
@@ -214,12 +260,10 @@ var setupUI = function() {
       setAnimCurTime(ui.value);
     },
     change: function(event, ui) {
-      //setAnimCurTimeText(ui.value);
       setAnimCurTime(ui.value);
     },
     slide: function(event, ui) {
       toggleAnimation(false);
-      //setAnimCurTimeText(ui.value);
       setAnimCurTime(ui.value);
     }
   });
@@ -248,6 +292,7 @@ var setupUI = function() {
 
   toggleAnimation(anim_on);
 
+  setupAnimButtons();
   setupGallery();
   setupPlots();
 };
@@ -731,17 +776,16 @@ var createPointsSummaryChart = function() {
   });
   var options = {
     width: 640,
+    height: 100,
     useTimeScaleForX: true,
-    xAxisTitle: 'Date/time',
     yAxisTitle: 'Samples',
     xTicks: 8,
-    yTicks: 5
+    yTicks: 3,
+    margin: {top: 10, right: 20, bottom: 30, left: 80}
   };
-  var title = 'Number of active samples';
   pointsSummaryChart = new LineChart(
     '#points_summary_chart_container',
     pointsSummaryData,
-    title,
     options);
 }
 
@@ -752,14 +796,12 @@ var createIdsSampleCountSummaryChart = function() {
     xAxisTitle: 'Samples',
     yAxisTitle: 'Users',
     yTicks: 3,
-    height: 300
+    height: 300,
+    title: 'Samples per users'
   };
-
-  var title = 'Samples per users';
   new LineChart(
     '#ids_samples_count_chart_container',
     idsSamplesCountData,
-    title,
     options);
 }
 

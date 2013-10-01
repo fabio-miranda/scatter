@@ -31,7 +31,8 @@ const float std = 1.0;
 //const float maxvalue = 1.0;
 
 float gauss(float r){
-  return 0.3989422804 * exp( 25.0* (- r*r) / 2.0);
+  //return 0.3989422804 * exp( 25.0* (- r*r) / 2.0);
+  return exp( -0.5 *  r*r );
   //return (1.0 / (sqrt(6.28318530718 * std * std))) * exp(- (r*r) / (2.0 * std * std) );
 }
 
@@ -79,13 +80,17 @@ void main(void) {
 
       float counti  = texture2D(uSamplerCount, coord2D).g;
 
-      if(uIsFirstPass > 0.0 && uUseStreaming <= 0.0)
-        counti = counti * (uMaxCountValue - uMinCountValue) + uMinCountValue;
+      //if(uIsFirstPass > 0.0 && uUseStreaming <= 0.0)
+      //  counti = counti * (uMaxCountValue - uMinCountValue) + uMinCountValue;
+      //if (uIsFirstPass <= 0.0) {
+      //  counti = 1.0;
+      //}
 
       //if(getValue(coord2D).r * (uMaxEntryValue - uMinEntryValue) + uMinEntryValue == 2.0)
         //break;
 
-      float gaus = gauss((float(index) / uNumBins) / h);
+      float gaus = (1.0 / h) * gauss((float(index) / uNumBins) / h);
+      //float gaus = gauss((float(index) / uNumBins) / h);
       float k = (counti * gaus); //TODO: consider only count of the same group
 
       f += k;
@@ -106,12 +111,14 @@ void main(void) {
     //f = (1.0 / (uNumPoints*h*h)) * f;
     //f = (1.0 / (50.0*h)) * f;
     //f = f/0.3989422804;
-    f = f / uNumPoints;
-    f = f * 1000.0;
+    //f = f / uNumPoints;
+    //f = f * 1000.0;
     //f = f / 10.0;
     //f = f / uNumPoints;
     //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     //gl_FragColor = vec4(color.xyz, 1);
+    //f /= numpoints
+    f = f / 10000.0;
     gl_FragColor = vec4(f);
   }
   

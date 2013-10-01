@@ -26,7 +26,7 @@ div {
 }
 
 #top_panel {
-  width: 980px;
+  width: 1320px;
   height: 640px;
   margin: 0 auto;
   margin-bottom: 20px;
@@ -104,15 +104,15 @@ div.tooltip {
   display: inline-block;
   vertical-align: top;
   position: relative;
-  width: 300px;
+  width: 640px;
   height: 640px;
 }
 
 /* Side panel component: filters. */
 #filters_container {
   position: relative;
-  width: 280px;
-  height: 335px;
+  width: 620px;
+  height: 250px;
   background: #222;
   padding: 10px;
 }
@@ -120,26 +120,26 @@ div.tooltip {
 /* Side panel component: animation control container. */
 #anim_container {
   position: relative;
-  width: 280px;
-  height: 250px;
+  width: 620px;
+  height: 340px;
   background: #222;
   padding: 10px;
   margin-bottom: 10px;
 }
 
-/* Animation control container component: animation button. */
-#anim_button {
-  width: 28px;
-  height: 28px;
+/* Animation control container components: animation buttons. */
+#play_button, #fw_button, #rw_button {
+  width: 20px;
+  height: 20px;
   display: inline-block;
-  background-size: 28px 28px;
+  background-size: 20px 20px;
   cursor: hand;
   cursor: pointer;
 }
 
 /* Animation control container component: div animation slider. */
 #div_animslider {
-  width: 235px;
+  width: 536px;
   display: inline-block;
   margin-left: 10px;
   margin-bottom: 7px;
