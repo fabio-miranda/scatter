@@ -1,3 +1,5 @@
+var RECORD_IMAGES = false;
+
 var USE_DARK_STYLE = true;
 
 var histogram;
@@ -19,41 +21,40 @@ var pointsSummaryChart = null;
 var utils = null;
 var lastPointsRequestTime = 0;
 
+var currentCityIndex = 0;
 var useMap = false;
 var useStreaming = false;
 var isline = false;
 var datapath;
 var currententry;
 var numentries;
-var ANIM_STEP = 60 * 60;                       // animation step: 60 minutes.
+
+var ANIM_STEP = 1 * 60 * 60;                       // animation step: 60 minutes.
 var ANIM_TS_INITIAL =  1375243200;             // Initial timestamp in the animation.
-var ANIM_TS_FINAL = 1377993600 - ANIM_STEP;    // Final timestamp in the animation.
+var ANIM_TS_FINAL = 1377748800 - ANIM_STEP;    // Final timestamp in the animation.
+
+if (RECORD_IMAGES) {
+  ANIM_STEP = 3 * 60 * 60;                                     // animation step: 3 hours.
+  ANIM_TS_INITIAL += 27 * 86400;                                // Initial timestamp in the animation.
+  ANIM_TS_FINAL = ANIM_TS_INITIAL + 9 * 86400 - ANIM_STEP;    // Final timestamp in the animation.
+}
+
+
 var anim_prev_ts = Infinity;
 var anim_cur_ts = ANIM_TS_INITIAL;             // Current timestamp in the animation.
 var anim_on = false;                           // Animation on/off flag.
 var ANIMATION_INTERVAL = 200;
 var previous_zoom_level = null;
 
-
 var snapshotControl;
 
+
 var toggleAnimation = function(enabled) {
-  // TODO remove! Creating 6 images per day, in intervals of 4 hours.
-  // TODO check whether save image as works with 2 images (map and data).
-  // TODO otherwise should save map separate from points image.
-  //if (enabled) {
-  //  createSnapshotsForDays(ANIM_TS_INITIAL);
-  //  return;
-  //}
-
-
   anim_on = enabled;
   var images = {true: '../img/anim-pause.png', false: '../img/anim-play.png'};
 
   var svg = d3.selectAll('#play_button').data(['play_button'])
     .on('click', function () {
-      // TODO test here
-      gallery.addSnapshot();
       toggleAnimation(!anim_on);
     });
     
@@ -75,7 +76,10 @@ var setupAnimButtons = function() {
   // Forward button.
   d3.selectAll('#fw_button').data(['fw_button'])
       .on('click', function () {
-        // TODO forward animation one time step.
+        // Forwards animation one time step.
+        toggleAnimation(false);
+        var anim_ts = Math.min(ANIM_TS_FINAL, anim_cur_ts + ANIM_STEP);
+        $('#div_animslider').slider('value', anim_ts);
       })
       .selectAll('image').data(['fw_button'])
     .enter()
@@ -89,7 +93,10 @@ var setupAnimButtons = function() {
   // Rewind button.
   d3.selectAll('#rw_button').data(['rw_button'])
       .on('click', function () {
-        // TODO forward animation one time step.
+        // Rewinds animation one time step.
+        toggleAnimation(false);
+        var anim_ts = Math.max(ANIM_TS_INITIAL, anim_cur_ts - ANIM_STEP);
+        $('#div_animslider').slider('value', anim_ts);
       })
       .selectAll('image').data(['rw_button'])
     .enter()
@@ -102,11 +109,24 @@ var setupAnimButtons = function() {
 };
 
 
+var createDateFromTimestampInMinutes = function(ts) {
+  var date = new Date(0);
+  date.setUTCSeconds(ts);
+  return date;
+};
+
+
 var getNumberOfPoints = function() {
   return numberOfPoints;
 };
 
+
 var updateAnimation = function() {
+  if (RECORD_IMAGES) {
+    console.log(getRenderedTimeText());
+    gallery.addSnapshot();
+  }
+
   if (anim_cur_ts == anim_prev_ts) {
     return;
   }
@@ -120,24 +140,23 @@ var updateAnimation = function() {
     }
     $( '#div_animslider' ).slider('value', anim_cur_ts);
 
-    requestPoints();
+    //requestPoints();
     console.log('anim_cur_ts ' + anim_cur_ts);
     console.log('limit: ' + (ANIM_TS_FINAL));
   }
   // Updates overlay for text on top of the map.
   updateMapOverlay();
 
-  var date1 = new Date(0);
-  date1.setSeconds(anim_cur_ts);
-  var date2 = new Date(0);
-  date2.setSeconds(anim_cur_ts + ANIM_STEP);
-  pointsSummaryChart.updateBrush(date1, date2);
+  if (pointsSummaryChart) {
+    var date1 = createDateFromTimestampInMinutes(anim_cur_ts);
+    var date2 = createDateFromTimestampInMinutes(anim_cur_ts + ANIM_STEP);
+    pointsSummaryChart.updateBrush(date1, date2);
+  }
 };
 
 
 var parseDateTime = function(ts) {
-  var date = new Date(0);
-  date.setSeconds(ts);
+  var date = createDateFromTimestampInMinutes(ts);
 
   var daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
   var month = date.getMonth() + 1;
@@ -157,6 +176,7 @@ var parseDateTime = function(ts) {
 
   return {date: dateStr, time: timeStr};
 };
+
 
 var getRenderedTimeText = function() {
   if (!lastReceivedDateTime) {
@@ -184,16 +204,32 @@ var setAnimCurTime = function(ts) {
 
 
 var requestPoints = function() {
+  // TODO remove
+  console.log(map.getBounds());
+
+  console.log('trying');
+
   // Ignores requests that happen to often.
   var pointsRequestTime = new Date().getTime();
-  if (pointsRequestTime - lastPointsRequestTime > ANIMATION_INTERVAL) {
+  if (anim_on ||
+      pointsRequestTime - lastPointsRequestTime > ANIMATION_INTERVAL) {
     lastPointsRequestTime = pointsRequestTime;
 
     var ts1 = anim_cur_ts;
     var ts2 = anim_cur_ts + ANIM_STEP;
 
-    requestPointsData(ts1, ts2);
+    requestPointsData(ts1, ts2, currentCityIndex);
   }
+  console.log('did');
+};
+
+
+var onSelectCityCB = function(cityIndex) {
+  currentCityIndex = cityIndex;
+  gallery.setCityIndex(cityIndex);
+  setupPlots();
+
+  // TODO update UI with this city data, including requesting new data.
 };
 
 
@@ -218,7 +254,7 @@ var setupUI = function() {
   // Sets up sliders.
   var bandwidth_value = 0.0005;
   $( '#div_bandwidthslider' ).slider({
-    min: 0.0005,
+    min: 0.0002,
     value: bandwidth_value,
     max: 0.01,
     step: 0.0001,
@@ -294,6 +330,7 @@ var setupUI = function() {
 
   setupAnimButtons();
   setupGallery();
+  setupCitiesOptions();
   setupPlots();
 };
 
@@ -380,12 +417,13 @@ var cb_receivedPointsData = function(data) {
 };
 
 
-var requestPointsData = function(ts1, ts2) {
+var requestPointsData = function(ts1, ts2, currentCityIndex) {
   $.post(
     '/getPoints',
     {
       'query_ts1' : ts1,
-      'query_ts2' : ts2
+      'query_ts2' : ts2,
+      'city_index' : currentCityIndex
     },
     cb_receivedPointsData
   );
@@ -401,8 +439,11 @@ var cb_receivedPointsSummaryData = function(data) {
 
 var requestPointsSummaryData = function() {
   $.post(
-      '/getPointsSummary',
-      cb_receivedPointsSummaryData
+    '/getPointsSummary',
+    {
+      'city_index' : currentCityIndex
+    },
+    cb_receivedPointsSummaryData
   );
 };
 
@@ -416,6 +457,9 @@ var cb_receivedIdsSamplesCountData = function(data) {
 var requestIdsSamplesCountData = function(ts1, ts2) {
   $.post(
     '/getIdsSampleCountSummary',
+    {
+      'city_index' : currentCityIndex
+    },
     cb_receivedIdsSamplesCountData
   );
 };
@@ -466,16 +510,23 @@ var changeColorScale = function() {
 
     // Updates calendar color scale.
     if (calendar) {
-      calendar.setColorScale(colors.reverse());
+      calendar.setColorScale(getColorsForCalendarColorScale());
     }
   }
 };
+
 
 var getColorsForColorScale = function() {
   var color = $('#colorbrewer').prop('value');
   var dataclasses = $('#dataclasses').prop('value');
   
-  return colorbrewer[color][dataclasses];
+  var colors = colorbrewer[color][dataclasses];
+  return USE_DARK_STYLE ? colors : colors.reverse();
+};
+
+
+var getColorsForCalendarColorScale = function() {
+  return getColorsForColorScale().reverse();
 };
 
 
@@ -483,6 +534,7 @@ var changeTransparency = function() {
   changeColorScale();
   draw();
 };
+
 
 var changeRenderType = function(value) {
   scattermatrix.changeKDEType(value);
@@ -503,12 +555,12 @@ var changeBandwidth = function(value, must_redraw) {
 };
 
 
-
 var setAlphaMultiplier = function(value) {
   $('#div_alphaslider').slider('value', value);
   scattermatrix.setAlphaMultiplier(value);
   draw();
 };
+
 
 var setPointSize = function(value) {
   scattermatrix.setPointSize(value);
@@ -524,7 +576,7 @@ var initColorScale = function() {
 
   var dropbox = createdropdown('colorbrewer', values, changeColorScale);
   $('#div_colorbrewer').append(dropbox);
-  var initialColor = USE_DARK_STYLE ? 'YlOrRd' : 'YlOrRd';
+  var initialColor = USE_DARK_STYLE ? 'Blues' : 'YlOrRd';
   $('#colorbrewer').val(initialColor);
 
 
@@ -535,14 +587,17 @@ var initColorScale = function() {
   changeColorScale();
 };
 
+
 var resize = function() {
   scattermatrix.draw(map, canvaslayer);
 };
+
 
 var draw = function() {
   scattermatrix.flagUpdateTexture = true;
   scattermatrix.draw(map, canvaslayer);
 };
+
 
 var initMap = function() {
 
@@ -628,6 +683,7 @@ var initMap = function() {
   });
 };
 
+
 var updateMapOverlay = function() {
   var svg = d3.select('#map_overlay')
       .selectAll('svg').data(['map_overlay']);
@@ -653,17 +709,6 @@ var updateMapOverlay = function() {
   numberOfPointsText.text(getNumberOfPoints() + ' samples');
 };
 
-var centerMapInNewYork = function() {
-  var min_lat = 40.49574;
-  var max_lat = 40.9176;
-  var min_lon = -74.2557;
-  var max_lon = -73.6895;
-  var latlng0 = new google.maps.LatLng(min_lat, min_lon);
-  var latlng1 = new google.maps.LatLng(max_lat, max_lon);
-  var bounds = getMapBoundaries(latlng0, latlng1);
-  map.fitBounds(bounds);
-};
-
 
 var updateOnZoom = function(zoom_level) {
   if (previous_zoom_level != null) {
@@ -683,9 +728,9 @@ var updateOnZoom = function(zoom_level) {
   //changeBandwidth(bandwidth, must_redraw);
 };
 
+
 var initialize = function(){
   setupUI();
-  centerMapInNewYork();
   requestPoints();
 
   setInterval(function() {
@@ -694,6 +739,7 @@ var initialize = function(){
     ANIMATION_INTERVAL
   );
 };
+
 
 var toDataURL = function() {
   // Use static google maps API to save map.
@@ -717,19 +763,130 @@ var toDataURL = function() {
   return {map_src: requestUrl, overlay: scattermatrix.toDataURL()};
 };
 
+
 var setupGallery = function() {
   // Sets up gallery.
-  gallery = new Gallery('#gallery_items', toDataURL);
+  if (RECORD_IMAGES) {
+    gallery = new SnapshotRecorder('#gallery_items', toDataURL);
+  } else {
+    gallery = new Gallery('#gallery_items', toDataURL);
+  }
 };
 
 
 var setupPlots = function() {
   requestPointsSummaryData();
-  requestIdsSamplesCountData();
+  //requestIdsSamplesCountData();
 }
   
 
+var getDataForDay = function(date) {
+  // Keeps entries for this date.
+  var dateFormat = d3.time.format('%Y-%m-%d');
+  return pointsSummaryData.filter(function(d) {
+    return date == dateFormat(d[0]);
+  });
+};
+
+
+var onCalendarDayClick = function(date, value) {
+  gallery.addEntry({
+    date: date,
+    data: getDataForDay(date)
+  });
+};
+
+
+var onCalendarDayMouseOver = function(date, value) {
+  var container = d3.select('#day_small_multiples_container');
+  container.attr('visibility', 'visible');
+
+  // Updates title with date and number of samples.
+  container.select('.day_title')
+    .text(date + ' - ' + value + ' samples');
+
+  // Updates thumbnails for different times of day.
+  var THUMB_W_H = 90;
+
+  var currentTime = d3.time.format("%Y-%m-%d").parse(date).getTime() / 1000;
+  var elapsedDays = (currentTime - ANIM_TS_INITIAL) / 86400;
+  var numberOfThumbs = gallery.getNumberOfThumbs.call(gallery);
+  var index = elapsedDays * gallery.getNumberOfThumbs.call(gallery);
+  var thumbIndices = d3.range(index, index + numberOfThumbs);
+
+  var thumbs_bg =
+    container.selectAll('image.thumb_bg').data(thumbIndices)
+  thumbs_bg.enter()
+    .append('image')
+    .classed('thumb_bg', true)
+    .attr('width', THUMB_W_H)
+    .attr('height', THUMB_W_H)
+    .attr('x', function(imageIndex, i) {
+      var column = i % (numberOfThumbs / 2);
+      return 1 + 91 * column;
+    })
+    .attr('y', function(imageIndex, i) {
+      var row = Math.floor(2 * i / numberOfThumbs);
+      return 28 + 91 * row;
+    })
+    .attr('xlink:href', gallery.getPathToEmptyMap(currentCityIndex));
+
+  var thumbs_fg =
+    container.selectAll('image.thumb_fg').data(thumbIndices)
+  thumbs_fg.enter()
+    .append('image')
+    .classed('thumb_fg', true)
+    .attr('width', THUMB_W_H)
+    .attr('height', THUMB_W_H)
+    .attr('x', function(imageIndex, i) {
+      var column = i % (numberOfThumbs / 2);
+      return 1 + 91 * column;
+    })
+    .attr('y', function(imageIndex, i) {
+      var row = Math.floor(2 * i / numberOfThumbs);
+      return 28 + 91 * row;
+    });
+  thumbs_fg.attr('xlink:href', function(imageIndex, i) {
+      // If number of samples is zero, shows empty thumbnail.
+      if (value == 0) {
+        return gallery.getPathToEmptyMap(currentCityIndex);
+      } else {
+        // TODO might have to update thumbs in calendar when changed city.
+        return gallery.getPathToThumbs(currentCityIndex) + imageIndex + '.jpg';
+      }
+  });
+
+
+  // Shows line chart for this day.
+  var options = {
+    width: 600,
+    height: 130,
+    useTimeScaleForX: true,
+    yAxisTitle: 'Samples',
+    xTicks: 8,
+    yTicks: 3,
+    margin: {top: 30, right: 10, bottom: 30, left: 80},
+    title: date + ' - ' + value + ' samples',
+    tooltipXFormat: d3.time.format('%I:%M%p'),
+    tooltipYFormat: function(v) { return d3.format('f')(v) + ' samples';},
+  };
+  new LineChart(
+    '#day_line_chart_container',
+    getDataForDay(date),
+    options);
+};
+
+
+var onCalendarDayMouseOut = function(date, value) {
+//  d3.select('#day_small_multiples_container').attr('visibility', 'hidden');
+//  d3.select('#day_line_chart_container .line_chart').attr('visibility', 'hidden');
+};
+
+
 var createCalendar = function() {
+  // Removes calendar, in case it already existed (when city changed).
+  d3.selectAll('#calendar svg').remove();
+
   // Summarizes values by date.
   var pointsByDate = {};
   var dateFormat = d3.time.format('%Y-%m-%d');
@@ -738,8 +895,7 @@ var createCalendar = function() {
     var ts = entry[0];
     var entryNumberOfPoints = entry[1];
 
-    var date = new Date(0);
-    date.setSeconds(ts);
+    var date = createDateFromTimestampInMinutes(ts);
     date.setHours(0, 0, 0);
 
     var dateIndex = dateFormat(date);
@@ -756,32 +912,39 @@ var createCalendar = function() {
   // Creates calendar.
   var options = {
     cellWidth: 20,
-    cellHeight: 20,
+    cellHeight: 25,
     paddingX: 25,
     paddingY: 20,
     cellTextFormatter: function(date, value) {
       return date + ': ' + value + ' samples';
     },
-    colors: getColorsForColorScale()
+    colors: getColorsForCalendarColorScale(),
+    onClick: onCalendarDayClick,
+    onMouseOver: onCalendarDayMouseOver,
+    onMouseOut: onCalendarDayMouseOut
   };
-  calendar = new Calendar('#calendar_container', dateEntries, options);
+  calendar = new Calendar('#calendar', dateEntries, options);
 };
 
 var createPointsSummaryChart = function() {
+  // Removes chart, in case it already existed (when city changed).
+  d3.selectAll('#points_summary_chart_container svg').remove();
+
   // Converts ts to date.
   pointsSummaryData.forEach(function(d) {
-    var date = new Date(0);
-    date.setSeconds(d[0]);
+    var date = createDateFromTimestampInMinutes(d[0]);
     d[0] = date;
   });
   var options = {
-    width: 640,
+    width: 620,
     height: 100,
     useTimeScaleForX: true,
     yAxisTitle: 'Samples',
-    xTicks: 8,
+    xTicks: 7,
     yTicks: 3,
-    margin: {top: 10, right: 20, bottom: 30, left: 80}
+    margin: {top: 10, right: 0, bottom: 30, left: 80},
+    tooltipXFormat: d3.time.format('%m/%d %I:%M%p'),
+    tooltipYFormat: function(v) { return d3.format('f')(v) + ' samples';},
   };
   pointsSummaryChart = new LineChart(
     '#points_summary_chart_container',
@@ -797,7 +960,9 @@ var createIdsSampleCountSummaryChart = function() {
     yAxisTitle: 'Users',
     yTicks: 3,
     height: 300,
-    title: 'Samples per users'
+    title: 'Samples per users',
+    tooltipXFormat: d3.format('f'),
+    tooltipYFormat: function(v) { return d3.format('f')(v) + ' samples';},
   };
   new LineChart(
     '#ids_samples_count_chart_container',

@@ -15,7 +15,7 @@ var Calendar = function(containerId, data, options) {
       cellHeight = options.cellHeight || 17,
       paddingX = options.paddingX || 25,
       paddingY = options.paddingY || 20,
-      width = numberOfWeeks * cellWidth + 2 * paddingX,
+      width = numberOfWeeks * cellWidth + paddingX,
       height = cellHeight * DAYS_IN_A_WEEK + paddingY;
 
   // Formatters.
@@ -115,7 +115,7 @@ var Calendar = function(containerId, data, options) {
       .append('text')
       .classed('dayOfWeekTitle', true)
       .attr('x', -paddingX)
-      .attr('y', function(d, i) { return cellWidth * (0.7 + i); } )
+      .attr('y', function(d, i) { return cellHeight * (0.7 + i); } )
       .text(function(d) { return d; });
 
   this.nestedData = d3.nest()
@@ -139,6 +139,7 @@ var Calendar = function(containerId, data, options) {
       // TODO Maybe should not filter, but apply to all dates.
       return date in that.nestedData;
     })
+    .style('fill-opacity', '1')
     .style('fill', function(date) {
       var value = that.nestedData[date];
       var color = that.colorScale(value);
@@ -148,16 +149,30 @@ var Calendar = function(containerId, data, options) {
       }
       return color; 
     })
-    .on('click', function(date, i) {
-      if (options.onClick) {
-        var value = that.nestedData[date];
-        options.onClick(date, value);
-      }
-    })
     .select('title')
     .text(function(date) {
       return cellTextFormatter(date, that.nestedData[date]);
     });
+
+  // Mouse events.
+  rect.on('mouseover', function(date, i) {
+      if (options.onMouseOver) {
+        var value = date in that.nestedData ? that.nestedData[date] : 0;
+        options.onMouseOver(date, value);
+      }
+    })
+    .on('click', function(date, i) {
+      if (options.onClick) {
+        var value = date in that.nestedData ? that.nestedData[date] : 0;
+        options.onClick(date, value);
+      }
+    })
+    .on('mouseout', function(date, i) {
+      if (options.onMouseOut) {
+        var value = date in that.nestedData ? that.nestedData[date] : 0;
+        options.onMouseOut(date, value);
+      }
+  });
 
   function monthPath(t0) {
     var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),

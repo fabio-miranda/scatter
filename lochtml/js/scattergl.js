@@ -11,7 +11,7 @@ function endtime(gl){
   var pixelValues = new Uint8Array(4 * 1);
   gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
   
-  console.log(window.performance.now() - now);
+  //console.log(window.performance.now() - now);
 }
 
 function SelectionQuad(gl){

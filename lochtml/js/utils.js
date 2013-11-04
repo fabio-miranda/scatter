@@ -34,9 +34,11 @@ Utils.prototype.hideTooltip = function() {
 };
 
 
-Utils.prototype.updateTooltip = function(text) {
+Utils.prototype.updateTooltip = function(text, opt_x, opt_y) {
+  var x = opt_x || d3.event.pageX + 5;
+  var y = opt_y || d3.event.pageY - 12;
   this.tooltipDiv
       .text(text)
-      .style('left', (d3.event.pageX + 5) + 'px')
-      .style('top', (d3.event.pageY - 12) + 'px');
+      .style('left', x + 'px')
+      .style('top',  y + 'px');
 };
