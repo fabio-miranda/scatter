@@ -107,7 +107,7 @@ function points(gl, hasTexture){
   this.hasTexture = hasTexture;
 
   this.pointsBuffer = gl.createBuffer();
-  this.pointsBuffer.itemSize = 2;
+  this.pointsBuffer.itemSize = 3;
   /*
   if(this.hasTexture){
     //tex coord
@@ -132,20 +132,28 @@ function points(gl, hasTexture){
 
 }
 
-points.prototype.add = function(x, y, group){
+points.prototype.add = function(x, y, group, value){
 
   if(this.array[group] == null)
     this.array[group] = [];
   
   this.array[group].push(x);
   this.array[group].push(y);
+  this.array[group].push(value);
 
-  this.numrasterpoints+=1.0;
+  this.numrasterpoints+=value;
+}
 
-  //TODO: optimize? Do we really need to call bufferData for every point inserted?
-  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.pointsBuffer);
-  this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.array[group]), this.gl.DYNAMIC_DRAW);
-  //this.gl.bindBuffer(this.gl.ARRAY_BUFFER, 0);
+points.prototype.updateBuffer = function() {
+  for (var group in this.array) {
+    //TODO: optimize? Do we really need to call bufferData for every point inserted?
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.pointsBuffer);
+    this.gl.bufferData(
+      this.gl.ARRAY_BUFFER,
+      new Float32Array(this.array[group]),
+      this.gl.DYNAMIC_DRAW);
+    //this.gl.bindBuffer(this.gl.ARRAY_BUFFER, 0);
+  }
 }
 
 points.prototype.reset = function(){
@@ -167,7 +175,7 @@ points.prototype.draw = function(shaderProgram, mvMatrix, pMatrix, group, tex0, 
 
   //TODO: optimize? Do we really need to call bufferData for every point inserted?
   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.pointsBuffer);
-  var numpoints = this.array[group].length / 2;
+  var numpoints = this.array[group].length / 3;
   this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.array[group]), this.gl.DYNAMIC_DRAW);
 
   //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
@@ -378,3 +386,189 @@ quad.prototype.draw = function(shaderProgram, mvMatrix, pMatrix, tex0, tex1, tex
 
 }
 
+
+function reduction(gl, inittexsize){
+  this.gl = gl;
+  this.inittexsize = inittexsize;
+  this.numtex = (Math.log(this.inittexsize))/(Math.log(2))
+  this.quad = new quad(this.gl, true);
+  this.tex = [];
+  this.fbo = [];
+  this.mvMatrix = mat4.create();
+  this.pMatrix = mat4.create();
+  mat4.identity(this.mvMatrix);
+  mat4.ortho(this.pMatrix, 0, 1, 0, 1, 0, 1);
+
+  //fbo and tex
+  var size = inittexsize;
+  for(var i=0; i<this.numtex; i++){
+    size = size / 2;
+    this.tex[i] = this.gl.createTexture();
+    this.fbo[i] = this.gl.createFramebuffer();
+    createFBO(this.gl, this.gl.NEAREST, size, size, this.gl.RGBA, this.gl.RGBA, this.gl.FLOAT, this.tex[i], this.fbo[i]);
+  }
+
+  //unsigned byte tex and fbo
+  this.finaltex = this.gl.createTexture();
+  this.finalfbo = this.gl.createFramebuffer();
+  createFBO(this.gl, this.gl.NEAREST, 1, 1, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.finaltex, this.finalfbo);
+
+  //min reduce shader
+  var fragmentShader = getShader(this.gl, "./js/glsl/reduce_min.frag", true);
+  var vertexShader = getShader(this.gl, "./js/glsl/reduce.vert", false);
+
+  this.reduceMinShader = this.gl.createProgram();
+  this.gl.attachShader(this.reduceMinShader, vertexShader);
+  this.gl.attachShader(this.reduceMinShader, fragmentShader);
+  this.gl.linkProgram(this.reduceMinShader);
+
+  if (!this.gl.getProgramParameter(this.reduceMinShader, this.gl.LINK_STATUS)) {
+    alert("Could not initialise shaders");
+  }
+
+  this.gl.useProgram(this.reduceMinShader);
+
+  this.reduceMinShader.vertexPositionAttribute = this.gl.getAttribLocation(this.reduceMinShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.reduceMinShader.vertexPositionAttribute);
+
+  this.reduceMinShader.textureCoordAttribute = this.gl.getAttribLocation(this.reduceMinShader, "aTexCoord");
+  this.gl.enableVertexAttribArray(this.reduceMinShader.textureCoordAttribute);
+
+  this.reduceMinShader.dt = this.gl.getUniformLocation(this.reduceMinShader, 'uDt');
+  this.reduceMinShader.sampler0 = this.gl.getUniformLocation(this.reduceMinShader, "uSampler0");
+
+  this.reduceMinShader.pMatrixUniform = this.gl.getUniformLocation(this.reduceMinShader, "uPMatrix");
+  this.reduceMinShader.mvMatrixUniform = this.gl.getUniformLocation(this.reduceMinShader, "uMVMatrix");
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  this.gl.disableVertexAttribArray(this.reduceMinShader.vertexPositionAttribute);
+  this.gl.disableVertexAttribArray(this.reduceMinShader.textureCoordAttribute);
+
+  this.gl.useProgram(null);
+
+  //max reduce shader
+  var fragmentShader = getShader(this.gl, "./js/glsl/reduce_max.frag", true);
+  var vertexShader = getShader(this.gl, "./js/glsl/reduce.vert", false);
+
+  this.reduceMaxShader = this.gl.createProgram();
+  this.gl.attachShader(this.reduceMaxShader, vertexShader);
+  this.gl.attachShader(this.reduceMaxShader, fragmentShader);
+  this.gl.linkProgram(this.reduceMaxShader);
+
+  if (!this.gl.getProgramParameter(this.reduceMaxShader, this.gl.LINK_STATUS)) {
+    alert("Could not initialise shaders");
+  }
+
+  this.gl.useProgram(this.reduceMaxShader);
+
+  this.reduceMaxShader.vertexPositionAttribute = this.gl.getAttribLocation(this.reduceMaxShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.reduceMaxShader.vertexPositionAttribute);
+
+  this.reduceMaxShader.textureCoordAttribute = this.gl.getAttribLocation(this.reduceMaxShader, "aTexCoord");
+  this.gl.enableVertexAttribArray(this.reduceMaxShader.textureCoordAttribute);
+
+  this.reduceMaxShader.dt = this.gl.getUniformLocation(this.reduceMaxShader, 'uDt');
+  this.reduceMaxShader.sampler0 = this.gl.getUniformLocation(this.reduceMaxShader, "uSampler0");
+
+  this.reduceMaxShader.pMatrixUniform = this.gl.getUniformLocation(this.reduceMaxShader, "uPMatrix");
+  this.reduceMaxShader.mvMatrixUniform = this.gl.getUniformLocation(this.reduceMaxShader, "uMVMatrix");
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  this.gl.disableVertexAttribArray(this.reduceMaxShader.vertexPositionAttribute);
+  this.gl.disableVertexAttribArray(this.reduceMaxShader.textureCoordAttribute);
+
+  this.gl.useProgram(null);
+
+  //encode shader
+  var fragmentShader = getShader(this.gl, "./js/glsl/encode.frag", true);
+  var vertexShader = getShader(this.gl, "./js/glsl/encode.vert", false);
+
+  this.encodeShader = this.gl.createProgram();
+  this.gl.attachShader(this.encodeShader, vertexShader);
+  this.gl.attachShader(this.encodeShader, fragmentShader);
+  this.gl.linkProgram(this.encodeShader);
+
+  if (!this.gl.getProgramParameter(this.encodeShader, this.gl.LINK_STATUS)) {
+    alert("Could not initialise shaders");
+  }
+
+  this.gl.useProgram(this.encodeShader);
+
+  this.encodeShader.vertexPositionAttribute = this.gl.getAttribLocation(this.encodeShader, "aVertexPosition");
+  this.gl.enableVertexAttribArray(this.encodeShader.vertexPositionAttribute);
+
+  this.encodeShader.textureCoordAttribute = this.gl.getAttribLocation(this.encodeShader, "aTexCoord");
+  this.gl.enableVertexAttribArray(this.encodeShader.textureCoordAttribute);
+
+  this.encodeShader.sampler0 = this.gl.getUniformLocation(this.encodeShader, "uSampler0");
+
+  this.encodeShader.pMatrixUniform = this.gl.getUniformLocation(this.encodeShader, "uPMatrix");
+  this.encodeShader.mvMatrixUniform = this.gl.getUniformLocation(this.encodeShader, "uMVMatrix");
+
+  //see: http://www.mjbshaw.com/2013/03/webgl-fixing-invalidoperation.html
+  this.gl.disableVertexAttribArray(this.encodeShader.vertexPositionAttribute);
+  this.gl.disableVertexAttribArray(this.encodeShader.textureCoordAttribute);
+
+  this.gl.useProgram(null);
+
+}
+
+
+reduction.prototype.reduceStep = function(tex, shader){
+
+  var size = this.inittexsize;
+  for(var i=0; i<this.numtex; i++){
+    size = size / 2.0;
+
+    this.gl.useProgram(shader);
+
+    this.gl.uniform1f(shader.dt, 0.5 / size);
+
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fbo[i]);
+    this.gl.viewport(0, 0, size, size);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    if(i > 0){
+      this.quad.draw(shader, this.mvMatrix, this.pMatrix, this.tex[i-1]);
+    }
+    else{
+      this.quad.draw(shader, this.mvMatrix, this.pMatrix, tex);
+    }
+
+    this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+    this.gl.useProgram(null);
+  }
+
+  //last step: encode float texture into a unsigned byte texture
+  this.gl.useProgram(this.encodeShader);
+  this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.finalfbo);
+  this.gl.viewport(0, 0, 1, 1);
+  this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  this.quad.draw(this.encodeShader, this.mvMatrix, this.pMatrix, this.tex[this.numtex-1]);
+  this.gl.bindFramebuffer( this.gl.FRAMEBUFFER, null );
+  this.gl.useProgram(null);
+
+  //Webgl does not support readback from a floating texture
+  //See: http://concord-consortium.github.io/lab/experiments/webgl-gpgpu/webgl.html
+  this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.finalfbo);
+  outputStorage = new Uint8Array(1 * 1 * 4);
+  this.gl.readPixels(0, 0, 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, outputStorage);
+  this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+
+
+  outputConverted = new Float32Array(outputStorage.buffer);
+
+  //console.log(outputConverted[0]);
+
+  return outputConverted[0];
+
+}
+
+reduction.prototype.reduce = function(tex){
+  //var min = this.reduceStep(tex, this.reduceMinShader);
+  var max = this.reduceStep(tex, this.reduceMaxShader);
+
+  //console.log(min, max);
+
+  return [0, max];
+}

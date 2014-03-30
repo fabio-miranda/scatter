@@ -8,6 +8,7 @@ function ColorScale(canvas){
   this.mvMatrix = mat4.create();
   this.pMatrix = mat4.create();
   this.devicePixelRatio = 1;
+  this.FIRST_VALID_COLOR_SCALE_VALUE = 0;
 
   this.texsize = 1024;
   this.texture = null;
@@ -39,13 +40,14 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
   }
 
   if(isAlphaLinear){
-    scaleAlpha = d3.scale.linear()
+    scaleAlpha = d3.scale.linear() //d3.scale.pow().exponent(0.7)
       .domain(domain);
   }
   else{
     scaleAlpha = d3.scale.quantize() //quantize only takes two numbers as domain
       .domain([0,this.texsize]);
   }
+
 
   scaleColor.range(values);
   scaleAlpha.range(d3.range(0, 255+255.0/(values.length), 255.0/(values.length)));
@@ -82,14 +84,14 @@ ColorScale.prototype.setValues = function(values, isColorLinear, isAlphaLinear, 
     
   }
 
-  for(var i=0; i<10; i++){
+  for(var i=0; i< this.FIRST_VALID_COLOR_SCALE_VALUE; i++){
     this.texdata[4*i] = 255;
     this.texdata[4*i+1] = 255;
     this.texdata[4*i+2] = 255;
     this.texdata[4*i+3] = 0;
   }
 
-  //console.log(texData);
+  console.log(this.texdata);
 
   this.texture = this.gl.createTexture();
   createTextureFromArray(this.gl, this.gl.NEAREST, this.texsize, 1, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.texdata, this.texture);

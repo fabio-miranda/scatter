@@ -1,5 +1,23 @@
 // This product includes color specifications and designs developed by Cynthia Brewer (http://colorbrewer.org/).
 var colorbrewer = {
+YlOrBr: {
+3: ["#fff7bc","#fec44f","#d95f0e"],
+4: ["#ffffd4","#fed98e","#fe9929","#cc4c02"],
+5: ["#ffffd4","#fed98e","#fe9929","#d95f0e","#993404"],
+6: ["#ffffd4","#fee391","#fec44f","#fe9929","#d95f0e","#993404"],
+7: ["#ffffd4","#fee391","#fec44f","#fe9929","#ec7014","#cc4c02","#8c2d04"],
+8: ["#ffffe5","#fff7bc","#fee391","#fec44f","#fe9929","#ec7014","#cc4c02","#8c2d04"],
+9: ["#ffffe5","#fff7bc","#fee391","#fec44f","#fe9929","#ec7014","#cc4c02","#993404","#662506"]
+},
+Blues: {
+3: ["#deebf7","#9ecae1","#3182bd"],
+4: ["#eff3ff","#bdd7e7","#6baed6","#2171b5"],
+5: ["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"],
+6: ["#eff3ff","#c6dbef","#9ecae1","#6baed6","#3182bd","#08519c"],
+7: ["#eff3ff","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#084594"],
+8: ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#084594"],
+9: ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"]
+},
 RdYlBu: {
 3: ["#fc8d59","#ffffbf","#91bfdb"],
 4: ["#d7191c","#fdae61","#abd9e9","#2c7bb6"],
@@ -10,15 +28,8 @@ RdYlBu: {
 9: ["#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4"],
 10: ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"],
 11: ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]
-},Blues: {
-3: ["#deebf7","#9ecae1","#3182bd"],
-4: ["#eff3ff","#bdd7e7","#6baed6","#2171b5"],
-5: ["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"],
-6: ["#eff3ff","#c6dbef","#9ecae1","#6baed6","#3182bd","#08519c"],
-7: ["#eff3ff","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#084594"],
-8: ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#084594"],
-9: ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"]
-},Spectral: {
+},
+Spectral: {
 3: ["#fc8d59","#ffffbf","#99d594"],
 4: ["#d7191c","#fdae61","#abdda4","#2b83ba"],
 5: ["#d7191c","#fdae61","#ffffbf","#abdda4","#2b83ba"],
@@ -28,9 +39,11 @@ RdYlBu: {
 9: ["#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd"],
 10: ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"],
 11: ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
-},BlackToWhite: {
+},
+BlackToWhite: {
 3: ["#000000", "#7F7F7F", "#ffffff"]
-},YlGn: {
+},
+YlGn: {
 3: ["#f7fcb9","#addd8e","#31a354"],
 4: ["#ffffcc","#c2e699","#78c679","#238443"],
 5: ["#ffffcc","#c2e699","#78c679","#31a354","#006837"],
@@ -38,7 +51,8 @@ RdYlBu: {
 7: ["#ffffcc","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#005a32"],
 8: ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#005a32"],
 9: ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"]
-},YlGnBu: {
+},
+YlGnBu: {
 3: ["#edf8b1","#7fcdbb","#2c7fb8"],
 4: ["#ffffcc","#a1dab4","#41b6c4","#225ea8"],
 5: ["#ffffcc","#a1dab4","#41b6c4","#2c7fb8","#253494"],
@@ -110,7 +124,8 @@ RdYlBu: {
 7: ["#fef0d9","#fdd49e","#fdbb84","#fc8d59","#ef6548","#d7301f","#990000"],
 8: ["#fff7ec","#fee8c8","#fdd49e","#fdbb84","#fc8d59","#ef6548","#d7301f","#990000"],
 9: ["#fff7ec","#fee8c8","#fdd49e","#fdbb84","#fc8d59","#ef6548","#d7301f","#b30000","#7f0000"]
-},YlOrRd: {
+},
+YlOrRd: {
 3: ["#ffeda0","#feb24c","#f03b20"],
 4: ["#ffffb2","#fecc5c","#fd8d3c","#e31a1c"],
 5: ["#ffffb2","#fecc5c","#fd8d3c","#f03b20","#bd0026"],
@@ -118,15 +133,8 @@ RdYlBu: {
 7: ["#ffffb2","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#b10026"],
 8: ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#b10026"],
 9: ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"]
-},YlOrBr: {
-3: ["#fff7bc","#fec44f","#d95f0e"],
-4: ["#ffffd4","#fed98e","#fe9929","#cc4c02"],
-5: ["#ffffd4","#fed98e","#fe9929","#d95f0e","#993404"],
-6: ["#ffffd4","#fee391","#fec44f","#fe9929","#d95f0e","#993404"],
-7: ["#ffffd4","#fee391","#fec44f","#fe9929","#ec7014","#cc4c02","#8c2d04"],
-8: ["#ffffe5","#fff7bc","#fee391","#fec44f","#fe9929","#ec7014","#cc4c02","#8c2d04"],
-9: ["#ffffe5","#fff7bc","#fee391","#fec44f","#fe9929","#ec7014","#cc4c02","#993404","#662506"]
-},Purples: {
+},
+Purples: {
 3: ["#efedf5","#bcbddc","#756bb1"],
 4: ["#f2f0f7","#cbc9e2","#9e9ac8","#6a51a3"],
 5: ["#f2f0f7","#cbc9e2","#9e9ac8","#756bb1","#54278f"],
