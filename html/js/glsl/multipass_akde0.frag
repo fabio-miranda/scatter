@@ -27,7 +27,9 @@ const float std = 1.0;
 //const float maxvalue = 1.0;
 
 float gauss(float r){
-  return 0.3989422804 * exp( 25.0 * (- r*r) / 2.0);
+  return 0.3989422804 * exp( -0.5 * (r*r));
+  //return 0.3989422804 * exp( (- r*r) / 2.0);
+  //return exp( -0.5 *  r*r );
   //return (1.0 / (sqrt(6.28318530718 * std * std))) * exp(- (r*r) / (2.0 * std * std) );
 }
 
@@ -43,6 +45,7 @@ void main(void) {
 
   float count;
   count = texture2D(uSamplerCount, coord2D).r;
+  float original = texture2D(uSamplerCount, coord2D).g;
   if(uIsFirstPass > 0.0 && uUseStreaming <= 0.0)
     count = count * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
@@ -53,9 +56,9 @@ void main(void) {
   //float W = 0.0;
   float numpoints = 0.0;
   for(int i=0;i<maxloop; i++){
-    if(i >= int(uWindowSize)) break;
+    if(i >= int(uWindowSize*2.0)) break;
 
-    int index = i - int(uWindowSize)/2;
+    int index = i - int(uWindowSize*2.0)/2;
     coord2D = vec2(vTexCoord.x + uIsFirstPass * (float(index) / uNumBins), vTexCoord.y + (1.0 - uIsFirstPass) * (float(index) / uNumBins)); //make sure to access not the next texel, but the next bin
 
     float value;
@@ -75,7 +78,9 @@ void main(void) {
         counti = counti * (uMaxCountValue - uMinCountValue) + uMinCountValue;
 
       //float gaus = gauss((float(index) / uNumBins) * oneoverh);
-      float gaus = gauss(0.0 * oneoverh);
+      float gaus = (1.0 / h) * gauss(0.0 * oneoverh);
+      //float gaus = (1.0 / h) * gauss((float(index) / (uWindowSize)) / h); //CESAR
+      //float gaus = (1.0 / (h)) * gauss((float(index) / uNumBins) / h); //CESAR
       float k = counti * gaus;
 
       f += k;
@@ -86,6 +91,7 @@ void main(void) {
   
   //f = f / h;
   if(uIsFirstPass > 0.0){
+    //gl_FragColor = vec4(f / uNumPoints, original, 0, 1);
     gl_FragColor = vec4(f);
   }
   else{
@@ -94,13 +100,16 @@ void main(void) {
     //f = (1.0 / (uNumPoints*h*h)) * f;
     //f = (1.0 / (50.0*h)) * f;
     //f = f/0.3989422804;
-    f = f / uNumPoints;
-    f = f * 100.0;
+    //f = f / uNumPoints;
+    //f = f * 100.0;
     //f = f / 10.0;
     //f = f / uNumPoints;
     //vec3 color = texture2D(uSamplerColorScale, vec2(f, 0)).xyz;
     //gl_FragColor = vec4(color.xyz, 1);
-    gl_FragColor = vec4(f);
+    //gl_FragColor = vec4(f / uNumPoints, original, 0, 1);
+    //f = log(f);
+    //gl_FragColor = vec4(sqrt(f / uNumPoints));
+    gl_FragColor = vec4(f / uNumPoints);
   }
 
 }

@@ -10,6 +10,8 @@ uniform float uUseDensity;
 uniform float uContour;
 uniform float uPassValue;
 uniform float uNumPassValues;
+uniform float uMaxf;
+uniform float uMinf;
 uniform sampler2D uSamplerF;
 uniform sampler2D uSamplerColorScale;
 uniform sampler2D uSamplerFinal;
@@ -18,20 +20,26 @@ uniform sampler2D uSamplerFinal;
 void main(void) {
 
   vec2 coord = vTexCoord.xy;
-  float f = texture2D(uSamplerF, coord).r;
+  float f = (texture2D(uSamplerF, coord).r - uMinf) / (uMaxf - uMinf);
   vec4 newcolor;
 
   if(uUseDensity > 0.0){
-    newcolor = texture2D(uSamplerColorScale, vec2(f, 0));
+    newcolor = texture2D(uSamplerColorScale, vec2(sqrt(f), 0));
+
+    //if(newcolor.a < 0.1)
+    //newcolor.a = sqrt(newcolor.a);
+
     newcolor.a *= uAlphaMultiplier;
     newcolor.a = clamp(newcolor.a, 0.0,1.0);
+    newcolor.a *= 0.9;
     gl_FragColor = vec4(newcolor.rgb*newcolor.a, newcolor.a); //TODO: multiply color by alpha?
 
     //Density uses rgb to calculate the df. Groups use alpha.
     //Set the density alpha to 0 so it doesnt affect the df calculation
-    newcolor.a = 0.0;
+    //newcolor.a = 0.0;
 
     //gl_FragColor = vec4(1, 0, 0, 1);
+    return;
 		
   }
   else{
@@ -53,22 +61,22 @@ void main(void) {
     gl_FragColor = finalcolor;
   }
   
-  float fnextx = texture2D(uSamplerF, coord + vec2(uContourWidth/uNumBins, 0.0)).r;
-  float fnexty = texture2D(uSamplerF, coord + vec2(0.0, uContourWidth/uNumBins)).r;
-  float fprevx = texture2D(uSamplerF, coord - vec2(0.0, uContourWidth/uNumBins)).r;
-  float fprevy = texture2D(uSamplerF, coord - vec2(uContourWidth/uNumBins, 0.0)).r;
+  float fnextx = texture2D(uSamplerF, coord + vec2(1.0/uNumBins, 0.0)).r / uMaxf;
+  float fnexty = texture2D(uSamplerF, coord + vec2(0.0, 1.0/uNumBins)).r / uMaxf;
+  float fprevx = texture2D(uSamplerF, coord - vec2(0.0, 1.0/uNumBins)).r / uMaxf;
+  float fprevy = texture2D(uSamplerF, coord - vec2(1.0/uNumBins, 0.0)).r / uMaxf;
   vec4 colornextx = texture2D(uSamplerColorScale, vec2(fnextx, 0)).rgba;
   vec4 colornexty = texture2D(uSamplerColorScale, vec2(fnexty, 0)).rgba;
   vec4 colorprevx = texture2D(uSamplerColorScale, vec2(fprevx, 0)).rgba;
   vec4 colorprevy = texture2D(uSamplerColorScale, vec2(fprevy, 0)).rgba;
-  vec4 dfnextx = abs(newcolor.rgba - colornextx.rgba);
-  vec4 dfnexty = abs(newcolor.rgba - colornexty.rgba);
-  vec4 dfprevx = abs(newcolor.rgba - colorprevx.rgba);
-  vec4 dfprevy = abs(newcolor.rgba - colorprevy.rgba);
-  if(dfnextx.r*dfnextx.g*dfnextx.b*dfnextx.a > 0.0
-  	 || dfprevx.r*dfprevx.g*dfprevx.b*dfprevx.a > 0.0
-  	 || dfnexty.r*dfnexty.g*dfnexty.b*dfnexty.a > 0.0
-  	 || dfprevy.r*dfprevy.g*dfprevy.b*dfprevy.a > 0.0)
+  float dfnextx = distance(newcolor.rgb, colornextx.rgb);
+  float dfnexty = distance(newcolor.rgb, colornexty.rgb);
+  float dfprevx = distance(newcolor.rgb, colorprevx.rgb);
+  float dfprevy = distance(newcolor.rgb, colorprevy.rgb);
+  if(dfnextx > 0.1
+  || dfprevx > 0.1
+  || dfnexty > 0.1
+  || dfprevy > 0.1)
   	gl_FragColor = vec4(0,0,0,1.0);
 	
 }

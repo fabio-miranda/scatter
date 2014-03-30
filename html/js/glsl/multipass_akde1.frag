@@ -56,12 +56,18 @@ void main(void) {
       if(coord2D.x >= 0.0 && coord2D.y >= 0.0 && coord2D.x <= 1.0 && coord2D.y <= 1.0){ //TODO: use clamp_to_border, instead of this if
 
         //mean *= valuesij.g;
-        mean += log(valuesij.g);
-        n++;
+        if(valuesij.g > 0.0){
+          mean += log(valuesij.g);
+          n++;
+        }
       }
 
     }
   }
+
+
+  gl_FragColor = vec4(mean, n, 0.0, 1.0);
+  return;
 
   mean = exp(mean / n);
 
